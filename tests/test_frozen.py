@@ -7,7 +7,7 @@ from basicco.frozen import FROZEN_SLOT, frozen, FrozenMeta
 
 def test_frozen_cls():
 
-    @frozen(cls=True, obj=False)
+    @frozen(classes=True, instances=False)
     class Frozen(with_metaclass(FrozenMeta, object)):
         pass
 
@@ -17,7 +17,7 @@ def test_frozen_cls():
 
 def test_frozen_obj():
 
-    @frozen(cls=False, obj=True)
+    @frozen(classes=False, instances=True)
     class Frozen(with_metaclass(FrozenMeta, object)):
 
         def __init__(self):
@@ -32,7 +32,7 @@ def test_frozen_obj():
 
 def test_frozen_slotted_obj():
 
-    @frozen(cls=False, obj=True)
+    @frozen(classes=False, instances=True)
     class Frozen(with_metaclass(FrozenMeta, object)):
         __slots__ = (FROZEN_SLOT, "attr")
 

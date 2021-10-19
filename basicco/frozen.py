@@ -21,9 +21,9 @@ FROZEN_SLOT = "__isfrozeninstance__"
 
 @overload
 def frozen(
-    base,
-    cls=None,
-    obj=None,
+    cls,
+    classes=None,
+    instances=None,
 ):
     # type: (FMT, Literal[None], Literal[None]) -> FMT
     pass
@@ -31,50 +31,50 @@ def frozen(
 
 @overload
 def frozen(
-    base=None,  # type: Literal[None]
-    cls=None,  # type: Optional[bool]
-    obj=None,  # type: Optional[bool]
+    cls=None,  # type: Literal[None]
+    classes=None,  # type: Optional[bool]
+    instances=None,  # type: Optional[bool]
 ):
     # type: (...) -> Callable[[FMT], FMT]
     pass
 
 
-def frozen(base=None, cls=None, obj=None):
+def frozen(cls=None, classes=None, instances=None):
     """
     Class decorator that can prevent modifying class and/or instance attributes.
 
-    :param base: Class to be decorated.
+    :param cls: Class to be decorated.
 
-    :param cls: Whether to freeze class attributes.
-    :type cls: bool or None
+    :param classes: Whether to freeze class and subclasses attributes.
+    :type classes: bool or None
 
-    :param obj: Whether to freeze instance attributes.
-    :type obj: bool or None
+    :param instances: Whether to freeze instance attributes.
+    :type instances: bool or None
 
     :return: Decorated class.
     """
 
-    cls = True if cls is None else bool(cls)
-    obj = True if obj is None else bool(obj)
+    classes = True if classes is None else bool(classes)
+    instances = True if instances is None else bool(instances)
 
-    def decorator(_base):
+    def decorator(_cls):
         # type: (FMT) -> FMT
 
-        if not isinstance(_base, FrozenMeta):
+        if not isinstance(_cls, FrozenMeta):
             error_ = "can't use 'frozen' decorator with non-{} class {}".format(
-                FrozenMeta.__name__, repr(_base.__name__)
+                FrozenMeta.__name__, repr(_cls.__name__)
             )
             raise TypeError(error_)
 
-        type.__setattr__(_base, _FROZEN_CLASS_TAG, cls)
-        type.__setattr__(_base, _FROZEN_OBJECT_TAG, obj)
+        type.__setattr__(_cls, _FROZEN_CLASS_TAG, classes)
+        type.__setattr__(_cls, _FROZEN_OBJECT_TAG, instances)
 
-        if cls:
-            type.__setattr__(_base, _FROZEN_CLASS_INSTANCE_TAG, True)
+        if classes:
+            type.__setattr__(_cls, _FROZEN_CLASS_INSTANCE_TAG, True)
 
-        if obj:
-            super_setattr = _base.__dict__.get("__setattr__")
-            super_delattr = _base.__dict__.get("__delattr__")
+        if instances:
+            super_setattr = _cls.__dict__.get("__setattr__")
+            super_delattr = _cls.__dict__.get("__delattr__")
 
             def __setattr__(self, name, value):
                 if (
@@ -86,9 +86,9 @@ def frozen(base=None, cls=None, obj=None):
                     )
                     raise AttributeError(error)
                 elif super_setattr is not None:
-                    super_setattr(_base, name, value)
+                    super_setattr(_cls, name, value)
                 else:
-                    super(_base, self).__setattr__(name, value)
+                    super(_cls, self).__setattr__(name, value)
 
             def __delattr__(self, name):
                 if (
@@ -100,27 +100,27 @@ def frozen(base=None, cls=None, obj=None):
                     )
                     raise AttributeError(error)
                 elif super_delattr is not None:
-                    super_delattr(_base, name)
+                    super_delattr(_cls, name)
                 else:
-                    super(_base, self).__delattr__(name)
+                    super(_cls, self).__delattr__(name)
 
-            __setattr__.__module__ = __delattr__.__module__ = _base.__module__
+            __setattr__.__module__ = __delattr__.__module__ = _cls.__module__
 
-            base_qualname = qualname(_base)
+            base_qualname = qualname(_cls)
             __setattr__.__name__ = "__setattr__"
             __delattr__.__name__ = "__delattr__"
             __setattr__.__qualname__ = ".".join((base_qualname, "__setattr__"))
             __delattr__.__qualname__ = ".".join((base_qualname, "__delattr__"))
 
-            type.__setattr__(_base, "__setattr__", __setattr__)
-            type.__setattr__(_base, "__delattr__", __delattr__)
+            type.__setattr__(_cls, "__setattr__", __setattr__)
+            type.__setattr__(_cls, "__delattr__", __delattr__)
 
-        return _base
+        return _cls
 
-    if base is None:
+    if cls is None:
         return decorator
     else:
-        return decorator(base)
+        return decorator(cls)
 
 
 class FrozenMeta(type):
