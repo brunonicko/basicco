@@ -1,0 +1,10 @@
+autoflake
+black
+flake8
+isort
+mypy
+pytest
+sphinx
+sphinx_rtd_theme
+tox
+types-six
