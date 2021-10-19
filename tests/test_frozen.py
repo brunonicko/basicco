@@ -5,7 +5,7 @@ from six import with_metaclass
 from basicco.frozen import FROZEN_SLOT, frozen, FrozenMeta
 
 
-def test_frozen_cls():
+def test_frozen_classes():
 
     @frozen(classes=True, instances=False)
     class Frozen(with_metaclass(FrozenMeta, object)):
@@ -15,7 +15,7 @@ def test_frozen_cls():
         Frozen.attr = 1
 
 
-def test_frozen_obj():
+def test_frozen_instances():
 
     @frozen(classes=False, instances=True)
     class Frozen(with_metaclass(FrozenMeta, object)):
@@ -30,7 +30,7 @@ def test_frozen_obj():
         obj.attr = 1
 
 
-def test_frozen_slotted_obj():
+def test_frozen_slotted_instances():
 
     @frozen(classes=False, instances=True)
     class Frozen(with_metaclass(FrozenMeta, object)):
