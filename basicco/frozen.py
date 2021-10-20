@@ -79,9 +79,8 @@ def frozen(cls=None, classes=None, instances=None):
             super_delattr = _cls.__dict__.get("__delattr__")
 
             def __setattr__(self, name, value):
-                if (
-                    getattr(type(self), _FROZEN_OBJECT_TAG)
-                    and getattr(self, FROZEN_SLOT, False)
+                if getattr(type(self), _FROZEN_OBJECT_TAG) and getattr(
+                    self, FROZEN_SLOT, False
                 ):
                     error = "instances of {} are frozen, can't set attribute".format(
                         repr(type(self).__name__)
@@ -93,9 +92,8 @@ def frozen(cls=None, classes=None, instances=None):
                     super(_cls, self).__setattr__(name, value)
 
             def __delattr__(self, name):
-                if (
-                    getattr(type(self), _FROZEN_OBJECT_TAG)
-                    and getattr(self, FROZEN_SLOT, False)
+                if getattr(type(self), _FROZEN_OBJECT_TAG) and getattr(
+                    self, FROZEN_SLOT, False
                 ):
                     error = "instances of {} are frozen, can't delete attribute".format(
                         repr(type(self).__name__)
@@ -174,21 +172,17 @@ class FrozenMeta(type):
         return self
 
     def __setattr__(cls, name, value):
-        if (
-            getattr(cls, _FROZEN_CLASS_TAG, False)
-            and cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False)
+        if getattr(cls, _FROZEN_CLASS_TAG, False) and cls.__dict__.get(
+            _FROZEN_CLASS_INSTANCE_TAG, False
         ):
-            error = "{} is frozen, can't set class attribute".format(
-                repr(cls.__name__)
-            )
+            error = "{} is frozen, can't set class attribute".format(repr(cls.__name__))
             raise AttributeError(error)
         else:
             super(FrozenMeta, cls).__setattr__(name, value)
 
     def __delattr__(cls, name):
-        if (
-            getattr(cls, _FROZEN_CLASS_TAG, False)
-            and cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False)
+        if getattr(cls, _FROZEN_CLASS_TAG, False) and cls.__dict__.get(
+            _FROZEN_CLASS_INSTANCE_TAG, False
         ):
             error = "{} is frozen, can't delete class attribute".format(
                 repr(cls.__name__)

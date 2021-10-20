@@ -18,7 +18,6 @@ def test_frozen_classes():
 
     # Make sure the class actually gets frozen after the super init method runs.
     class SubFrozenMeta(FrozenMeta):
-
         def __init__(cls, name, bases, dct, **kwargs):
             cls.attr = 1  # should not be frozen here
 
@@ -35,6 +34,7 @@ def test_frozen_classes():
 
     # Should not be able to "unfreeze" the class.
     with pytest.raises(TypeError):
+
         @frozen(classes=False)
         class SubSubFrozen(SubFrozen):
             pass
@@ -54,7 +54,6 @@ def test_frozen_instances():
     # Freeze instances only.
     @frozen(classes=False, instances=True)
     class Frozen(with_metaclass(FrozenMeta, object)):
-
         def __init__(self):
             self.attr = 0  # should not be frozen here
 
@@ -66,6 +65,7 @@ def test_frozen_instances():
 
     # Should not be able to "unfreeze" instances.
     with pytest.raises(TypeError):
+
         @frozen(instances=False)
         class SubFrozen(Frozen):
             pass
@@ -82,7 +82,6 @@ def test_frozen_instances():
     # Should preserve custom __setattr__ and __delattr__ methods.
     @frozen(instances=True)
     class CustomFrozen(with_metaclass(FrozenMeta, object)):
-
         def __init__(self):
             self.attr_a = 0  # should trigger custom __setattr__
             self.attr_b = 0
