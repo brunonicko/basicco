@@ -25,7 +25,7 @@ def frozen(
     classes=None,
     instances=None,
 ):
-    # type: (FMT, Literal[None], Literal[None]) -> FMT
+    # type: (FMT, Optional[bool], Optional[bool]) -> FMT
     pass
 
 
@@ -60,18 +60,29 @@ def frozen(cls=None, classes=None, instances=None):
     def decorator(_cls):
         # type: (FMT) -> FMT
 
+        # Check for metaclass.
         if not isinstance(_cls, FrozenMeta):
             error_ = "can't use 'frozen' decorator with non-{} class {}".format(
                 FrozenMeta.__name__, repr(_cls.__name__)
             )
             raise TypeError(error_)
 
-        type.__setattr__(_cls, _FROZEN_CLASS_TAG, classes)
-        type.__setattr__(_cls, _FROZEN_OBJECT_TAG, instances)
-
+        # Freeze classes and future subclasses.
         if classes:
+            type.__setattr__(_cls, _FROZEN_CLASS_TAG, True)
             type.__setattr__(_cls, _FROZEN_CLASS_INSTANCE_TAG, True)
+        elif getattr(_cls, _FROZEN_CLASS_TAG, False):
+            error_ = "can't un-freeze class {}".format(repr(qualname(_cls)))
+            raise TypeError(error_)
 
+        # Freeze future instances.
+        if instances:
+            type.__setattr__(_cls, _FROZEN_OBJECT_TAG, True)
+        elif getattr(_cls, _FROZEN_OBJECT_TAG, False):
+            error_ = "can't un-freeze instances of {}".format(repr(qualname(_cls)))
+            raise TypeError(error_)
+
+        # Dynamically replace methods if freezing instances.
         if instances:
             super_setattr = _cls.__dict__.get("__setattr__")
             super_delattr = _cls.__dict__.get("__delattr__")
@@ -86,7 +97,7 @@ def frozen(cls=None, classes=None, instances=None):
                     )
                     raise AttributeError(error)
                 elif super_setattr is not None:
-                    super_setattr(_cls, name, value)
+                    super_setattr(self, name, value)
                 else:
                     super(_cls, self).__setattr__(name, value)
 
@@ -100,7 +111,7 @@ def frozen(cls=None, classes=None, instances=None):
                     )
                     raise AttributeError(error)
                 elif super_delattr is not None:
-                    super_delattr(_cls, name)
+                    super_delattr(self, name)
                 else:
                     super(_cls, self).__delattr__(name)
 
@@ -117,6 +128,7 @@ def frozen(cls=None, classes=None, instances=None):
 
         return _cls
 
+    # Return decorator or decorated depending on parameters.
     if cls is None:
         return decorator
     else:
@@ -126,8 +138,14 @@ def frozen(cls=None, classes=None, instances=None):
 class FrozenMeta(type):
     """Metaclass for classes that can be decorated with the 'frozen' decorator."""
 
-    def __init__(cls, name, bases, dct):
-        super(FrozenMeta, cls).__init__(name, bases, dct)
+    @staticmethod
+    def __new__(mcs, name, bases, dct, **kwargs):
+        cls = super(FrozenMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, False)
+        return cls
+
+    def __init__(cls, name, bases, dct, **kwargs):
+        super(FrozenMeta, cls).__init__(name, bases, dct, **kwargs)
         type.__setattr__(
             cls, _FROZEN_CLASS_INSTANCE_TAG, getattr(cls, _FROZEN_CLASS_TAG, False)
         )
