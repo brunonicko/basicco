@@ -2,8 +2,6 @@
 
 from typing import TYPE_CHECKING, overload
 
-from .qualname import qualname
-
 if TYPE_CHECKING:
     from typing import Callable, TypeVar, Optional, Literal
 
@@ -63,14 +61,14 @@ def frozen(cls=None, classes=None, instances=None):
             type.__setattr__(_cls, _FROZEN_CLASS_TAG, True)
             type.__setattr__(_cls, _FROZEN_CLASS_INSTANCE_TAG, True)
         elif getattr(_cls, _FROZEN_CLASS_TAG, False):
-            error_ = "can't un-freeze class {}".format(repr(qualname(_cls)))
+            error_ = "can't un-freeze class {}".format(repr(_cls.__name__))
             raise TypeError(error_)
 
         # Freeze future instances.
         if instances:
             type.__setattr__(_cls, _FROZEN_OBJECT_TAG, True)
         elif getattr(_cls, _FROZEN_OBJECT_TAG, False):
-            error_ = "can't un-freeze instances of {}".format(repr(qualname(_cls)))
+            error_ = "can't un-freeze instances of {}".format(repr(_cls.__name__))
             raise TypeError(error_)
 
         # Dynamically replace methods if freezing instances.
@@ -106,11 +104,12 @@ def frozen(cls=None, classes=None, instances=None):
 
             __setattr__.__module__ = __delattr__.__module__ = _cls.__module__
 
-            base_qualname = qualname(_cls)
             __setattr__.__name__ = "__setattr__"
             __delattr__.__name__ = "__delattr__"
-            __setattr__.__qualname__ = ".".join((base_qualname, "__setattr__"))
-            __delattr__.__qualname__ = ".".join((base_qualname, "__delattr__"))
+
+            if hasattr(_cls, "__qualname__"):
+                __setattr__.__qualname__ = ".".join((_cls.__qualname__, "__setattr__"))
+                __delattr__.__qualname__ = ".".join((_cls.__qualname__, "__delattr__"))
 
             type.__setattr__(_cls, "__setattr__", __setattr__)
             type.__setattr__(_cls, "__delattr__", __delattr__)
@@ -125,7 +124,7 @@ def frozen(cls=None, classes=None, instances=None):
 
 
 class FrozenMeta(type):
-    """Metaclass for classes that can be decorated with the 'frozen' decorator."""
+    """Enables classes to be decorated with the 'frozen' decorator."""
 
     @staticmethod
     def __new__(mcs, name, bases, dct, **kwargs):
@@ -162,7 +161,7 @@ class FrozenMeta(type):
                     "have a slot named {} (available as a constant at {}.{})"
                 ).format(
                     cls.__module__,
-                    qualname(cls),
+                    getattr(cls, "__qualname__", cls.__name__),
                     repr(FROZEN_SLOT),
                     __name__,
                     "FROZEN_SLOT",
