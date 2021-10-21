@@ -1,4 +1,4 @@
-"""Python-2 compatible way to find the qualified name based on wbolster/qualname."""
+"""Python 2 compatible way to find the qualified name based on wbolster/qualname."""
 
 import ast
 import inspect
@@ -208,14 +208,3 @@ class QualnameMeta(type):
                 raise TypeError(error)
             else:
                 super(QualnameMeta, cls).__delattr__(name)
-
-        def __repr__(cls):
-            # type: () -> str
-            module = cls.__module__
-            name = qualname(cls, fallback=cls.__name__)
-            path = ".".join(p for p in (module, name) if p)
-            return "<class{space}{quote}{path}{quote}>".format(
-                space=" " if path else "",
-                quote="'" if path else "",
-                path=path,
-            )

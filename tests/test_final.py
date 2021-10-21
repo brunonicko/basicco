@@ -10,8 +10,10 @@ def test_final_class():
     class Class(with_metaclass(FinalMeta, object)):
         pass
 
+    # Class should be tagged as final.
     assert getattr(Class, "__isfinalclass__") is True
 
+    # Should error when trying to subclass from final class.
     with pytest.raises(TypeError):
 
         class SubClass(Class):  # type: ignore
@@ -39,6 +41,7 @@ def test_final_method():
         property,
     ]
 
+    # Different kinds of decorated members should be recognized as final.
     for decorator in decorators:
 
         class Class(with_metaclass(FinalMeta, object)):
@@ -73,6 +76,7 @@ def test_descriptor():
         def method(self):
             pass
 
+    # Decorated descriptor object should be recognized as final.
     assert "method" in getattr(Class, "__finalmethods__")
 
 

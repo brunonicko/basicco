@@ -42,11 +42,6 @@ def test_qualname_meta(force_ast):
     with pytest.raises(TypeError):
         del AM.__qualname__
 
-    # Class repr should have the qualified name in it.
-    assert AM.__qualname__ in repr(AM)
-    assert AM.BM.__qualname__ in repr(AM.BM)
-    assert AM.BM.CM.__qualname__ in repr(AM.BM.CM)
-
 
 class A(object):
     class B(object):
