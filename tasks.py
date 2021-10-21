@@ -1,6 +1,6 @@
 import sys
 
-if sys.version_info < (3, 9):
+if sys.version_info[0:2] < (3, 9):
     error = (
         "Python 3.9+ is required for development tasks, you are running {}\n"
     ).format(sys.version)

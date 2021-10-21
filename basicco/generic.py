@@ -9,7 +9,6 @@ __all__ = ["GenericMeta"]
 
 
 class GenericMeta(_GenericMeta):
-
     if _GenericMeta is not type:
 
         def __ne__(cls, other):

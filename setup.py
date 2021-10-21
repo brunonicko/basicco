@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/brunonicko/basicco",
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
     package_data={"basicco": ["py.typed"]},
-    install_requires=["six", "typing; python_version < '3.5'"],
+    install_requires=["six", "slotted", "typing; python_version < '3.5'"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
