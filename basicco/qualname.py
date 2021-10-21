@@ -1,10 +1,11 @@
-"""Python-2 compatile way of finding the qualified name of a class/method."""
+"""Python-2 compatible way to find the qualified name based on wbolster/qualname."""
 
 import ast
 import inspect
 from typing import TYPE_CHECKING
 
 from six import raise_from
+from six.moves import builtins
 
 if TYPE_CHECKING:
     from typing import Callable, Dict, Optional
@@ -43,6 +44,8 @@ class _Visitor(ast.NodeVisitor):
 
 
 class QualnameError(Exception):
+    """Raised when could not get the qualified name from AST parsing."""
+
     pass
 
 
@@ -87,6 +90,10 @@ def qualname(obj, fallback=None, force_ast=False):
                 raise
         except AttributeError:
             pass
+
+    # Built-in, assume the name is the same as the qualified name.
+    if getattr(obj, "__module__", None) == builtins.__name__:
+        return obj.__name__
 
     # Get source file name.
     try:

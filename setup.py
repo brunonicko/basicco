@@ -1,4 +1,4 @@
-import setuptools
+import setuptools  # type: ignore
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/x-rst",
     url="https://github.com/brunonicko/basicco",
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
-    package_data={"basicco": ["__init__.pyi", "py.typed"]},
+    package_data={"basicco": ["py.typed"]},
     install_requires=["six", "typing; python_version < '3.5'"],
     classifiers=[
         "Intended Audience :: Developers",

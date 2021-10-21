@@ -18,6 +18,11 @@ def test_qualname(force_ast):
     with pytest.raises(QualnameError):
         qualname(type("Z", (object,), {}), force_ast=True)
 
+    # Built-ins.
+    assert qualname(int, force_ast=force_ast) == "int"
+    assert qualname(float, force_ast=force_ast) == "float"
+    assert qualname(bool, force_ast=force_ast) == "bool"
+
 
 @pytest.mark.parametrize("force_ast", (True, False))
 def test_qualname_meta(force_ast):

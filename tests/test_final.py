@@ -59,5 +59,22 @@ def test_final_method():
             assert not SubClass
 
 
+def test_descriptor():
+    class Descriptor(object):
+        def __init__(self, func):
+            self.func = func
+
+        def __get__(self, instance, owner):
+            return 3
+
+    class Class(with_metaclass(FinalMeta, object)):
+        @final
+        @Descriptor
+        def method(self):
+            pass
+
+    assert "method" in getattr(Class, "__finalmethods__")
+
+
 if __name__ == "__main__":
     pytest.main()
