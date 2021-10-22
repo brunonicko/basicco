@@ -19,6 +19,8 @@ def docs(c):
 @task
 def tests(c):
     c.run("python -m pytest -vv -rs tests")
+    c.run("python -m pytest --doctest-modules -vv -rs basicco")
+    c.run("python -m pytest --doctest-modules -vv -rs README.rst")
 
 
 @task

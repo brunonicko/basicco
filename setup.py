@@ -8,7 +8,9 @@ setuptools.setup(
     version="0.1.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
-    description="Base metaclasses that enhance compatibility and validation",
+    description=(
+        "Base class and utilities to enhance compatibility, readability, and validation"
+    ),
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/brunonicko/basicco",

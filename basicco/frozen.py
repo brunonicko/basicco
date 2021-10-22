@@ -31,7 +31,8 @@ def frozen(cls=None, classes=None, instances=None):
 
 def frozen(cls=None, classes=None, instances=None):
     """
-    Class decorator that can prevent modifying class and/or instance attributes.
+    Class decorator that prevents changing the attribute values for classes and/or
+    their instances after they have been initialized.
 
     :param cls: Class to be decorated.
 
@@ -43,11 +44,23 @@ def frozen(cls=None, classes=None, instances=None):
 
     :return: Decorated class.
     """
-    classes = True if classes is None else bool(classes)
-    instances = True if instances is None else bool(instances)
 
     def decorator(_cls):
         # type: (FMT) -> FMT
+
+        # Resolve parameters.
+        if classes is None and instances is None:
+            _classes = True
+            _instances = True
+        elif classes is not None and instances is None:
+            _classes = bool(classes)
+            _instances = getattr(_cls, _FROZEN_OBJECT_TAG, False)
+        elif classes is None and instances is not None:
+            _classes = getattr(_cls, _FROZEN_CLASS_TAG, False)
+            _instances = bool(instances)
+        else:
+            _classes = bool(classes)
+            _instances = bool(instances)
 
         # Check for metaclass.
         if not isinstance(_cls, FrozenMeta):
@@ -57,7 +70,7 @@ def frozen(cls=None, classes=None, instances=None):
             raise TypeError(error_)
 
         # Freeze classes and future subclasses.
-        if classes:
+        if _classes:
             type.__setattr__(_cls, _FROZEN_CLASS_TAG, True)
             type.__setattr__(_cls, _FROZEN_CLASS_INSTANCE_TAG, True)
         elif getattr(_cls, _FROZEN_CLASS_TAG, False):
@@ -65,14 +78,14 @@ def frozen(cls=None, classes=None, instances=None):
             raise TypeError(error_)
 
         # Freeze future instances.
-        if instances:
+        if _instances:
             type.__setattr__(_cls, _FROZEN_OBJECT_TAG, True)
         elif getattr(_cls, _FROZEN_OBJECT_TAG, False):
             error_ = "can't un-freeze instances of {}".format(repr(_cls.__name__))
             raise TypeError(error_)
 
         # Dynamically replace methods if freezing instances.
-        if instances:
+        if _instances:
             super_setattr = _cls.__dict__.get("__setattr__")
             super_delattr = _cls.__dict__.get("__delattr__")
 

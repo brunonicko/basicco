@@ -27,7 +27,10 @@ jobs:
         pip install -r requirements.txt
     - name: Test with pytest
       run: |
-        python -m pytest tests
+        python -m pytest -vv -rs tests
     - name: Docstring tests
       run: |
-        python -m pytest basicco --doctest-modules
+        python -m pytest --doctest-modules -vv -rs basicco
+    - name: README example tests
+      run: |
+        python -m pytest --doctest-modules -vv -rs README.rst

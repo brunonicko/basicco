@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     T = TypeVar("T")
     FT = TypeVar("FT", bound="FinalMeta")
 
-__all__ = ["final", "FinalMeta"]
+__all__ = ["final", "is_final", "FinalMeta"]
 
 _FINAL_CLASS_TAG = "__isfinalclass__"
 _FINAL_METHOD_TAG = "__isfinalmethod__"
@@ -43,6 +43,28 @@ if hasattr(final, "__qualname__"):
 globals()["final"] = _final  # trick mypy
 
 
+def is_final(member):
+    _is_final = False
+
+    # Descriptor.
+    if hasattr(member, "__get__"):
+        _is_final |= getattr(member, _FINAL_METHOD_TAG, False)
+
+        # Has 'fget' getter (property-like).
+        if hasattr(member, "fget"):
+            _is_final |= getattr(member.fget, _FINAL_METHOD_TAG, False)
+
+    # Static or class method.
+    if isinstance(member, (staticmethod, classmethod)):
+        _is_final |= getattr(member.__func__, _FINAL_METHOD_TAG, False)
+
+    # Regular method.
+    if callable(member):
+        _is_final |= getattr(member, _FINAL_METHOD_TAG, False)
+
+    return _is_final
+
+
 class FinalMeta(type):
     """Enables runtime-checking for `final` decorator."""
 
@@ -51,7 +73,7 @@ class FinalMeta(type):
 
         # Iterate over MRO of the class.
         final_cls = None  # type: Optional[Type]
-        final_method_names = set()  # type: Set[str]
+        final_member_names = set()  # type: Set[str]
         for base in reversed(inspect.getmro(cls)):
 
             # Prevent subclassing final classes.
@@ -63,36 +85,19 @@ class FinalMeta(type):
                     raise TypeError(error)
                 final_cls = base
 
-            # Iterate over methods defined for this base.
-            for method_name, method in iteritems(base.__dict__):
+            # Find final members.
+            for member_name, member in iteritems(base.__dict__):
 
-                # Can't override final methods.
-                if method_name in final_method_names:
-                    error = "can't override final method {}".format(repr(method_name))
+                # Can't override final members.
+                if member_name in final_member_names:
+                    error = "can't override final member {}".format(repr(member_name))
                     raise TypeError(error)
 
-                # Find final tag.
-                is_final = False
-
-                # Descriptor.
-                if hasattr(method, "__get__"):
-                    is_final |= getattr(method, _FINAL_METHOD_TAG, False)
-
-                    # Has 'fget' getter (property-like).
-                    if hasattr(method, "fget"):
-                        is_final |= getattr(method.fget, _FINAL_METHOD_TAG, False)
-
-                # Static or class method.
-                if isinstance(method, (staticmethod, classmethod)):
-                    is_final |= getattr(method.__func__, _FINAL_METHOD_TAG, False)
-
-                # Regular method.
-                if callable(method):
-                    is_final |= getattr(method, _FINAL_METHOD_TAG, False)
-
-                # Keep track of final methods.
-                if is_final:
-                    final_method_names.add(method_name)
+                # Keep track of final members.
+                if is_final(member):
+                    final_member_names.add(member_name)
 
             # Store final methods.
-            type.__setattr__(cls, _FINAL_METHODS, frozenset(final_method_names))
+            type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
+
+    # TODO: change members at runtime
