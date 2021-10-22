@@ -1,4 +1,3 @@
-import os
 import sys
 
 if sys.version_info[0:2] < (3, 9):
@@ -13,7 +12,7 @@ from invoke import task  # type: ignore
 
 @task
 def docs(c):
-    c.run(".{sep}docs{sep}make html".format(sep=os.sep))
+    c.run("cd docs; make html; cd ..")
 
 
 @task

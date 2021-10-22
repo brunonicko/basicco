@@ -128,14 +128,14 @@ subclassing or member overrides during runtime:
     ...     @property
     ...     @final
     ...     def prop(self):
-    ...         return None
+    ...         pass
     ...
     >>> class SubAsset(Asset):
     ...     @property
     ...     def prop(self):
     ...         pass
     Traceback (most recent call last):
-    TypeError: can't override final method 'prop'
+    TypeError: can't override final member 'prop'
 
 abstract
 ^^^^^^^^
@@ -165,7 +165,7 @@ Can be used directly on methods but also on properties, classmethods, and static
     TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
 
 \__qualname__
-^^^^^^^^^^^^
+^^^^^^^^^^^^^
 Support for qualified name falling back to AST parsing of the source code.
 
 Bases have a `__qualname__` attribute (even in Python 2.7):
@@ -182,14 +182,13 @@ Bases have a `__qualname__` attribute (even in Python 2.7):
     'Asset.Config'
 
 \__reduce__
-^^^^^^^^^^
+^^^^^^^^^^^
 Support for pickling instances of classes that utilize qualified name and/or slots.
 
 Slotted and/or nested bases can be pickled (even in Python 2.7):
 
 .. code:: python
 
-    >>> from pickle import loads, dumps
     >>> from basicco import Base
     >>>
     >>> class Asset(Base):
@@ -199,15 +198,16 @@ Slotted and/or nested bases can be pickled (even in Python 2.7):
     ...             self.name = "cube"
     ...             self.version = 2
     ...
-    >>> loads(dumps(Asset.Config()))
-    'Asset.Config'
+    >>> pickled = pickle.dumps(Asset.Config())
+    >>> pickle.loads(pickled)
+    <__main__.Asset.Config object at ...>
 
 generic
 ^^^^^^^
 Support for the `typing.Generic` class.
 
 Utilities
-#########
+---------
 
 import_path
 ^^^^^^^^^^^
