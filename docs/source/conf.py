@@ -72,20 +72,3 @@ latex_documents = [
 man_pages = [
     (master_doc, "basicco", "Basicco Documentation", [author], 1),
 ]
-
-# Texinfo options.
-texinfo_documents = [
-    (
-        master_doc,
-        "Basicco",
-        "Basicco Documentation",
-        author,
-        "Basicco",
-        "Base classes and utilities that offer compatibility features.",
-        "Miscellaneous",
-    ),
-]
-
-# ePub options.
-epub_title = project
-epub_exclude_files = ["search.html"]
