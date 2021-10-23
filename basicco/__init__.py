@@ -3,8 +3,8 @@ from sys import version_info
 from six import with_metaclass
 
 from .generic import GenericMeta
-from .abstract import abstract, is_abstract, AbstractMeta
-from .final import final, is_final, FinalMeta
+from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
+from .final import final, is_final, is_final_member, FinalMeta
 from .qualname import qualname, QualnameMeta
 from .frozen import frozen, FrozenMeta, FROZEN_SLOT
 from .utils.reducer import reducer
@@ -14,8 +14,10 @@ __all__ = [
     "BaseMeta",
     "abstract",
     "is_abstract",
+    "is_abstract_member",
     "final",
     "is_final",
+    "is_final_member",
     "qualname",
     "frozen",
 ]

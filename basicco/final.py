@@ -1,6 +1,6 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
-import inspect
+from inspect import isclass, getmro
 from typing import TYPE_CHECKING
 
 try:
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     T = TypeVar("T")
     FT = TypeVar("FT", bound="FinalMeta")
 
-__all__ = ["final", "is_final", "FinalMeta"]
+__all__ = ["final", "is_final", "is_final_member", "FinalMeta"]
 
 _FINAL_CLASS_TAG = "__isfinalclass__"
 _FINAL_METHOD_TAG = "__isfinalmethod__"
@@ -29,7 +29,7 @@ __final = final
 
 def _final(obj):
     # type: (FT) -> FT
-    if inspect.isclass(obj):
+    if isclass(obj):
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
         object.__setattr__(obj, _FINAL_METHOD_TAG, True)
@@ -43,7 +43,14 @@ if hasattr(final, "__qualname__"):
 globals()["final"] = _final  # trick mypy
 
 
-def is_final(member):
+def is_final(obj):
+    if isclass(obj):
+        return getattr(obj, _FINAL_CLASS_TAG, False)
+    else:
+        return is_final_member(obj)
+
+
+def is_final_member(member):
     _is_final = False
 
     # Descriptor.
@@ -74,7 +81,7 @@ class FinalMeta(type):
         # Iterate over MRO of the class.
         final_cls = None  # type: Optional[Type]
         final_member_names = set()  # type: Set[str]
-        for base in reversed(inspect.getmro(cls)):
+        for base in reversed(getmro(cls)):
 
             # Prevent subclassing final classes.
             if getattr(base, _FINAL_CLASS_TAG, False) is True:
@@ -94,7 +101,7 @@ class FinalMeta(type):
                     raise TypeError(error)
 
                 # Keep track of final members.
-                if is_final(member):
+                if is_final_member(member):
                     final_member_names.add(member_name)
 
             # Store final methods.

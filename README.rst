@@ -24,6 +24,11 @@ Basicco
 `Basicco` provides a `Base`_ class and lower-level utilities to enhance compatibility,
 readability, and validation.
 
+Motivation
+----------
+While developing Python code for Visual Effects pipelines, I found myself having to
+write the same boiler-plates over and over again.
+
 Overview
 --------
   - Cross-compatibility
@@ -37,13 +42,12 @@ Overview
 
 Base
 ----
-The `Base`_ enables the use of functionalities provided by `Basicco` in a single class.
+The `Base`_ class enables the use of functionalities provided by `Basicco`.
 In most of the cases, it's a simple drop-in replacement for `object`:
 
 .. code:: python
 
     >>> from basicco import Base
-    >>>
     >>> class Asset(Base):
     ...     pass
     ...
@@ -56,7 +60,6 @@ instances after they have been initialized.
 .. code:: python
 
     >>> from basicco import Base, frozen
-    >>>
     >>> @frozen(classes=True)
     ... class Asset(Base):
     ...     typename = "geometry"
@@ -68,7 +71,6 @@ instances after they have been initialized.
 .. code:: python
 
     >>> from basicco import Base, frozen
-    >>>
     >>> @frozen(instances=True)
     ... class Asset(Base):
     ...     def __init__(self, name, typename):
@@ -94,7 +96,6 @@ subclassing or member overrides during runtime:
 .. code:: python
 
     >>> from basicco import Base, final
-    >>>
     >>> @final
     ... class Asset(Base):
     ...     pass
@@ -108,7 +109,6 @@ subclassing or member overrides during runtime:
 .. code:: python
 
     >>> from basicco import Base, final
-    >>>
     >>> class Asset(Base):
     ...     @final
     ...     def method(self):
@@ -123,7 +123,6 @@ subclassing or member overrides during runtime:
 .. code:: python
 
     >>> from basicco import Base, final
-    >>>
     >>> class Asset(Base):
     ...     @property
     ...     @final
@@ -149,7 +148,6 @@ Can be used directly on methods but also on properties, classmethods, and static
 .. code:: python
 
     >>> from basicco import Base, abstract
-    >>>
     >>> class Asset(Base):
     ...     @abstract
     ...     def method(self):
@@ -173,7 +171,6 @@ Bases have a `__qualname__` attribute (even in Python 2.7):
 .. code:: python
 
     >>> from basicco import Base
-    >>>
     >>> class Asset(Base):
     ...     class Config(Base):
     ...         pass
@@ -190,7 +187,6 @@ Slotted and/or nested bases can be pickled (even in Python 2.7):
 .. code:: python
 
     >>> from basicco import Base
-    >>>
     >>> class Asset(Base):
     ...     class Config(Base):
     ...         __slots__ = ("name", "version")

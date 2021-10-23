@@ -1,3 +1,4 @@
+import platform
 import sys
 
 if sys.version_info[0:2] < (3, 9):
@@ -12,7 +13,10 @@ from invoke import task  # type: ignore
 
 @task
 def docs(c):
-    c.run("cd docs; make html; cd ..")
+    if platform.system().lower() == "windows":
+        c.run(".\\docs\\make.bat html")
+    else:
+        c.run("./docs/make html")
 
 
 @task

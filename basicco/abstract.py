@@ -1,6 +1,6 @@
 """Matches Python 2 behavior with Python 3 for abstract members."""
 
-import inspect
+from inspect import isclass, getmro
 from abc import ABCMeta
 from abc import abstractmethod as abstract
 from typing import TYPE_CHECKING
@@ -12,8 +12,9 @@ if TYPE_CHECKING:
 
     AT = TypeVar("AT", bound="AbstractMeta")
 
-__all__ = ["abstract", "is_abstract", "AbstractMeta"]
+__all__ = ["abstract", "is_abstract", "is_abstract_member", "AbstractMeta"]
 
+_ABSTRACT_CLASS_TAG = "__isabstractclass__"
 _ABSTRACT_METHOD_TAG = "__isabstractmethod__"
 _ABSTRACT_METHODS = "__abstractmethods__"
 
@@ -23,10 +24,38 @@ __abstract = abstract
 
 def _abstract(obj):
     # type: (AT) -> AT
-    if inspect.isclass(obj):
-        error = "'abstract' decorator should not be used on classes"
-        raise TypeError(error)
-    return __abstract(obj)
+    if isclass(obj):
+        super_new = obj.__dict__.get("__new__")
+        if isinstance(super_new, staticmethod):
+            super_new = super_new.__func__
+
+        def __new__(cls, *args, **kwargs):
+            if cls.__dict__.get(_ABSTRACT_CLASS_TAG, False):
+                abstract_members = sorted(getattr(cls, _ABSTRACT_METHODS, ()))
+                if abstract_members:
+                    error = (
+                        "can't instantiate abstract class {} with abstract members {}"
+                    ).format(
+                        repr(cls.__name__),
+                        ", ".join(repr(m) for m in abstract_members),
+                    )
+                else:
+                    error = "can't instantiate abstract class {}".format(
+                        repr(cls.__name__)
+                    )
+                raise TypeError(error)
+            elif super_new is not None:
+                return super_new(cls, *args, **kwargs)
+            else:
+                return super(obj, cls).__new__(cls, *args, **kwargs)
+
+        type.__setattr__(obj, "__new__", staticmethod(__new__))
+        type.__setattr__(obj, _ABSTRACT_CLASS_TAG, True)
+
+        return obj
+
+    else:
+        return __abstract(obj)
 
 
 _abstract.__name__ = abstract.__name__
@@ -36,24 +65,34 @@ if hasattr(abstract, "__qualname__"):
 globals()["abstract"] = _abstract  # trick mypy
 
 
-def is_abstract(member):
+def is_abstract(obj):
+    if isclass(obj):
+        return obj.__dict__.get(_ABSTRACT_CLASS_TAG, False) or bool(
+            getattr(obj, _ABSTRACT_METHODS, ())
+        )
+    else:
+        return is_abstract_member(obj)
+
+
+def is_abstract_member(obj):
+
     _is_abstract = False
 
     # Descriptor.
-    if hasattr(member, "__get__"):
-        _is_abstract |= getattr(member, _ABSTRACT_METHOD_TAG, False)
+    if hasattr(obj, "__get__"):
+        _is_abstract |= getattr(obj, _ABSTRACT_METHOD_TAG, False)
 
         # Has 'fget' getter (property-like).
-        if hasattr(member, "fget"):
-            _is_abstract |= getattr(member.fget, _ABSTRACT_METHOD_TAG, False)
+        if hasattr(obj, "fget"):
+            _is_abstract |= getattr(obj.fget, _ABSTRACT_METHOD_TAG, False)
 
     # Static or class method.
-    if isinstance(member, (staticmethod, classmethod)):
-        _is_abstract |= getattr(member.__func__, _ABSTRACT_METHOD_TAG, False)
+    if isinstance(obj, (staticmethod, classmethod)):
+        _is_abstract |= getattr(obj.__func__, _ABSTRACT_METHOD_TAG, False)
 
     # Regular method.
-    if callable(member):
-        _is_abstract |= getattr(member, _ABSTRACT_METHOD_TAG, False)
+    if callable(obj):
+        _is_abstract |= getattr(obj, _ABSTRACT_METHOD_TAG, False)
 
     return _is_abstract
 
@@ -68,13 +107,13 @@ class AbstractMeta(ABCMeta):
         abstract_method_names = set(
             getattr(cls, _ABSTRACT_METHODS, ())
         )  # type: Set[str]
-        for base in reversed(inspect.getmro(cls)):
+        for base in reversed(getmro(cls)):
 
             # Find abstract members.
             for member_name, member in iteritems(base.__dict__):
 
                 # Keep track.
-                if is_abstract(member):
+                if is_abstract_member(member):
                     abstract_method_names.add(member_name)
                 else:
                     abstract_method_names.discard(member_name)
