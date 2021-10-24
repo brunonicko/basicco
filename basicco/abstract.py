@@ -47,7 +47,7 @@ def _abstract(obj):
             elif super_new is not None:
                 return super_new(cls, *args, **kwargs)
             else:
-                return super(obj, cls).__new__(cls, *args, **kwargs)
+                return super(obj, cls).__new__(cls, *args, **kwargs)  # FIXME: object
 
         type.__setattr__(obj, "__new__", staticmethod(__new__))
         type.__setattr__(obj, _ABSTRACT_CLASS_TAG, True)

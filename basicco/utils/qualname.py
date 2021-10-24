@@ -5,7 +5,6 @@ import inspect
 from typing import TYPE_CHECKING
 
 from six import raise_from
-from six.moves import builtins
 
 if TYPE_CHECKING:
     from typing import Callable, Dict, Optional
@@ -49,6 +48,7 @@ def qualname(obj, fallback=None, force_ast=False):
             repr(type(obj).__name__)
         )
         raise TypeError(error)
+    obj_name = obj.__name__
 
     # Native qualified name or manually defined.
     if not force_ast:
@@ -62,9 +62,16 @@ def qualname(obj, fallback=None, force_ast=False):
         except AttributeError:
             pass
 
-    # Built-in, assume the name is the same as the qualified name.
-    if getattr(obj, "__module__", None) == builtins.__name__:
-        return obj.__name__
+    # Try to match the root of the module in case object is not nested under anything.
+    module_name = getattr(obj, "__module__", None)
+    if module_name is not None:
+        try:
+            module = __import__(module_name, fromlist=[obj_name])
+        except ImportError:
+            pass
+        else:
+            if getattr(module, obj_name, None) is obj:
+                return obj_name
 
     # Get source file name.
     try:
@@ -73,9 +80,7 @@ def qualname(obj, fallback=None, force_ast=False):
             raise TypeError()
     except TypeError:
         if fallback is None:
-            error = "couldn't find source code filename for {}".format(
-                repr(obj.__name__)
-            )
+            error = "couldn't find source code filename for {}".format(repr(obj_name))
             exc = QualnameError(error)
             raise_from(exc, None)
             raise exc
@@ -89,7 +94,7 @@ def qualname(obj, fallback=None, force_ast=False):
         except (OSError, IOError):
             if fallback is None:
                 error = "source code for class {} could not be retrieved".format(
-                    repr(obj.__name__)
+                    repr(obj_name)
                 )
                 exc = QualnameError(error)
                 raise_from(exc, None)
@@ -107,16 +112,14 @@ def qualname(obj, fallback=None, force_ast=False):
         lineno = code.co_firstlineno
     else:
         if fallback is None:
-            error = "source code could not be retrieved for {}".format(
-                repr(obj.__name__)
-            )
+            error = "source code could not be retrieved for {}".format(repr(obj_name))
             raise QualnameError(error)
         else:
             return fallback
 
     # Parse the source file to figure out what the qualified name should be.
     if filename in _cache:
-        qualnames = _cache[filename]
+        qualified_names = _cache[filename]
     else:
         try:
             with open(filename, "r") as fp:
@@ -132,10 +135,10 @@ def qualname(obj, fallback=None, force_ast=False):
         node = ast.parse(source, filename)
         visitor = _Visitor()
         visitor.visit(node)
-        qualnames = _cache[filename] = visitor.qualnames
+        qualified_names = _cache[filename] = visitor.qualified_names
 
     # Get qualified name from parsing results.
-    qualified_name = qualnames.get(lineno, None)
+    qualified_name = qualified_names.get(lineno, None)
     if qualified_name is None:
         if fallback is None:
             error = "qualified name could not be retrieved from {} source code".format(
@@ -153,11 +156,11 @@ class _Visitor(ast.NodeVisitor):
 
     def __init__(self):
         self.stack = []
-        self.qualnames = {}
+        self.qualified_names = {}
 
     def store_qualname(self, lineno):
         qn = ".".join(n for n in self.stack)
-        self.qualnames[lineno] = qn
+        self.qualified_names[lineno] = qn
 
     def visit_FunctionDef(self, node):
         self.stack.append(node.name)

@@ -29,7 +29,7 @@ def frozen(cls=None, classes=None, instances=None):
     pass
 
 
-def frozen(cls=None, classes=None, instances=None):
+def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subclasses?
     """
     Class decorator that prevents changing the attribute values for classes and/or
     their instances after they have been initialized.

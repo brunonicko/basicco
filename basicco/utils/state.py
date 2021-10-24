@@ -1,4 +1,4 @@
-"""Utility functions for managing slots."""
+"""Utility functions for managing object state."""
 
 import inspect
 from types import MemberDescriptorType
@@ -7,26 +7,29 @@ from typing import TYPE_CHECKING
 from six import iteritems
 
 if TYPE_CHECKING:
-    from typing import Any, Dict, Set
+    from typing import Any, Dict, Set, Mapping
 
-__all__ = ["get_slots_state", "set_slots_state"]
+__all__ = ["get_state", "update_state"]
 
 
-def get_slots_state(obj):
+def get_state(obj):
     # type: (Any) -> Dict[str, Any]
     """
-    Get a dictionary with values associated to an object's slots.
+    Get dictionary with an object's attribute values.
+    Works with regular and slotted objects.
 
-    :param obj: Slotted object.
-    :type obj: object
+    :param obj: Object instance or class.
+    :type obj: object or type
 
-    :return: Slots state dictionary.
+    :return: State dictionary.
     :rtype: dict[str, Any]
 
-    :raises TypeError: Provided non-slotted object.
+    :raises TypeError: Provided object has no state.
     """
-    if hasattr(obj, "__dict__") or not hasattr(type(obj), "__slots__"):
-        error = "provided non-slotted {} object".format(type(obj).__name__)
+    if hasattr(obj, "__dict__"):
+        return dict(obj.__dict__)
+    if not hasattr(type(obj), "__slots__"):
+        error = "{} object has no state".format(repr(type(obj).__name__))
         raise TypeError(error)
 
     state = {}  # type: Dict[str, Any]
@@ -58,31 +61,38 @@ def get_slots_state(obj):
     return state
 
 
-def set_slots_state(obj, state):
-    # type: (Any, Dict[str, Any]) -> None
+def update_state(obj, state_update):
+    # type: (Any, Mapping[str, Any]) -> None
     """
-    Set the values for the slots in an object.
+    Update attribute values for an object.
+    Works with regular and slotted objects.
 
-    :param obj: Slotted object.
-    :type obj: object
+    :param obj: Object instance or class.
+    :type obj: object or type
 
-    :param state: Slots state dictionary.
-    :type state: dict[str, Any]
+    :param state_update: Dictionary with state updates.
+    :type state_update: dict[str, Any]
 
-    :raises TypeError: Provided non-slotted object.
-    :raises AttributeError: Object doesn't have slot.
+    :raises TypeError: Provided object has no state.
     """
-    if hasattr(obj, "__dict__") or not hasattr(type(obj), "__slots__"):
-        error = "provided non-slotted {} object".format(type(obj).__name__)
+    if hasattr(obj, "__dict__"):
+        if isinstance(obj, type):
+            for attribute, value in iteritems(state_update):
+                type.__setattr__(obj, attribute, value)
+        else:
+            obj.__dict__.update(state_update)
+        return
+    if not hasattr(type(obj), "__slots__"):
+        error = "{} object has no state".format(repr(type(obj).__name__))
         raise TypeError(error)
 
-    remaining = set(state)  # type: Set[str]
+    remaining = set(state_update)  # type: Set[str]
     cls = type(obj)
     for base in inspect.getmro(cls):
         if base is object:
             continue
 
-        for slot, value in iteritems(state):
+        for slot, value in iteritems(state_update):
 
             # Skip if already set.
             if slot not in remaining:
@@ -98,8 +108,8 @@ def set_slots_state(obj, state):
                 error = "'{}.{}' is not a slot".format(cls.__name__, slot)
                 raise AttributeError(error)
 
-            # Set value and pop it from the state.
-            member.__set__(obj, state[slot])
+            # Set value using the member descriptor.
+            member.__set__(obj, state_update[slot])
             remaining.remove(slot)
 
         if not remaining:

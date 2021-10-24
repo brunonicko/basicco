@@ -36,7 +36,7 @@ class Base(with_metaclass(BaseMeta, object)):
         __reduce__ = reducer
 
 
-def _lock(mcs):
+def _lock(mcs):  # TODO: replace with possible `frozen` functionality?
     def __setattr__(cls, name, value):
         if cls is Base:
             error = "can't set attributes of {} class".format(repr(Base.__name__))
