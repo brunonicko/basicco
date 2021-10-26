@@ -151,7 +151,7 @@ def qualname(obj, fallback=None, force_ast=False):
             reverse=True,
             key=lambda k: (
                 k - lineno if k >= lineno else max(qualified_names) + (lineno - k)
-            )
+            ),
         )
     else:
         linenos = []

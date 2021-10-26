@@ -62,7 +62,10 @@ def test_qualname_property():
         return X
 
     if not PY2:
-        assert func().Y.Z.__qualname__ == "test_qualname_property.<locals>.func.<locals>.X.Y.Z"
+        assert (
+            func().Y.Z.__qualname__
+            == "test_qualname_property.<locals>.func.<locals>.X.Y.Z"
+        )
 
 
 class A(object):
