@@ -66,7 +66,7 @@ class QualnameMeta(type):
                         raise ImportError()
                 except (ImportError, AttributeError):
 
-                    # Try to use parent.
+                    # Try to use parent (for when running interactively).
                     if _PARENT_ATTRIBUTE in cls.__dict__:
                         parent = cls.__dict__[_PARENT_ATTRIBUTE]
                         if parent is not None:
@@ -102,8 +102,8 @@ class QualnameMeta(type):
                     type.__setattr__(cls, _QUALNAME_ATTRIBUTE, qualified_name)
                 return qualified_name
 
-        @property
-        def __qualname__(cls):
+        @property  # type: ignore
+        def __qualname__(cls):  # type: ignore
             return cls.__get_qualname()
 
         @__qualname__.setter
