@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-class BaseMeta(FrozenMeta, QualnameMeta, FinalMeta, AbstractMeta, GenericMeta):
+class BaseMeta(FrozenMeta, FinalMeta, AbstractMeta, QualnameMeta, GenericMeta):
     """Metaclass for :class:`Base`."""
 
 

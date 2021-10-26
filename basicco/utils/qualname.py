@@ -1,4 +1,4 @@
-"""Python 2 compatible way to find the qualified name based on wbolster/qualname."""
+"""Python 2 compatible way to find the qualified name inspired by wbolster/qualname."""
 
 import ast
 import inspect
@@ -43,18 +43,23 @@ def qualname(obj, fallback=None, force_ast=False):
     """
 
     # Not available for non-callables.
-    if not callable(obj) or not hasattr(obj, "__name__"):
+    if (
+        not callable(obj)
+        or not hasattr(obj, "__name__")
+        or not hasattr(obj, "__module__")
+    ):
         error = "can't determine qualified name for instances of {}".format(
             repr(type(obj).__name__)
         )
         raise TypeError(error)
     obj_name = obj.__name__
+    obj_module = obj.__module__  # type: ignore
 
     # Native qualified name or manually defined.
     if not force_ast:
         try:
             return getattr(obj, "__qualname__")
-        except QualnameError:
+        except QualnameError:  # in case this function gets called when getting the attr
             if fallback is not None:
                 return fallback
             else:
@@ -62,16 +67,18 @@ def qualname(obj, fallback=None, force_ast=False):
         except AttributeError:
             pass
 
-    # Try to match the root of the module in case object is not nested under anything.
-    module_name = getattr(obj, "__module__", None)
-    if module_name is not None:
-        try:
-            module = __import__(module_name, fromlist=[obj_name])
-        except ImportError:
-            pass
-        else:
-            if getattr(module, obj_name, None) is obj:
-                return obj_name
+    # Try to match the root of the module in case the object is not nested.
+    try:
+        module = __import__(obj_module, fromlist=[obj_name])
+    except ImportError as e:
+        error = "couldn't import module {} for {}; {}".format(
+            repr(obj_module), repr(obj_name), e
+        )
+        exc = QualnameError(error)
+        raise_from(exc, None)
+        raise exc
+    if getattr(module, obj_name, None) is obj:
+        return obj_name
 
     # Get source file name.
     try:
@@ -137,18 +144,58 @@ def qualname(obj, fallback=None, force_ast=False):
         visitor.visit(node)
         qualified_names = _cache[filename] = visitor.qualified_names
 
-    # Get qualified name from parsing results.
-    qualified_name = qualified_names.get(lineno, None)
-    if qualified_name is None:
-        if fallback is None:
-            error = "qualified name could not be retrieved from {} source code".format(
-                repr(obj.__name__)
+    # Sort list of line numbers based on the one found via inspection.
+    if qualified_names:
+        linenos = sorted(
+            qualified_names,
+            reverse=True,
+            key=lambda k: (
+                k - lineno if k >= lineno else max(qualified_names) + (lineno - k)
             )
-            raise QualnameError(error)
-        else:
-            return fallback
+        )
+    else:
+        linenos = []
 
-    return qualified_name
+    # Iterate over possible line numbers.
+    while linenos:
+        current_lineno = linenos.pop()
+
+        # Get qualified name from parsing results.
+        qualified_name = qualified_names.get(current_lineno, None)
+        if qualified_name is None:
+            if fallback is None:
+                error = (
+                    "qualified name could not be retrieved from source code for {}"
+                ).format(repr(obj_name))
+                raise QualnameError(error)
+            else:
+                return fallback
+
+        # Verify qualified name.
+        if qualified_name and "<locals>" not in qualified_name:
+            qualified_name_parts = qualified_name.split(".")
+            test_obj = module
+            while qualified_name_parts:
+                part = qualified_name_parts.pop(0)
+                try:
+                    test_obj = getattr(test_obj, part)
+                except AttributeError:
+                    break
+            else:
+
+                # Extract function from unbound method (Python 2).
+                if hasattr(test_obj, "im_func"):
+                    test_obj = test_obj.im_func  # type: ignore
+
+                # Return only confirmed to be the same exact object.
+                if test_obj is obj and test_obj:
+                    return qualified_name
+
+    # No way to reliably retrieve qualified name.
+    error = "qualified name could not be retrieved from source code for {}".format(
+        repr(obj.__name__)
+    )
+    raise QualnameError(error)
 
 
 class _Visitor(ast.NodeVisitor):

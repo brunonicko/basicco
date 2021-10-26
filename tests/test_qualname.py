@@ -1,8 +1,8 @@
 import pytest
 
-from six import with_metaclass
+from six import with_metaclass, PY2
 
-from basicco.qualname import qualname, QualnameMeta, QualnameError
+from basicco.qualname import qualname, QualnameMeta, QualnameError, _PARENT_ATTRIBUTE
 
 
 @pytest.mark.parametrize("force_ast", (True, False))
@@ -16,7 +16,7 @@ def test_qualname(force_ast):
 
     # AST parsing should fail for classes generated on the fly.
     with pytest.raises(QualnameError):
-        qualname(type("Z", (object,), {}), force_ast=True)
+        print(qualname(type("Z", (object,), {"BLA": 1}), force_ast=True))
 
     # Built-ins.
     assert qualname(int, force_ast=force_ast) == "int"
@@ -26,6 +26,13 @@ def test_qualname(force_ast):
 
 @pytest.mark.parametrize("force_ast", (True, False))
 def test_qualname_meta(force_ast):
+
+    # Asset reference to parent class.
+    if PY2:
+        assert getattr(ZM.BM, _PARENT_ATTRIBUTE) is ZM
+        assert getattr(ZM.BM.CM, _PARENT_ATTRIBUTE) is ZM.BM
+        assert getattr(AM.BM, _PARENT_ATTRIBUTE) is AM
+        assert getattr(AM.BM.CM, _PARENT_ATTRIBUTE) is AM.BM
 
     # Get qualified name from class with QualnameMeta using the class attribute.
     assert AM.__qualname__ == "AM"
@@ -43,10 +50,32 @@ def test_qualname_meta(force_ast):
         del AM.__qualname__
 
 
+def test_qualname_property():
+    def func():
+        class X(with_metaclass(QualnameMeta, object)):
+            class Y(with_metaclass(QualnameMeta, object)):
+                __qualname__ = "AA"
+
+                class Z(with_metaclass(QualnameMeta, object)):
+                    pass
+
+        return X
+
+    if not PY2:
+        assert func().Y.Z.__qualname__ == "test_qualname_property.<locals>.func.<locals>.X.Y.Z"
+
+
 class A(object):
     class B(object):
         class C(object):
             def d(self):
+                pass
+
+
+class ZM(with_metaclass(QualnameMeta, object)):
+    class BM(with_metaclass(QualnameMeta, object)):
+        class CM(with_metaclass(QualnameMeta, object)):
+            def dm(self):
                 pass
 
 

@@ -1,104 +1,116 @@
 """Python 2 compatible way to find the qualified name based on wbolster/qualname."""
 
-from weakref import ref
-
 from six import raise_from, iteritems
 
 from .utils.qualname import qualname, QualnameError
 
 __all__ = ["qualname", "QualnameError", "QualnameMeta"]
 
-_PARENT_ATTRIBUTE_NAME = "_QualnameMeta__parent_ref"
-_QUALNAME_CACHE_ATTRIBUTE_NAME = "_QualnameMeta__qualname"
+_PARENT_ATTRIBUTE = "_QualnameMeta__parent"
+_QUALNAME_ATTRIBUTE = "_QualnameMeta__qualname"
 
 
 class QualnameMeta(type):
     """Implements qualified name feature for Python 2 classes based on AST parsing."""
 
+    # Only implement if current Python does not natively support qualified names.
     if not hasattr(type, "__qualname__"):
 
-        def __init__(cls, name, bases, dct, **kwargs):
-            super(QualnameMeta, cls).__init__(name, bases, dct, **kwargs)
+        @staticmethod
+        def __new__(mcs, name, bases, dct):
+
+            # Qualified name was manually specified in the class body.
+            manual_qualname = dct.pop("__qualname__", None)
+            if manual_qualname is not None:
+                dct = dict(dct)
+                dct[_QUALNAME_ATTRIBUTE] = manual_qualname
+
+            # Build class.
+            cls = super(QualnameMeta, mcs).__new__(mcs, name, bases, dct)
+
+            # Look for classes defined inside of this class' body, mark as a parent.
             for attribute_name, value in iteritems(dct):
-                if isinstance(value, QualnameMeta):
-                    if _PARENT_ATTRIBUTE_NAME not in value.__dict__:
-                        type.__setattr__(value, _PARENT_ATTRIBUTE_NAME, cls)
+                if (
+                    isinstance(value, QualnameMeta)
+                    and value.__name__ == attribute_name
+                    and _PARENT_ATTRIBUTE not in value.__dict__
+                ):
+                    try:
+                        module = __import__(value.__module__, fromlist=[attribute_name])
+                        if getattr(module, attribute_name) is value:
+                            continue
+                    except (ImportError, AttributeError):
+                        type.__setattr__(value, _PARENT_ATTRIBUTE, cls)
 
-        def __getattr__(cls, name):
-            if name == "__qualname__":
+            return cls
 
-                # Try to use cached.
-                qualified_name = cls.__dict__.get(_QUALNAME_CACHE_ATTRIBUTE_NAME, None)
+        def __get_qualname(cls, use_cache=True):
+
+            # Try to use cached.
+            if use_cache:
+                qualified_name = cls.__dict__.get(_QUALNAME_ATTRIBUTE, None)
                 if qualified_name is not None:
                     return qualified_name
 
-                # Try to use parent.
-                parent = cls.__dict__.get(_PARENT_ATTRIBUTE_NAME, None)
-                if parent is not None:
+            # Try to get it using AST parsing. Forcing AST parsing avoids recursion.
+            try:
+                qualified_name = qualname(cls, force_ast=True)
+            except QualnameError as e:
 
-                    # Compose qualified name with parent's.
-                    try:
-                        parent_qualified_name = getattr(parent, "__qualname__")
-                    except (AttributeError, QualnameError):
-                        pass
-                    else:
-                        qualified_name = "{}.{}".format(
-                            parent_qualified_name, cls.__name__
-                        )
-
-                        # Cache it and return.
-                        type.__setattr__(
-                            cls, _QUALNAME_CACHE_ATTRIBUTE_NAME, qualified_name
-                        )
-                        return qualified_name
-
-                # Get it using AST parsing.
+                # Try to check if the qualname is the same as the name (module's root).
                 try:
-                    qualified_name = qualname(cls, force_ast=True)
-                except QualnameError as e:
-
-                    # Try to check if the qualname is the same as the name.
-                    try:
-                        module = __import__(cls.__module__, fromlist=[cls.__name__])
-                        if getattr(module, cls.__name__) is not cls:
-                            raise ImportError()
-                    except (ImportError, AttributeError):
-
-                        # Could not get it, re-raise QualnameError.
-                        raise_from(e, None)
-                        raise e
-
-                    else:
-
-                        # Return without caching (in case the name changes).
+                    module = __import__(cls.__module__, fromlist=[cls.__name__])
+                    if getattr(module, cls.__name__) is cls:
                         return cls.__name__
+                    else:
+                        raise ImportError()
+                except (ImportError, AttributeError):
+
+                    # Try to use parent.
+                    if _PARENT_ATTRIBUTE in cls.__dict__:
+                        parent = cls.__dict__[_PARENT_ATTRIBUTE]
+                        if parent is not None:
+                            assert isinstance(parent, QualnameMeta)
+
+                            # Compose qualified name with parent's.
+                            try:
+                                parent_qualified_name = parent.__get_qualname(
+                                    use_cache=False
+                                )
+                            except (AttributeError, QualnameError):
+                                pass
+                            else:
+                                qualified_name = "{}.{}".format(
+                                    parent_qualified_name, cls.__name__
+                                )
+
+                                # Cache it and return.
+                                if use_cache:
+                                    type.__setattr__(
+                                        cls, _QUALNAME_ATTRIBUTE, qualified_name
+                                    )
+                                return qualified_name
+
+                    # Could not get it, re-raise QualnameError.
+                    raise_from(e, None)
+                    raise e
+
+            else:
 
                 # Cache it and return.
-                type.__setattr__(cls, _QUALNAME_CACHE_ATTRIBUTE_NAME, qualified_name)
+                if use_cache:
+                    type.__setattr__(cls, _QUALNAME_ATTRIBUTE, qualified_name)
                 return qualified_name
 
-            else:
-                try:
-                    super_getattr = super(QualnameMeta, cls).__getattr__  # type: ignore
-                except AttributeError:
-                    pass
-                else:
-                    return super_getattr()
-                return type.__getattribute__(cls, name)
+        @property
+        def __qualname__(cls):
+            return cls.__get_qualname()
 
-        def __setattr__(cls, name, value):
-            super(QualnameMeta, cls).__delattr__(name)
-            if name == "__qualname__":
-                if "__qualname__" in cls.__dict__:
-                    qualified_name = cls.__dict__["__qualname__"]
-                    type.__delattr__(cls, "__qualname__")
-                    type.__setattr__(
-                        cls, _QUALNAME_CACHE_ATTRIBUTE_NAME, qualified_name
-                    )
+        @__qualname__.setter
+        def __qualname__(cls, value):
+            type.__setattr__(cls, _QUALNAME_ATTRIBUTE, value)
 
-        def __delattr__(cls, name):
-            if name == "__qualname__":
-                error = "can't delete {}.{}".format(cls.__name__, "__qualname__")
-                raise TypeError(error)
-            else:
-                super(QualnameMeta, cls).__delattr__(name)
+        @__qualname__.deleter
+        def __qualname__(cls):
+            error = "can't delete {}.__qualname__".format(cls.__name__)
+            raise TypeError(error)

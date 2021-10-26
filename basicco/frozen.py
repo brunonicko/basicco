@@ -201,4 +201,4 @@ class FrozenMeta(type):
             )
             raise AttributeError(error)
         else:
-            super(FrozenMeta, cls).__setattr__(name)
+            super(FrozenMeta, cls).__delattr__(name)
