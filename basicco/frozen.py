@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     FMT = TypeVar("FMT", bound="FrozenMeta")
 
-__all__ = ["FROZEN_SLOT", "freeze", "frozen", "FrozenMeta"]
+__all__ = ["FROZEN_SLOT", "frozen", "freeze", "unfreeze", "FrozenMeta"]
 
 _FROZEN_DECORATED_TAG = "__isfrozendecoratedclass__"
 _FROZEN_CLASS_TAG = "__isfrozenclass__"
@@ -78,14 +78,18 @@ def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subcl
             type.__setattr__(_cls, _FROZEN_CLASS_TAG, True)
             type.__setattr__(_cls, _FROZEN_CLASS_INSTANCE_TAG, True)
         elif getattr(_cls, _FROZEN_CLASS_TAG, False):
-            error_ = "can't un-freeze class {}".format(repr(_cls.__name__))
+            error_ = "can't un-freeze permanently frozen class {}".format(
+                repr(_cls.__name__)
+            )
             raise TypeError(error_)
 
         # Freeze future instances.
         if _instances:
             type.__setattr__(_cls, _FROZEN_OBJECT_TAG, True)
         elif getattr(_cls, _FROZEN_OBJECT_TAG, False):
-            error_ = "can't un-freeze instances of {}".format(repr(_cls.__name__))
+            error_ = "can't un-freeze permanently frozen instances of {}".format(
+                repr(_cls.__name__)
+            )
             raise TypeError(error_)
 
         # Dynamically replace methods.
@@ -137,38 +141,103 @@ def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subcl
 
 def freeze(obj):
     """
-    Freeze an instance.
+    Freeze an instance or class.
 
-    :param obj: Instance.
+    :param obj: Instance or Class.
+
+    :return: Instance of Class.
     """
-    cls = type(obj)
+    is_class = isinstance(obj, type)
+    if is_class:
+        cls = obj
+    else:
+        cls = type(obj)
 
+    # Check metaclass.
     if not isinstance(cls, FrozenMeta):
         error = "class {} does not have {} as its metaclass, can't freeze".format(
             repr(cls.__name__), repr(FrozenMeta.__name__)
         )
         raise TypeError(error)
 
-    if hasattr(obj, "__dict__") or hasattr(cls, FROZEN_SLOT):
+    # Decorate if necessary.
+    if not getattr(cls, _FROZEN_DECORATED_TAG, False):
+        cls = frozen(cls, classes=False, instances=False)
 
-        # Freeze this instance.
-        if not getattr(obj, FROZEN_SLOT, False):
-            object.__setattr__(obj, FROZEN_SLOT, True)
+    if is_class:
+
+        # Freeze this class.
+        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, True)
 
     else:
 
-        # Could not freeze slotted object, missing slot.
-        error = (
-            "could not freeze slotted instance of '{}.{}' since it doesn't "
-            "have a slot named {} (available as a constant at {}.{})"
-        ).format(
-            cls.__module__,
-            getattr(cls, "__qualname__", cls.__name__),
-            repr(FROZEN_SLOT),
-            __name__,
-            "FROZEN_SLOT",
+        # Freeze instance.
+        if hasattr(obj, "__dict__") or hasattr(cls, FROZEN_SLOT):
+            if not getattr(obj, FROZEN_SLOT, False):
+                object.__setattr__(obj, FROZEN_SLOT, True)
+        else:
+            error = (
+                "could not freeze slotted instance of '{}.{}' since it doesn't "
+                "have a slot named {} (available as a constant at {}.{})"
+            ).format(
+                cls.__module__,
+                getattr(cls, "__qualname__", cls.__name__),
+                repr(FROZEN_SLOT),
+                __name__,
+                "FROZEN_SLOT",
+            )
+            raise AttributeError(error)
+
+    return obj
+
+
+def unfreeze(obj):
+    """
+    Unfreeze an instance or class.
+
+    :param obj: Instance or Class.
+
+    :return: Instance of Class.
+    """
+    is_class = isinstance(obj, type)
+    if is_class:
+        cls = obj
+    else:
+        cls = type(obj)
+
+    # Check metaclass.
+    if not isinstance(cls, FrozenMeta):
+        error = "class {} does not have {} as its metaclass, can't unfreeze".format(
+            repr(cls.__name__), repr(FrozenMeta.__name__)
         )
-        raise AttributeError(error)
+        raise TypeError(error)
+
+    if is_class:
+
+        # Can't unfreeze permanently frozen class.
+        if getattr(cls, _FROZEN_CLASS_TAG, False):
+            error_ = "can't un-freeze permanently frozen class {}".format(
+                repr(cls.__name__)
+            )
+            raise TypeError(error_)
+
+        # Unfreeze class.
+        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, False)
+
+    else:
+
+        # Can't unfreeze permanently frozen instances.
+        if getattr(cls, _FROZEN_OBJECT_TAG, False):
+            error_ = "can't un-freeze permanently frozen instances of {}".format(
+                repr(cls.__name__)
+            )
+            raise TypeError(error_)
+
+        # Unfreeze instance.
+        if hasattr(obj, "__dict__") or hasattr(cls, FROZEN_SLOT):
+            object.__setattr__(obj, FROZEN_SLOT, False)
+
+    return obj
 
 
 class FrozenMeta(type):
@@ -187,41 +256,27 @@ class FrozenMeta(type):
         super(FrozenMeta, cls).__init__(name, bases, dct, **kwargs)
 
         # Freeze this class.
-        type.__setattr__(
-            cls, _FROZEN_CLASS_INSTANCE_TAG, getattr(cls, _FROZEN_CLASS_TAG, False)
-        )
+        is_frozen = getattr(cls, _FROZEN_CLASS_TAG, False)
+        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, is_frozen)
 
     def __call__(cls, *args, **kwargs):
-
-        # Has to be decorated.
-        if not getattr(cls, _FROZEN_DECORATED_TAG, False):
-            error = (
-                "did not decorate class {} or any of its bases with {} decorator"
-            ).format(repr(cls.__name__), repr(frozen.__name__))
-            raise TypeError(error)
-
-        # Make instance.
         self = super(FrozenMeta, cls).__call__(*args, **kwargs)
 
-        # Freeze automatically if tagged.
+        # Freeze this instance.
         if getattr(cls, _FROZEN_OBJECT_TAG, False):
             freeze(self)
 
         return self
 
     def __setattr__(cls, name, value):
-        if getattr(cls, _FROZEN_CLASS_TAG, False) and cls.__dict__.get(
-            _FROZEN_CLASS_INSTANCE_TAG, False
-        ):
+        if cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False):
             error = "{} is frozen, can't set class attribute".format(repr(cls.__name__))
             raise AttributeError(error)
         else:
             super(FrozenMeta, cls).__setattr__(name, value)
 
     def __delattr__(cls, name):
-        if getattr(cls, _FROZEN_CLASS_TAG, False) and cls.__dict__.get(
-            _FROZEN_CLASS_INSTANCE_TAG, False
-        ):
+        if cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False):
             error = "{} is frozen, can't delete class attribute".format(
                 repr(cls.__name__)
             )

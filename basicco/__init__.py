@@ -6,7 +6,7 @@ from .generic import GenericMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .final import final, is_final, is_final_member, FinalMeta
 from .qualname import qualname, QualnameMeta
-from .frozen import frozen, freeze, FrozenMeta, FROZEN_SLOT
+from .frozen import frozen, freeze, unfreeze, FrozenMeta, FROZEN_SLOT
 from .utils.reducer import reducer
 
 __all__ = [
@@ -21,6 +21,7 @@ __all__ = [
     "qualname",
     "frozen",
     "freeze",
+    "unfreeze",
 ]
 
 
@@ -28,7 +29,7 @@ class BaseMeta(FrozenMeta, FinalMeta, AbstractMeta, QualnameMeta, GenericMeta):
     """Metaclass for :class:`Base`."""
 
 
-@frozen(classes=False, instances=False)
+@freeze
 class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
@@ -36,25 +37,3 @@ class Base(with_metaclass(BaseMeta, object)):
 
     if version_info[0:2] < (3, 4):
         __reduce__ = reducer
-
-
-def _lock(mcs):  # TODO: replace with possible `frozen` functionality?
-    def __setattr__(cls, name, value):
-        if cls is Base:
-            error = "can't set attributes of {} class".format(repr(Base.__name__))
-            raise AttributeError(error)
-        else:
-            super(mcs, cls).__setattr__(name, value)
-
-    def __delattr__(cls, name):
-        if cls is Base:
-            error = "can't delete attributes of {} class".format(repr(Base.__name__))
-            raise AttributeError(error)
-        else:
-            super(mcs, cls).__delattr__(name)
-
-    type.__setattr__(mcs, "__setattr__", __setattr__)
-    type.__setattr__(mcs, "__delattr__", __delattr__)
-
-
-_lock(BaseMeta)
