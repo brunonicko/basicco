@@ -6,7 +6,7 @@ from .generic import GenericMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .final import final, is_final, is_final_member, FinalMeta
 from .qualname import qualname, QualnameMeta
-from .frozen import frozen, FrozenMeta, FROZEN_SLOT
+from .frozen import frozen, freeze, FrozenMeta, FROZEN_SLOT
 from .utils.reducer import reducer
 
 __all__ = [
@@ -20,6 +20,7 @@ __all__ = [
     "is_final_member",
     "qualname",
     "frozen",
+    "freeze",
 ]
 
 
@@ -27,6 +28,7 @@ class BaseMeta(FrozenMeta, FinalMeta, AbstractMeta, QualnameMeta, GenericMeta):
     """Metaclass for :class:`Base`."""
 
 
+@frozen(classes=False, instances=False)
 class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
