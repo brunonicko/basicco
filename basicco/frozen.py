@@ -1,13 +1,24 @@
-"""Class decorator that can prevent modifying class and/or instance attributes."""
+"""Prevents modifying class and/or instance attributes."""
 
+from functools import wraps
+from inspect import isclass
 from typing import TYPE_CHECKING, overload
 
 if TYPE_CHECKING:
-    from typing import Callable, TypeVar, Optional, Literal
+    from typing import Any, Callable, TypeVar, Optional, Literal
 
     FMT = TypeVar("FMT", bound="FrozenMeta")
 
-__all__ = ["FROZEN_SLOT", "frozen", "freeze", "unfreeze", "FrozenMeta"]
+__all__ = [
+    "FROZEN_SLOT",
+    "frozen",
+    "freeze",
+    "is_frozen",
+    "will_class_be_frozen",
+    "will_subclasses_be_frozen",
+    "will_instance_be_frozen",
+    "FrozenMeta",
+]
 
 _FROZEN_DECORATED_TAG = "__isfrozendecoratedclass__"
 _FROZEN_CLASS_TAG = "__isfrozenclass__"
@@ -30,20 +41,23 @@ def frozen(cls=None, classes=None, instances=None):
     pass
 
 
-def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subclasses?
+def frozen(cls=None, classes=None, instances=None):
     """
-    Class decorator that prevents changing the attribute values for classes and/or
-    their instances after they have been initialized.
+    Class decorator that permanently prevents changing the attribute values for classes
+    & subclases, and/or their instances after they have been initialized.
 
     :param cls: Class to be decorated.
 
-    :param classes: Whether to freeze class and subclasses attributes.
+    :param classes: Whether to permanently freeze class and subclasses attributes.
     :type classes: bool or None
 
-    :param instances: Whether to freeze instance attributes.
+    :param instances: Whether to permanently freeze instance attributes.
     :type instances: bool or None
 
     :return: Decorated class.
+
+    :raises TypeError: Provided invalid class.
+    :raises TypeError: Can't unfreeze already frozen class.
     """
 
     def decorator(_cls):
@@ -65,9 +79,12 @@ def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subcl
 
         # Check for metaclass.
         if not isinstance(_cls, FrozenMeta):
-            error_ = "can't use 'frozen' decorator with non-{} class {}".format(
-                FrozenMeta.__name__, repr(_cls.__name__)
-            )
+            if not isclass(_cls):
+                error_ = "{} object is not a class".format(repr(type(cls).__name__))
+            else:
+                error_ = "can't use 'frozen' decorator with non-{} class {}".format(
+                    FrozenMeta.__name__, repr(_cls.__name__)
+                )
             raise TypeError(error_)
 
         # Decorate class.
@@ -126,6 +143,11 @@ def frozen(cls=None, classes=None, instances=None):  # TODO: this_class != subcl
         if hasattr(_cls, "__qualname__"):
             __setattr__.__qualname__ = ".".join((_cls.__qualname__, "__setattr__"))
             __delattr__.__qualname__ = ".".join((_cls.__qualname__, "__delattr__"))
+
+        if super_setattr is not None:
+            __setattr__ = wraps(super_setattr)(__setattr__)
+        if super_delattr is not None:
+            __delattr__ = wraps(super_delattr)(__delattr__)
 
         type.__setattr__(_cls, "__setattr__", __setattr__)
         type.__setattr__(_cls, "__delattr__", __delattr__)
@@ -191,53 +213,81 @@ def freeze(obj):
     return obj
 
 
-def unfreeze(obj):
+def is_frozen(obj):
+    # type: (Any) -> bool
     """
-    Unfreeze an instance or class.
+    Tells whether a class or instance is frozen.
 
-    :param obj: Instance or Class.
+    :param obj: Class or instance.
 
-    :return: Instance of Class.
+    :return: True if it is frozen.
+    :rtype: bool
     """
-    is_class = isinstance(obj, type)
-    if is_class:
-        cls = obj
+    if isclass(obj):
+        return obj.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False) is True
     else:
-        cls = type(obj)
+        return getattr(obj, FROZEN_SLOT, False) is True
 
-    # Check metaclass.
-    if not isinstance(cls, FrozenMeta):
-        error = "class {} does not have {} as its metaclass, can't unfreeze".format(
-            repr(cls.__name__), repr(FrozenMeta.__name__)
-        )
+
+def will_class_be_frozen(cls):
+    # type: (FrozenMeta) -> bool
+    """
+    Tells whether a class will be frozen after initialization.
+    If already initialized, tells whether it is frozen.
+
+    :param cls: Class.
+
+    :return: True if it will be/is frozen.
+    :rtype: bool
+
+    :raises TypeError: Did not provide a class.
+    """
+    if not isclass(cls):
+        error = "{} object is not a class".format(repr(type(cls).__name__))
         raise TypeError(error)
+    return (
+        getattr(cls, _FROZEN_CLASS_TAG, False) is True
+        or cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False) is True
+    )
 
-    if is_class:
 
-        # Can't unfreeze permanently frozen class.
-        if getattr(cls, _FROZEN_CLASS_TAG, False):
-            error_ = "can't un-freeze permanently frozen class {}".format(
-                repr(cls.__name__)
-            )
-            raise TypeError(error_)
+def will_subclasses_be_frozen(cls):
+    # type: (FrozenMeta) -> bool
+    """
+    Tells whether class and its subclasses will be frozen after initialization.
 
-        # Unfreeze class.
-        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, False)
+    :param cls: Class.
 
-    else:
+    :return: True if will be frozen.
+    :rtype: bool
 
-        # Can't unfreeze permanently frozen instances.
-        if getattr(cls, _FROZEN_OBJECT_TAG, False):
-            error_ = "can't un-freeze permanently frozen instances of {}".format(
-                repr(cls.__name__)
-            )
-            raise TypeError(error_)
+    :raises TypeError: Did not provide a class.
+    """
+    if not isclass(cls):
+        error = "{} object is not a class".format(repr(type(cls).__name__))
+        raise TypeError(error)
+    return getattr(cls, _FROZEN_CLASS_TAG, False) is True
 
-        # Unfreeze instance.
-        if hasattr(obj, "__dict__") or hasattr(cls, FROZEN_SLOT):
-            object.__setattr__(obj, FROZEN_SLOT, False)
 
-    return obj
+def will_instance_be_frozen(instance):
+    """
+    Tells whether an instance will be frozen after initialization.
+    If already initialized, tells whether it is frozen.
+
+    :param instance: Instance.
+
+    :return: True if it will be/is frozen.
+    :rtype: bool
+
+    :raises TypeError: Did not provide an instance.
+    """
+    if isclass(instance):
+        error = "{} is a class, not an instance".format(repr(instance.__name__))
+        raise TypeError(error)
+    return (
+        getattr(type(instance), _FROZEN_OBJECT_TAG, False) is True
+        or getattr(instance, FROZEN_SLOT, False) is True
+    )
 
 
 class FrozenMeta(type):
@@ -256,8 +306,9 @@ class FrozenMeta(type):
         super(FrozenMeta, cls).__init__(name, bases, dct, **kwargs)
 
         # Freeze this class.
-        is_frozen = getattr(cls, _FROZEN_CLASS_TAG, False)
-        type.__setattr__(cls, _FROZEN_CLASS_INSTANCE_TAG, is_frozen)
+        type.__setattr__(
+            cls, _FROZEN_CLASS_INSTANCE_TAG, getattr(cls, _FROZEN_CLASS_TAG, False)
+        )
 
     def __call__(cls, *args, **kwargs):
         self = super(FrozenMeta, cls).__call__(*args, **kwargs)

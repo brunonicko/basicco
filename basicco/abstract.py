@@ -1,5 +1,6 @@
 """Matches Python 2 behavior with Python 3 for abstract members."""
 
+from functools import wraps
 from inspect import isclass, getmro
 from abc import ABCMeta
 from abc import abstractmethod as abstract
@@ -8,7 +9,7 @@ from typing import TYPE_CHECKING
 from six import iteritems
 
 if TYPE_CHECKING:
-    from typing import Set, TypeVar
+    from typing import Any, Set, TypeVar
 
     AT = TypeVar("AT", bound="AbstractMeta")
 
@@ -31,13 +32,13 @@ def _abstract(obj):
 
         def __new__(cls, *args, **kwargs):
             if cls.__dict__.get(_ABSTRACT_CLASS_TAG, False):
-                abstract_members = sorted(getattr(cls, _ABSTRACT_METHODS, ()))
+                abstract_members = getattr(cls, _ABSTRACT_METHODS, ())
                 if abstract_members:
                     error = (
                         "can't instantiate abstract class {} with abstract members {}"
                     ).format(
                         repr(cls.__name__),
-                        ", ".join(repr(m) for m in abstract_members),
+                        ", ".join(repr(m) for m in sorted(abstract_members)),
                     )
                 else:
                     error = "can't instantiate abstract class {}".format(
@@ -47,7 +48,16 @@ def _abstract(obj):
             elif super_new is not None:
                 return super_new(cls, *args, **kwargs)
             else:
-                return super(obj, cls).__new__(cls, *args, **kwargs)  # FIXME: object
+                return super(obj, cls).__new__(cls, *args, **kwargs)  # type: ignore
+
+        __new__.__module__ = obj.__module__
+        __new__.__name__ = "__new__"
+
+        if hasattr(obj, "__qualname__"):
+            __new__.__qualname__ = ".".join((obj.__qualname__, "__new__"))
+
+        if super_new is not None:
+            super_new = wraps(super_new)(__new__)
 
         type.__setattr__(obj, "__new__", staticmethod(__new__))
         type.__setattr__(obj, _ABSTRACT_CLASS_TAG, True)
@@ -58,14 +68,19 @@ def _abstract(obj):
         return __abstract(obj)
 
 
-_abstract.__name__ = abstract.__name__
-_abstract.__doc__ = abstract.__doc__
-if hasattr(abstract, "__qualname__"):
-    _abstract.__qualname__ = abstract.__qualname__
-globals()["abstract"] = _abstract  # trick mypy
+globals()["abstract"] = wraps(abstract)(_abstract)  # trick IDEs/static type checkers
 
 
 def is_abstract(obj):
+    # type: (Any) -> bool
+    """
+    Tells whether a class or member is abstract.
+
+    :param obj: Class or member.
+
+    :return: True if abstract.
+    :rtype: bool
+    """
     if isclass(obj):
         return obj.__dict__.get(_ABSTRACT_CLASS_TAG, False) or bool(
             getattr(obj, _ABSTRACT_METHODS, ())
@@ -75,7 +90,15 @@ def is_abstract(obj):
 
 
 def is_abstract_member(obj):
+    # type: (Any) -> bool
+    """
+    Tells whether a member is abstract.
 
+    :param obj: Member.
+
+    :return: True if abstract.
+    :rtype: bool
+    """
     _is_abstract = False
 
     # Descriptor.
@@ -102,11 +125,12 @@ class AbstractMeta(ABCMeta):
 
     def __init__(cls, name, bases, dct, **kwargs):
         super(AbstractMeta, cls).__init__(name, bases, dct, **kwargs)
+        cls.__gather_abstract_members()
+
+    def __gather_abstract_members(cls):
 
         # Iterate over MRO of the class.
-        abstract_method_names = set(
-            getattr(cls, _ABSTRACT_METHODS, ())
-        )  # type: Set[str]
+        abstract_method_names = set()  # type: Set[str]
         for base in reversed(getmro(cls)):
 
             # Find abstract members.
@@ -121,4 +145,10 @@ class AbstractMeta(ABCMeta):
         # Update class information.
         type.__setattr__(cls, _ABSTRACT_METHODS, frozenset(abstract_method_names))
 
-    # TODO: change members at runtime
+    def __setattr__(cls, name, value):
+        super(AbstractMeta, cls).__setattr__(name, value)
+        cls.__gather_abstract_members()
+
+    def __delattr__(cls, name):
+        super(AbstractMeta, cls).__delattr__(name)
+        cls.__gather_abstract_members()

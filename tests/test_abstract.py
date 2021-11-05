@@ -1,9 +1,23 @@
-import abc
 import pytest
 
 from six import with_metaclass
 
-from basicco.abstract import AbstractMeta
+from basicco.abstract import abstract, AbstractMeta
+
+
+def test_abstract_class():
+
+    @abstract
+    class Class(with_metaclass(AbstractMeta, object)):
+        pass
+
+    with pytest.raises(TypeError):
+        Class()
+
+    class SubClass(Class):
+        pass
+
+    assert SubClass()
 
 
 def test_abstract_method():
@@ -30,11 +44,17 @@ def test_abstract_method():
 
         class Class(with_metaclass(AbstractMeta, object)):
             @decorator
-            @abc.abstractmethod
+            @abstract
             def method(self):
                 pass
 
         assert "method" in getattr(Class, "__abstractmethods__")
+
+        Class.new_method = decorator(abstract(lambda _: None))
+        assert "new_method" in getattr(Class, "__abstractmethods__")
+
+        del Class.new_method
+        assert "new_method" not in getattr(Class, "__abstractmethods__")
 
         with pytest.raises(TypeError):
             Class()
@@ -49,7 +69,7 @@ def test_descriptor():
             return 3
 
     class Class(with_metaclass(AbstractMeta, object)):
-        @abc.abstractmethod
+        @abstract
         @Descriptor
         def method(self):
             pass

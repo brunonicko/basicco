@@ -6,7 +6,16 @@ from .generic import GenericMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .final import final, is_final, is_final_member, FinalMeta
 from .qualname import qualname, QualnameMeta
-from .frozen import frozen, freeze, unfreeze, FrozenMeta, FROZEN_SLOT
+from .frozen import (
+    FROZEN_SLOT,
+    frozen,
+    freeze,
+    is_frozen,
+    will_class_be_frozen,
+    will_subclasses_be_frozen,
+    will_instance_be_frozen,
+    FrozenMeta,
+)
 from .utils.reducer import reducer
 
 __all__ = [
@@ -21,7 +30,10 @@ __all__ = [
     "qualname",
     "frozen",
     "freeze",
-    "unfreeze",
+    "is_frozen",
+    "will_class_be_frozen",
+    "will_subclasses_be_frozen",
+    "will_instance_be_frozen",
 ]
 
 

@@ -1,6 +1,7 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
 from inspect import isclass, getmro
+from functools import wraps
 from typing import TYPE_CHECKING
 
 try:
@@ -36,11 +37,7 @@ def _final(obj):
     return __final(obj)
 
 
-_final.__name__ = final.__name__
-_final.__doc__ = final.__doc__
-if hasattr(final, "__qualname__"):
-    _final.__qualname__ = final.__qualname__
-globals()["final"] = _final  # trick mypy
+globals()["final"] = wraps(final)(_final)  # trick IDEs/static type checkers
 
 
 def is_final(obj):
@@ -77,6 +74,9 @@ class FinalMeta(type):
 
     def __init__(cls, name, bases, dct, **kwargs):
         super(FinalMeta, cls).__init__(name, bases, dct, **kwargs)
+        cls.__gather_final_members()
+
+    def __gather_final_members(cls):
 
         # Iterate over MRO of the class.
         final_cls = None  # type: Optional[Type]
@@ -107,4 +107,10 @@ class FinalMeta(type):
             # Store final methods.
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
 
-    # TODO: change members at runtime
+    def __setattr__(cls, name, value):
+        super(FinalMeta, cls).__setattr__(name, value)
+        cls.__gather_final_members()
+
+    def __delattr__(cls, name):
+        super(FinalMeta, cls).__delattr__(name)
+        cls.__gather_final_members()

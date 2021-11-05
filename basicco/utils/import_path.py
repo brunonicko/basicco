@@ -5,10 +5,10 @@ from traceback import print_exc
 from re import compile as re_compile
 from typing import TYPE_CHECKING
 
-from six import string_types
+from six import string_types, raise_from
 from six.moves import builtins
 
-from .qualname import qualname
+from .qualname import QualnameError, qualname
 
 if TYPE_CHECKING:
     from typing import Any, Optional, Tuple, List, Union, Iterable, Type
@@ -25,9 +25,14 @@ __all__ = [
 ]
 
 
-MODULE_SEPARATOR = "|"  # single character
+MODULE_SEPARATOR = "|"
+"""Single character that separates the module from the name."""
+
 IMPORT_PATH_MODULE_REGEX = re_compile(r"^([\w]+[\w.]*?)$")
+"""Regex to validate the module."""
+
 IMPORT_PATH_NAME_REGEX = re_compile(r"^([\w.]+)$")
+"""Regex to validate the name."""
 
 
 def extract_generic_paths(import_path):
@@ -354,20 +359,32 @@ def get_import_path(obj, force_ast=False, builtin_modules=None):
         generic_suffix = ""
 
     # Get qualified name and module.
-    if generic_origin is None:
-        if not hasattr(obj, "__name__"):
-            error = "can't get name for {}".format(obj)
+    try:
+        if generic_origin is None:
+            if not hasattr(obj, "__name__"):
+                error = "can't get name for {}".format(obj)
+                raise AttributeError(error)
+            module = getattr(obj, "__module__", None)
+            qual_name = qualname(obj, force_ast=force_ast, fallback=obj.__name__)
+        else:
+            module = getattr(generic_origin, "__module__", None)
+            qual_name = qualname(
+                generic_origin, force_ast=force_ast, fallback=generic_origin.__name__
+            )
+        if not module:
+            error = "can't get module for {}".format(obj)
             raise AttributeError(error)
-        module = getattr(obj, "__module__", None)
-        qual_name = qualname(obj, force_ast=force_ast, fallback=obj.__name__)
-    else:
-        module = getattr(generic_origin, "__module__", None)
-        qual_name = qualname(
-            generic_origin, force_ast=force_ast, fallback=generic_origin.__name__
-        )
-    if not module:
-        error = "can't get module for {}".format(obj)
-        raise AttributeError(error)
+        if "<locals>" in qual_name:
+            error = "local name {} is not importable".format(qual_name)
+            raise AttributeError(error)
+    except QualnameError:
+
+        # Something went wrong getting the qualified name, print the traceback.
+        print_exc()
+
+        exc = AttributeError("couldn't get qualified name for {}".format(obj))
+        raise_from(exc, None)
+        raise exc
 
     # Join and verify import path.
     import_path = format_import_path(

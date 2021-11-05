@@ -52,6 +52,12 @@ def test_final_method():
 
         assert "method" in getattr(Class, "__finalmethods__")
 
+        Class.new_method = decorator(final(lambda _: None))
+        assert "new_method" in getattr(Class, "__finalmethods__")
+
+        del Class.new_method
+        assert "new_method" not in getattr(Class, "__finalmethods__")
+
         with pytest.raises(TypeError):
 
             class SubClass(Class):

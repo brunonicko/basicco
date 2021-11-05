@@ -17,7 +17,7 @@ class QualnameMeta(type):
     if not hasattr(type, "__qualname__"):
 
         @staticmethod
-        def __new__(mcs, name, bases, dct):
+        def __new__(mcs, name, bases, dct, **kwargs):
 
             # Qualified name was manually specified in the class body.
             manual_qualname = dct.pop("__qualname__", None)
@@ -26,7 +26,7 @@ class QualnameMeta(type):
                 dct[_QUALNAME_ATTRIBUTE] = manual_qualname
 
             # Build class.
-            cls = super(QualnameMeta, mcs).__new__(mcs, name, bases, dct)
+            cls = super(QualnameMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
             # Look for classes defined inside of this class' body, mark as a parent.
             for attribute_name, value in iteritems(dct):
