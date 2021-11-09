@@ -27,7 +27,10 @@ readability, and validation.
 Motivation
 ----------
 While developing Python code for Visual Effects pipelines, I found myself having to
-write the same boiler-plates over and over again.
+write the same boiler-plate over and over again, as well as struggling with the
+compatibility issues between Python 2 and 3.
+
+So I decided to tackle the issue at the `Base`_, literally.
 
 Overview
 --------
@@ -43,7 +46,7 @@ Overview
 Base
 ----
 The `Base`_ class enables the use of functionalities provided by `Basicco`.
-In most of the cases, it's a simple drop-in replacement for `object`:
+In most cases, it's a simple drop-in replacement for `object`:
 
 .. code:: python
 
@@ -142,8 +145,8 @@ Same as the
 `abc.abstractmethod <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_
 decorator.
 
-Can be used directly on methods but also on properties, classmethods, and staticmethods
-(even in Python 2.7).
+Can be used directly on methods but also on classes, properties, classmethods, and
+staticmethods (even in Python 2.7).
 
 .. code:: python
 
@@ -162,9 +165,21 @@ Can be used directly on methods but also on properties, classmethods, and static
     Traceback (most recent call last):
     TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
 
+.. code:: python
+
+    >>> from basicco import Base, abstract
+    >>> @abstract
+    >>> class Asset(Base):
+    ...     pass
+    ...
+    >>> Asset()
+    Traceback (most recent call last):
+    TypeError: Can't instantiate abstract class Asset
+
 \__qualname__
 ^^^^^^^^^^^^^
-Support for qualified name falling back to AST parsing of the source code.
+Support for qualified name falling back to AST parsing of the source code and/or class
+definition hierarchy.
 
 Bases have a `__qualname__` attribute (even in Python 2.7):
 
@@ -200,7 +215,7 @@ Slotted and/or nested bases can be pickled (even in Python 2.7):
 
 generic
 ^^^^^^^
-Support for the `typing.Generic` class.
+Better support for the `typing.Generic` class (even in Python 2.7).
 
 Utilities
 ---------
