@@ -4,13 +4,13 @@ from six import raise_from, iteritems
 
 from .utils.qualname import qualname, QualnameError
 
-__all__ = ["qualname", "QualnameError", "QualnameMeta"]
+__all__ = ["qualname", "QualnameError", "QualifiedMeta"]
 
-_PARENT_ATTRIBUTE = "_QualnameMeta__parent"
-_QUALNAME_ATTRIBUTE = "_QualnameMeta__qualname"
+_PARENT_ATTRIBUTE = "_QualifiedMeta__parent"
+_QUALNAME_ATTRIBUTE = "_QualifiedMeta__qualname"
 
 
-class QualnameMeta(type):
+class QualifiedMeta(type):
     """Implements qualified name feature for Python 2 classes based on AST parsing."""
 
     # Only implement if current Python does not natively support qualified names.
@@ -26,12 +26,12 @@ class QualnameMeta(type):
                 dct[_QUALNAME_ATTRIBUTE] = manual_qualname
 
             # Build class.
-            cls = super(QualnameMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+            cls = super(QualifiedMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
             # Look for classes defined inside of this class' body, mark as a parent.
             for attribute_name, value in iteritems(dct):
                 if (
-                    isinstance(value, QualnameMeta)
+                    isinstance(value, QualifiedMeta)
                     and value.__name__ == attribute_name
                     and _PARENT_ATTRIBUTE not in value.__dict__
                 ):
@@ -70,7 +70,7 @@ class QualnameMeta(type):
                     if _PARENT_ATTRIBUTE in cls.__dict__:
                         parent = cls.__dict__[_PARENT_ATTRIBUTE]
                         if parent is not None:
-                            assert isinstance(parent, QualnameMeta)
+                            assert isinstance(parent, QualifiedMeta)
 
                             # Compose qualified name with parent's.
                             try:
