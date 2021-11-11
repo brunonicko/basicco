@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from six import string_types, raise_from
 from six.moves import builtins
 
-from .qualname import QualnameError, qualname
+from .qualified_name import QualnameError, get_qualified_name
 
 if TYPE_CHECKING:
     from typing import Any, Optional, Tuple, List, Union, Iterable, Type
@@ -365,10 +365,10 @@ def get_import_path(obj, force_ast=False, builtin_modules=None):
                 error = "can't get name for {}".format(obj)
                 raise AttributeError(error)
             module = getattr(obj, "__module__", None)
-            qual_name = qualname(obj, force_ast=force_ast, fallback=obj.__name__)
+            qual_name = get_qualified_name(obj, force_ast=force_ast, fallback=obj.__name__)
         else:
             module = getattr(generic_origin, "__module__", None)
-            qual_name = qualname(
+            qual_name = get_qualified_name(
                 generic_origin, force_ast=force_ast, fallback=generic_origin.__name__
             )
         if not module:

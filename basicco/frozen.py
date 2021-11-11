@@ -321,14 +321,16 @@ class FrozenMeta(type):
 
     def __setattr__(cls, name, value):
         if cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False):
-            error = "{} is frozen, can't set class attribute".format(repr(cls.__name__))
+            error = "class {} is frozen, can't set class attribute".format(
+                repr(cls.__name__)
+            )
             raise AttributeError(error)
         else:
             super(FrozenMeta, cls).__setattr__(name, value)
 
     def __delattr__(cls, name):
         if cls.__dict__.get(_FROZEN_CLASS_INSTANCE_TAG, False):
-            error = "{} is frozen, can't delete class attribute".format(
+            error = "class {} is frozen, can't delete class attribute".format(
                 repr(cls.__name__)
             )
             raise AttributeError(error)

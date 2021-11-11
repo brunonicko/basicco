@@ -9,7 +9,7 @@ from six.moves import collections_abc
 from .import_path import (
     MODULE_SEPARATOR, extract_generic_paths, format_import_path, import_from_path
 )
-from .qualname import qualname
+from .qualified_name import get_qualified_name
 
 if TYPE_CHECKING:
     from typing import Any, Iterable, Optional, Tuple, Type, Union
@@ -103,8 +103,8 @@ def get_type_names(types):
         MODULE_SEPARATOR.join(extract_generic_paths(t)[0].split(MODULE_SEPARATOR)[-1:])
         if isinstance(t, string_types)
         else (
-            qualname(t, fallback=t.__name__) if isinstance(t, type)
-            else qualname(type(t), fallback=type(t).__name__)
+            get_qualified_name(t, fallback=t.__name__) if isinstance(t, type)
+            else get_qualified_name(type(t), fallback=type(t).__name__)
         )
         for t in flatten_types(types) if t
     )
@@ -123,7 +123,7 @@ def format_types(
 
         >>> from basicco.utils.type_checking import format_types, get_type_names
 
-        >>> get_type_names(format_types((int, "chain"), module="itertools"))
+        >>> get_type_names(format_types((int, "chain"), default_module="itertools"))
         ('int', 'chain')
         >>> get_type_names(format_types(float))
         ('float',)

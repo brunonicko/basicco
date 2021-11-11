@@ -5,7 +5,7 @@ from six import with_metaclass
 from .generic import GenericMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .final import final, is_final, is_final_member, FinalMeta
-from .qualified import qualname, QualifiedMeta
+from .qualified import get_qualified_name, QualifiedMeta
 from .frozen import (
     FROZEN_SLOT,
     frozen,
@@ -27,7 +27,7 @@ __all__ = [
     "final",
     "is_final",
     "is_final_member",
-    "qualname",
+    "get_qualified_name",
     "frozen",
     "freeze",
     "is_frozen",

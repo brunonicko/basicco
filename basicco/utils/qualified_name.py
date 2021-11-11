@@ -9,7 +9,7 @@ from six import raise_from
 if TYPE_CHECKING:
     from typing import Callable, Dict, Optional
 
-__all__ = ["qualname", "QualnameError"]
+__all__ = ["get_qualified_name", "QualnameError"]
 
 
 _cache = {}  # type: Dict[str, Dict[int, str]]
@@ -19,7 +19,7 @@ class QualnameError(Exception):
     """Raised when could not get the qualified name from AST parsing."""
 
 
-def qualname(obj, fallback=None, force_ast=False):
+def get_qualified_name(obj, fallback=None, force_ast=False):
     # type: (Callable, Optional[str], bool) -> str
     """
     Try to find out the qualified name for a class or function.
@@ -205,13 +205,13 @@ class _Visitor(ast.NodeVisitor):
         self.stack = []
         self.qualified_names = {}
 
-    def store_qualname(self, lineno):
+    def store_qualified_name(self, lineno):
         qn = ".".join(n for n in self.stack)
         self.qualified_names[lineno] = qn
 
     def visit_FunctionDef(self, node):
         self.stack.append(node.name)
-        self.store_qualname(node.lineno)
+        self.store_qualified_name(node.lineno)
         self.stack.append("<locals>")
         self.generic_visit(node)
         self.stack.pop()
@@ -219,6 +219,6 @@ class _Visitor(ast.NodeVisitor):
 
     def visit_ClassDef(self, node):
         self.stack.append(node.name)
-        self.store_qualname(node.lineno)
+        self.store_qualified_name(node.lineno)
         self.generic_visit(node)
         self.stack.pop()

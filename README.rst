@@ -21,37 +21,28 @@ Basicco
 .. image:: https://img.shields.io/pypi/pyversions/basicco?color=light-green&style=flat
    :target: https://pypi.org/project/basicco/
 
-`Basicco` provides a `Base`_ class and lower-level utilities to enhance compatibility,
-readability, and validation.
-
 Motivation
 ----------
-While developing Python code for Visual Effects pipelines, I found myself having to
-write the same boiler-plate over and over again, as well as struggling with the
-compatibility issues between Python 2 and 3.
+While developing Python software for Visual Effects pipelines, I found myself having to
+write the same boiler-plate code over and over again, as well as struggling with
+compatibility issues and feature gaps between Python 2 and Python 3.
 
-So I decided to tackle the issue at the `Base`_, literally.
+So I decided to tackle it at the `Base`_, literally.
 
 Overview
 --------
-  - Cross-compatibility
-    - abstractmethod decorator
-    - Pickle and slots
-  - Readability, shorter code
-    - frozen decorator
-  - Runtime checking, not for speed
-    - frozen decorator
-    - final decorator
+`Basicco` provides a `Base`_ class and multiple lower-level `Utilities`_ to enhance
+code compatibility, readability, and validation.
 
 Base
 ----
 The `Base`_ class enables the use of functionalities provided by `Basicco`.
-In most cases, it's a simple drop-in replacement for `object`:
+It is designed to be a simple drop-in replacement for `object` in your base classes:
 
 .. code:: python
 
     >>> from basicco import Base
-    >>> class Asset(Base):
+    >>> class Asset(Base):  # inherit from Base instead of object
     ...     pass
     ...
 
@@ -69,7 +60,7 @@ instances after they have been initialized.
     ...
     >>> Asset.typename = "nurbs"
     Traceback (most recent call last):
-    AttributeError: 'Asset' is frozen, can't set class attribute
+    AttributeError: class 'Asset' is frozen, can't set class attribute
 
 .. code:: python
 
@@ -93,8 +84,8 @@ Runtime-checked version of the
 Can be used directly on methods but also on properties, classmethods, and staticmethods
 (even in Python 2.7).
 
-This decorator is still recognized by Mypy static type checking, and also prevents
-subclassing or member overrides during runtime:
+This decorator is still recognized by Mypy static type checking, and it also prevents
+subclassing and/or member overrides during runtime:
 
 .. code:: python
 
@@ -141,7 +132,7 @@ subclassing or member overrides during runtime:
 
 abstract
 ^^^^^^^^
-Same as the
+Augmented version of the
 `abc.abstractmethod <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_
 decorator.
 
@@ -169,12 +160,12 @@ staticmethods (even in Python 2.7).
 
     >>> from basicco import Base, abstract
     >>> @abstract
-    >>> class Asset(Base):
+    ... class Asset(Base):
     ...     pass
     ...
     >>> Asset()
     Traceback (most recent call last):
-    TypeError: Can't instantiate abstract class Asset
+    TypeError: can't instantiate abstract class 'Asset'
 
 \__qualname__
 ^^^^^^^^^^^^^
@@ -201,6 +192,7 @@ Slotted and/or nested bases can be pickled (even in Python 2.7):
 
 .. code:: python
 
+    >>> import pickle
     >>> from basicco import Base
     >>> class Asset(Base):
     ...     class Config(Base):
@@ -222,9 +214,22 @@ Utilities
 
 import_path
 ^^^^^^^^^^^
+Generate import paths with support for qualified names and import from them.
 
-qualname
-^^^^^^^^
+.. code:: python
+
+    >>> from basicco.utils.import_path import get_import_path, import_from_path
+    >>> class Asset(Base):
+    ...     class Config(Base):
+    ...         pass
+    ...
+    >>> get_import_path(Asset.Config)
+    '__main__|Asset.Config'
+    >>> import_from_path('__main__|Asset.Config')
+    <class '__main__.Asset.Config'>
+
+qualified_name
+^^^^^^^^^^^^^^
 
 reducer
 ^^^^^^^

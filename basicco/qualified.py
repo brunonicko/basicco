@@ -2,9 +2,9 @@
 
 from six import raise_from, iteritems
 
-from .utils.qualname import qualname, QualnameError
+from .utils.qualified_name import get_qualified_name, QualnameError
 
-__all__ = ["qualname", "QualnameError", "QualifiedMeta"]
+__all__ = ["get_qualified_name", "QualnameError", "QualifiedMeta"]
 
 _PARENT_ATTRIBUTE = "_QualifiedMeta__parent"
 _QUALNAME_ATTRIBUTE = "_QualifiedMeta__qualname"
@@ -20,10 +20,10 @@ class QualifiedMeta(type):
         def __new__(mcs, name, bases, dct, **kwargs):
 
             # Qualified name was manually specified in the class body.
-            manual_qualname = dct.pop("__qualname__", None)
-            if manual_qualname is not None:
+            manual_qualified_name = dct.pop("__qualname__", None)
+            if manual_qualified_name is not None:
                 dct = dict(dct)
-                dct[_QUALNAME_ATTRIBUTE] = manual_qualname
+                dct[_QUALNAME_ATTRIBUTE] = manual_qualified_name
 
             # Build class.
             cls = super(QualifiedMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
@@ -44,7 +44,7 @@ class QualifiedMeta(type):
 
             return cls
 
-        def __get_qualname(cls, use_cache=True):
+        def __get_qualified_name(cls, use_cache=True):
 
             # Try to use cached.
             if use_cache:
@@ -54,46 +54,37 @@ class QualifiedMeta(type):
 
             # Try to get it using AST parsing. Forcing AST parsing avoids recursion.
             try:
-                qualified_name = qualname(cls, force_ast=True)
+                qualified_name = get_qualified_name(cls, force_ast=True)
             except QualnameError as e:
 
-                # Try to check if the qualname is the same as the name (module's root).
-                try:
-                    module = __import__(cls.__module__, fromlist=[cls.__name__])
-                    if getattr(module, cls.__name__) is cls:
-                        return cls.__name__
-                    else:
-                        raise ImportError()
-                except (ImportError, AttributeError):
+                # Try to use parent (for when running interactively).
+                if _PARENT_ATTRIBUTE in cls.__dict__:
+                    parent = cls.__dict__[_PARENT_ATTRIBUTE]
+                    if parent is not None:
+                        assert isinstance(parent, QualifiedMeta)
 
-                    # Try to use parent (for when running interactively).
-                    if _PARENT_ATTRIBUTE in cls.__dict__:
-                        parent = cls.__dict__[_PARENT_ATTRIBUTE]
-                        if parent is not None:
-                            assert isinstance(parent, QualifiedMeta)
+                        # Compose qualified name with parent's.
+                        try:
+                            parent_qualified_name = parent.__get_qualified_name(
+                                use_cache=False
+                            )
+                        except (AttributeError, QualnameError):
+                            pass
+                        else:
+                            qualified_name = "{}.{}".format(
+                                parent_qualified_name, cls.__name__
+                            )
 
-                            # Compose qualified name with parent's.
-                            try:
-                                parent_qualified_name = parent.__get_qualname(
-                                    use_cache=False
+                            # Cache it and return.
+                            if use_cache:
+                                type.__setattr__(
+                                    cls, _QUALNAME_ATTRIBUTE, qualified_name
                                 )
-                            except (AttributeError, QualnameError):
-                                pass
-                            else:
-                                qualified_name = "{}.{}".format(
-                                    parent_qualified_name, cls.__name__
-                                )
+                            return qualified_name
 
-                                # Cache it and return.
-                                if use_cache:
-                                    type.__setattr__(
-                                        cls, _QUALNAME_ATTRIBUTE, qualified_name
-                                    )
-                                return qualified_name
-
-                    # Could not get it, re-raise QualnameError.
-                    raise_from(e, None)
-                    raise e
+                # Could not get it, re-raise QualnameError.
+                raise_from(e, None)
+                raise e
 
             else:
 
@@ -104,7 +95,7 @@ class QualifiedMeta(type):
 
         @property  # type: ignore
         def __qualname__(cls):  # type: ignore
-            return cls.__get_qualname()
+            return cls.__get_qualified_name()
 
         @__qualname__.setter
         def __qualname__(cls, value):
