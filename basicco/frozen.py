@@ -115,7 +115,7 @@ def frozen(cls=None, classes=None, instances=None):
 
         def __setattr__(self, name, value):
             if getattr(self, FROZEN_SLOT, False):
-                error = "instances of {} are frozen, can't set attribute".format(
+                error = "{} instance is frozen, can't set attribute".format(
                     repr(type(self).__name__)
                 )
                 raise AttributeError(error)
@@ -126,7 +126,7 @@ def frozen(cls=None, classes=None, instances=None):
 
         def __delattr__(self, name):
             if getattr(self, FROZEN_SLOT, False):
-                error = "instances of {} are frozen, can't delete attribute".format(
+                error = "{} instance is frozen, can't delete attribute".format(
                     repr(type(self).__name__)
                 )
                 raise AttributeError(error)

@@ -25,7 +25,7 @@ Motivation
 ----------
 While developing Python software for Visual Effects pipelines, I found myself having to
 write the same boiler-plate code over and over again, as well as struggling with
-compatibility issues and feature gaps between Python 2 and Python 3.
+compatibility issues and the feature gap between Python 2 and Python 3.
 
 So I decided to tackle it at the `Base`_, literally.
 
@@ -37,7 +37,8 @@ code compatibility, readability, and validation.
 Base
 ----
 The `Base`_ class enables the use of functionalities provided by `Basicco`.
-It is designed to be a simple drop-in replacement for `object` in your base classes:
+It is designed to be a simple drop-in replacement for `object` when defining your base
+classes:
 
 .. code:: python
 
@@ -74,7 +75,37 @@ instances after they have been initialized.
     >>> asset = Asset("cube", "geometry")
     >>> asset.name = "sphere"
     Traceback (most recent call last):
-    AttributeError: instances of 'Asset' are frozen, can't set attribute
+    AttributeError: 'Asset' instance is frozen, can't set attribute
+
+If you wish to freeze a class without freezing its subclasses or to freeze an instance
+at any point in time, you can use the `freeze` function instead:
+
+.. code:: python
+
+    >>> from basicco import Base, freeze
+    >>> class Asset(Base):
+    ...     typename = "geometry"
+    ...
+    >>> Asset.typename = "nurbs"  # this works, since the class is not frozen yet
+    >>> freeze(Asset)  # will freeze the class (not its subclasses)
+    >>> Asset.typename = "joint"
+    Traceback (most recent call last):
+    AttributeError: class 'Asset' is frozen, can't set class attribute
+
+.. code:: python
+
+    >>> from basicco import Base, freeze
+    >>> class Asset(Base):
+    ...     def __init__(self, name, typename):
+    ...         self.name = name
+    ...         self.typename = typename
+    ...
+    >>> asset = Asset("cube", "geometry")
+    >>> asset.name = "sphere"  # this works, since the instance is not frozen yet
+    >>> freeze(asset)
+    >>> asset.name = "cone"
+    Traceback (most recent call last):
+    AttributeError: 'Asset' instance is frozen, can't set attribute
 
 final
 ^^^^^
@@ -85,7 +116,7 @@ Can be used directly on methods but also on properties, classmethods, and static
 (even in Python 2.7).
 
 This decorator is still recognized by Mypy static type checking, and it also prevents
-subclassing and/or member overrides during runtime:
+subclassing and/or member overriding during runtime:
 
 .. code:: python
 
