@@ -1,4 +1,4 @@
-"""Python 2 compatible way to find the qualified name based on wbolster/qualname."""
+"""Python 2.7 compatible way to find the qualified name based on wbolster/qualname."""
 
 from six import raise_from, iteritems
 
@@ -11,7 +11,7 @@ _QUALNAME_ATTRIBUTE = "_QualifiedMeta__qualname"
 
 
 class QualifiedMeta(type):
-    """Implements qualified name feature for Python 2 classes based on AST parsing."""
+    """Implements qualified name feature for Python 2.7 classes based on AST parsing."""
 
     # Only implement if current Python does not natively support qualified names.
     if not hasattr(type, "__qualname__"):

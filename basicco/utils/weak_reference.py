@@ -20,8 +20,8 @@ class WeakReference(Generic[T], object):
 
     .. code:: python
 
+        >>> import pickle
         >>> from basicco.utils.weak_reference import WeakReference
-
         >>> class MyClass(object):
         ...     pass
         ...

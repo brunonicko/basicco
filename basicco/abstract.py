@@ -1,4 +1,4 @@
-"""Matches Python 2 behavior with Python 3 for abstract members."""
+"""Matches Python 3.7+ behavior while using Python 2.7 for abstract members."""
 
 from functools import wraps
 from inspect import isclass, getmro
@@ -121,7 +121,9 @@ def is_abstract_member(obj):
 
 
 class AbstractMeta(ABCMeta):
-    """Finds abstract members in properties and descriptors for both Python 2 and 3."""
+    """
+    Finds abstract members in properties and descriptors for both Python 2.7 and 3.7+.
+    """
 
     def __init__(cls, name, bases, dct, **kwargs):
         super(AbstractMeta, cls).__init__(name, bases, dct, **kwargs)

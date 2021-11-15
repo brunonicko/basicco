@@ -1,4 +1,4 @@
-"""Improved compatibility with `typing.Generic` for Python 2."""
+"""Improved compatibility with `typing.Generic` for Python 2.7."""
 
 try:
     from typing import GenericMeta as _GenericMeta  # type: ignore

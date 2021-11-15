@@ -1,4 +1,4 @@
-"""Python 2 compatible way to find the qualified name inspired by wbolster/qualname."""
+"""Python 2.7 compatible way to find the qualified name inspired by wbolster/qualname."""
 
 import ast
 import inspect
@@ -23,7 +23,7 @@ def get_qualified_name(obj, fallback=None, force_ast=False):
     # type: (Callable, Optional[str], bool) -> str
     """
     Try to find out the qualified name for a class or function.
-    This function uses ast parsing in Python 2 to try to replicate the qualified name
+    This function uses ast parsing in Python 2.7 to try to replicate the qualified name
     functionality available in Python 3.3+.
 
     :param obj: Function or class.

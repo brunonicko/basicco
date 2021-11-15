@@ -18,6 +18,20 @@ def get_state(obj):
     Get dictionary with an object's attribute values.
     Works with regular and slotted objects.
 
+    .. code:: python
+
+        >>> from basicco.utils.state import get_state, update_state
+        >>> class SlottedObject(object):
+        ...     __slots__ = ("a", "b")
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        >>> slotted_obj = SlottedObject(1, 2)
+        >>> obj_state = get_state(slotted_obj)
+        >>> obj_state["a"], obj_state["b"]
+        (1, 2)
+
     :param obj: Object instance or class.
     :type obj: object or type
 
@@ -66,6 +80,20 @@ def update_state(obj, state_update):
     """
     Update attribute values for an object.
     Works with regular and slotted objects.
+
+    .. code:: python
+
+        >>> from basicco.utils.state import get_state, update_state
+        >>> class SlottedObject(object):
+        ...     __slots__ = ("a", "b")
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        >>> slotted_object = SlottedObject(1, 2)
+        >>> update_state(slotted_object, {"a": 3, "b": 4})
+        >>> slotted_object.a, slotted_object.b
+        (3, 4)
 
     :param obj: Object instance or class.
     :type obj: object or type

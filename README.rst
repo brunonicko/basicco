@@ -25,7 +25,7 @@ Motivation
 ----------
 While developing Python software for Visual Effects pipelines, I found myself having to
 write the same boiler-plate code over and over again, as well as struggling with
-compatibility issues and the feature gap between Python 2 and Python 3.
+compatibility issues and the feature gap between Python 2.7 and Python 3.7+.
 
 So I decided to tackle it at the `Base`_, literally.
 
@@ -234,14 +234,78 @@ Slotted and/or nested bases can be pickled (even in Python 2.7):
     ...
     >>> pickled = pickle.dumps(Asset.Config())
     >>> pickle.loads(pickled)
-    <__main__.Asset.Config object at ...>
+    <__main__.Asset.Config object at...>
 
 generic
 ^^^^^^^
 Better support for the `typing.Generic` class (even in Python 2.7).
 
+In Python 2.7 (without using `Basicco`) the example below would give you True due to a
+bug in the `typing` module. The `Base`_ fixes that bug.
+
+.. code:: python
+
+    >>> from typing import Generic, TypeVar
+    >>> from basicco import Base
+    >>> T = TypeVar("T")
+    >>> class Asset(Base, Generic[T]):
+    ...     pass
+    ...
+    >>> Asset[int] != Asset[int,]
+    False
+
 Utilities
 ---------
+
+caller_module
+^^^^^^^^^^^^^
+Retrieve the caller's module name.
+
+.. code:: python
+
+    >>> from basicco.utils.caller_module import get_caller_module
+    >>> def do_something():
+    ...     caller_module = get_caller_module()
+    ...     return "I was called by {}".format(caller_module)
+    ...
+    >>> do_something()
+    'I was called by __main__'
+
+custom_repr
+^^^^^^^^^^^
+Custom representation functions.
+
+.. code:: python
+
+    >>> from basicco.utils.custom_repr import custom_mapping_repr
+    >>> dct = {"a": 1, "b": 2}
+    >>> custom_mapping_repr(
+    ...     dct, prefix="<", suffix=">", template="{key}={value}", sorting=True
+    ... )
+    "<'a'=1, 'b'=2>"
+
+.. code:: python
+
+    >>> from basicco.utils.custom_repr import custom_iterable_repr
+    >>> tup = ("a", "b", "c", 1, 2, 3)
+    >>> custom_iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
+    '<a, b, c, 1, 2, 3>'
+
+dummy_context
+^^^^^^^^^^^^^
+Dummy (no-op) context manager.
+
+.. code:: python
+
+    >>> from threading import RLock
+    >>> from basicco.utils.dummy_context import dummy_context
+    >>> lock = RLock()
+    >>> def do_something(thread_safe=True):
+    ...     with lock if thread_safe else dummy_context():
+    ...         print("did something")
+    ...
+    >>> do_something(thread_safe=False)
+    did something
 
 import_path
 ^^^^^^^^^^^
@@ -261,9 +325,171 @@ Generate import paths with support for qualified names and import from them.
 
 qualified_name
 ^^^^^^^^^^^^^^
+Python 2.7 compatible way to find the qualified name inspired by
+`wbolster/qualname <https://github.com/wbolster/qualname>`_.
+
+.. code:: python
+
+    >>> from basicco.utils.qualified_name import get_qualified_name
+    >>> class Asset(object):
+    ...     class Config(object):
+    ...         pass
+    ...
+    >>> get_qualified_name(Asset.Config)
+    'Asset.Config'
 
 reducer
 ^^^^^^^
+Python 2.7 compatible reducer method that works with qualified name and slots.
 
-slots
+.. code:: python
+
+    >>> import pickle
+    >>> from basicco.utils.reducer import reducer
+    >>> class Asset(object):
+    ...     class Config(object):
+    ...         __reduce__ = reducer  # reducer method
+    ...         __slots__ = ("name", "version")
+    ...         def __init__(self):
+    ...             self.name = "cube"
+    ...             self.version = 2
+    ...
+    >>> pickled = pickle.dumps(Asset.Config())
+    >>> pickle.loads(pickled)
+    <__main__.Asset.Config object at...>
+
+state
 ^^^^^
+Utility functions for managing an object's state.
+
+.. code:: python
+
+    >>> from basicco.utils.state import get_state, update_state
+    >>> class SlottedObject(object):
+    ...     __slots__ = ("a", "b")
+    ...     def __init__(self, a, b):
+    ...         self.a = a
+    ...         self.b = b
+    ...
+    >>> slotted_obj = SlottedObject(1, 2)
+    >>> obj_state = get_state(slotted_obj)
+    >>> obj_state["a"], obj_state["b"]
+    (1, 2)
+    >>> update_state(slotted_obj, {"a": 3, "b": 4})
+    >>> obj_state = get_state(slotted_obj)
+    >>> obj_state["a"], obj_state["b"]
+    (3, 4)
+
+type_checking
+^^^^^^^^^^^^^
+Runtime type checking with support for import paths.
+
+.. code:: python
+
+    >>> from itertools import chain
+    >>> from basicco.utils.type_checking import is_instance
+
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> is_instance(3, int)
+    True
+    >>> is_instance(3, (chain, int))
+    True
+    >>> is_instance(3, ())
+    False
+    >>> is_instance(SubChain(), "itertools|chain")
+    True
+    >>> is_instance(chain(), "itertools|chain", subtypes=False)
+    True
+    >>> is_instance(SubChain(), "itertools|chain", subtypes=False)
+    False
+
+.. code:: python
+
+    >>> from itertools import chain
+    >>> from basicco.utils.type_checking import is_subclass
+
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> is_subclass(int, int)
+    True
+    >>> is_subclass(int, (chain, int))
+    True
+    >>> is_subclass(int, ())
+    False
+    >>> is_subclass(SubChain, "itertools|chain")
+    True
+    >>> is_subclass(chain, "itertools|chain", subtypes=False)
+    True
+    >>> is_subclass(SubChain, "itertools|chain", subtypes=False)
+    False
+
+.. code:: python
+
+    >>> from itertools import chain
+    >>> from basicco.utils.type_checking import assert_is_instance
+
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> assert_is_instance(3, int)
+    >>> assert_is_instance(3, (chain, int))
+    >>> assert_is_instance(3, ())
+    Traceback (most recent call last):
+    ValueError: no types were provided to perform assertion
+    >>> assert_is_instance(3, "itertools|chain")
+    Traceback (most recent call last):
+    TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
+    >>> assert_is_instance(chain(), "itertools|chain", subtypes=False)
+    >>> assert_is_instance(SubChain(), "itertools|chain", subtypes=False)
+    Traceback (most recent call last):
+    TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
+
+.. code:: python
+
+    >>> from itertools import chain
+    >>> from basicco.utils.type_checking import assert_is_subclass
+
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> assert_is_subclass(int, int)
+    >>> assert_is_subclass(int, (chain, int))
+    >>> assert_is_subclass(int, ())
+    Traceback (most recent call last):
+    ValueError: no types were provided to perform assertion
+    >>> assert_is_subclass(int, "itertools|chain")
+    Traceback (most recent call last):
+    TypeError: got 'int', expected class 'chain' or any of its subclasses
+    >>> assert_is_subclass(chain, "itertools|chain", subtypes=False)
+    >>> assert_is_subclass(SubChain, "itertools|chain", subtypes=False)
+    Traceback (most recent call last):
+    TypeError: got 'SubChain', expected class 'chain' (subclasses are not accepted)
+
+.. code:: python
+
+    >>> from basicco.utils.type_checking import assert_is_subclass
+
+    >>> assert_is_callable(int)
+    >>> assert_is_callable(lambda: None)
+    >>> assert_is_callable(3)
+    Traceback (most recent call last):
+    TypeError: got non-callable 'int' object, expected a callable
+
+weak_reference
+^^^^^^^^^^^^^^
+Weak reference-like object that supports pickling.
+
+.. code:: python
+
+    >>> import pickle
+    >>> from basicco.utils.weak_reference import WeakReference
+    >>> class MyClass(object):
+    ...     pass
+    ...
+    >>> strong = MyClass()
+    >>> weak = WeakReference(strong)
+    >>> pickle.loads(pickle.dumps((strong, weak)))
+    (<__main__.MyClass object at...>, <WeakReference object at...; to 'MyClass' at...)

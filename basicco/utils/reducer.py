@@ -1,4 +1,4 @@
-"""Python 2 compatible reducer method that works with qualified name and slots."""
+"""Python 2.7 compatible reducer method that works with qualified name and slots."""
 
 from .import_path import get_import_path, import_from_path
 from .state import get_state, update_state
@@ -7,7 +7,9 @@ __all__ = ["reducer"]
 
 
 def reducer(self):
-    """Default reducer method that implements qualified name and slots for Python 2."""
+    """
+    Default reducer method that implements qualified name and slots for Python 2.7.
+    """
     return _reducer, (get_import_path(type(self)), get_state(self))
 
 
