@@ -365,7 +365,9 @@ def get_import_path(obj, force_ast=False, builtin_modules=None):
                 error = "can't get name for {}".format(obj)
                 raise AttributeError(error)
             module = getattr(obj, "__module__", None)
-            qual_name = get_qualified_name(obj, force_ast=force_ast, fallback=obj.__name__)
+            qual_name = get_qualified_name(
+                obj, force_ast=force_ast, fallback=obj.__name__
+            )
         else:
             module = getattr(generic_origin, "__module__", None)
             qual_name = get_qualified_name(

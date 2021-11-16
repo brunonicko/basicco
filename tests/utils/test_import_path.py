@@ -4,7 +4,9 @@ from math import floor
 import pytest
 
 from basicco.utils.import_path import (
-    format_import_path, get_import_path, import_from_path
+    format_import_path,
+    get_import_path,
+    import_from_path,
 )
 
 
@@ -17,9 +19,9 @@ def test_import_from_path():
     assert import_from_path("math|floor") is floor
     assert import_from_path("itertools|chain") is chain
     assert import_from_path(__name__ + "|MyClass") is MyClass
-    assert import_from_path(
-        __name__ + "|MyClass.MyNestedClass"
-    ) is MyClass.MyNestedClass
+    assert (
+        import_from_path(__name__ + "|MyClass.MyNestedClass") is MyClass.MyNestedClass
+    )
 
     with pytest.raises(ValueError):
         import_from_path("module.submodule|<locals>.Test")
@@ -43,9 +45,9 @@ def test_format_import_path():
     assert format_import_path(".abstractmethod", "abc") == "abc|abstractmethod"
     assert format_import_path("abc|abstractmethod", "") == "abc|abstractmethod"
     assert format_import_path("..Mapping", "collections.abc") == "collections|Mapping"
-    assert format_import_path(
-        ".Mapping", "collections.abc"
-    ) == "collections.abc|Mapping"
+    assert (
+        format_import_path(".Mapping", "collections.abc") == "collections.abc|Mapping"
+    )
 
     with pytest.raises(ValueError):
         format_import_path("abstract method|a b c", "xyz")

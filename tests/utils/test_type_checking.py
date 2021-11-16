@@ -32,7 +32,8 @@ def test_format_types():
     assert format_types(None) == (type(None),)
     assert format_types((None,)) == (type(None),)
     assert format_types((int, "chain"), default_module="itertools") == (
-        int, "itertools|chain"
+        int,
+        "itertools|chain",
     )
     assert format_types(float) == (float,)
     assert format_types("itertools|chain") == ("itertools|chain",)

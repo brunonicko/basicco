@@ -25,18 +25,18 @@ Motivation
 ----------
 While developing Python software for Visual Effects pipelines, I found myself having to
 write the same boiler-plate code over and over again, as well as struggling with
-compatibility issues and the feature gap between Python 2.7 and Python 3.7+.
+compatibility issues and feature gaps between Python 2.7 and Python 3.7+.
 
-So I decided to tackle it at the `Base`_, literally.
+So I decided to implement solutions for those issues at the `Base`_, literally.
 
 Overview
 --------
-`Basicco` provides a `Base`_ class and multiple lower-level `Utilities`_ to enhance
+`Basicco` provides a `Base`_ class and multiple lower-level `Utilities`_ that enhance
 code compatibility, readability, and validation.
 
 Base
 ----
-The `Base`_ class enables the use of functionalities provided by `Basicco`.
+The `Base`_ class enables functionalities provided by `Basicco`.
 It is designed to be a simple drop-in replacement for `object` when defining your base
 classes:
 

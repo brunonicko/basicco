@@ -7,7 +7,10 @@ from six import text_type, string_types, integer_types
 from six.moves import collections_abc
 
 from .import_path import (
-    MODULE_SEPARATOR, extract_generic_paths, format_import_path, import_from_path
+    MODULE_SEPARATOR,
+    extract_generic_paths,
+    format_import_path,
+    import_from_path,
 )
 from .qualified_name import get_qualified_name
 
@@ -42,7 +45,7 @@ TEXT_TYPE = text_type  # type: Type
 BASE_STRING_TYPES = string_types  # type: Tuple[Type, ...]
 """Base string type."""
 
-STRING_TYPES = tuple({str, TEXT_TYPE})   # type: Tuple[Type, ...]
+STRING_TYPES = tuple({str, TEXT_TYPE})  # type: Tuple[Type, ...]
 """All string types."""
 
 INTEGER_TYPES = integer_types  # type: Tuple[Type, ...]
@@ -103,10 +106,12 @@ def get_type_names(types):
         MODULE_SEPARATOR.join(extract_generic_paths(t)[0].split(MODULE_SEPARATOR)[-1:])
         if isinstance(t, string_types)
         else (
-            get_qualified_name(t, fallback=t.__name__) if isinstance(t, type)
+            get_qualified_name(t, fallback=t.__name__)
+            if isinstance(t, type)
             else get_qualified_name(type(t), fallback=type(t).__name__)
         )
-        for t in flatten_types(types) if t
+        for t in flatten_types(types)
+        if t
     )
 
 
@@ -148,7 +153,10 @@ def format_types(
     return tuple(
         format_import_path(
             t, default_module=default_module, builtin_modules=builtin_modules
-        ) if isinstance(t, string_types) else t for t in flatten_types(types)
+        )
+        if isinstance(t, string_types)
+        else t
+        for t in flatten_types(types)
     )
 
 
@@ -185,7 +193,10 @@ def import_types(
     imported_types = tuple(
         import_from_path(
             t, default_module=default_module, builtin_modules=builtin_modules
-        ) if isinstance(t, string_types) else t for t in flatten_types(types)
+        )
+        if isinstance(t, string_types)
+        else t
+        for t in flatten_types(types)
     )
     if len(STRING_TYPES) > 1:
         all_string_types = set(STRING_TYPES)

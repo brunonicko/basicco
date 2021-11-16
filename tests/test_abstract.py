@@ -6,7 +6,6 @@ from basicco.abstract import abstract, AbstractMeta
 
 
 def test_abstract_class():
-
     @abstract
     class Class(with_metaclass(AbstractMeta, object)):
         pass
