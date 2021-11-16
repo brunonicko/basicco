@@ -31,6 +31,3 @@ jobs:
     - name: Docstring tests
       run: |
         python -m pytest --doctest-modules -vv -rs basicco
-    - name: README example tests
-      run: |
-        python -m pytest --doctest-modules -vv -rs README.rst
