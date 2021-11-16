@@ -492,4 +492,4 @@ Weak reference-like object that supports pickling.
     >>> strong = MyClass()
     >>> weak = WeakReference(strong)
     >>> pickle.loads(pickle.dumps((strong, weak)))
-    (<__main__.MyClass object at...>, <WeakReference object at...; to 'MyClass' at...)
+    (<__main__.MyClass object at...>, <WeakReference object at...; to 'MyClass' at...>)
