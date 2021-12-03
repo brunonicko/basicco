@@ -1,3 +1,4 @@
+import copy
 import pickle
 
 import pytest
@@ -40,6 +41,68 @@ def test_pickling():
     assert isinstance(unpickled_weak, WeakReference)
     assert unpickled_weak() is unpickled_strong
     assert type(pickle.loads(pickle.dumps(weak()))) is Cls
+
+
+def test_caching():
+    x = Cls()
+    z = Cls()
+    xr = WeakReference(x)
+    zr = WeakReference(z)
+    xr2 = WeakReference(x)
+    zr2 = WeakReference(z)
+    nr = WeakReference()
+    nr2 = WeakReference()
+
+    assert xr is xr2
+    assert zr is zr2
+    assert nr is nr2
+
+    del z
+
+    _x, _xr, _zr, _xr2, _zr2, _nr, _nr2 = pickle.loads(
+        pickle.dumps((x, xr, zr, xr2, zr2, nr, nr2))
+    )
+
+    assert _xr is _xr2
+    assert _zr is _zr2
+    assert _nr is _nr2
+    assert _nr is nr
+    assert _nr2 is nr2
+    assert _nr2 is nr
+    assert _nr is nr2
+
+    assert _xr() is _x
+    assert _xr2() is _x
+
+
+def test_deepcopy():
+    x = Cls()
+    z = Cls()
+    xr = WeakReference(x)
+    zr = WeakReference(z)
+    xr2 = WeakReference(x)
+    zr2 = WeakReference(z)
+    nr = WeakReference()
+    nr2 = WeakReference()
+
+    assert xr is xr2
+    assert zr is zr2
+    assert nr is nr2
+
+    del z
+
+    _x, _xr, _zr, _xr2, _zr2, _nr, _nr2 = copy.deepcopy((x, xr, zr, xr2, zr2, nr, nr2))
+
+    assert _xr is _xr2
+    assert _zr is _zr2
+    assert _nr is _nr2
+    assert _nr is nr
+    assert _nr2 is nr2
+    assert _nr2 is nr
+    assert _nr is nr2
+
+    assert _xr() is _x
+    assert _xr2() is _x
 
 
 if __name__ == "__main__":
