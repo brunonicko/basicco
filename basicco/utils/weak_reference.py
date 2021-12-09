@@ -16,13 +16,14 @@ __all__ = ["WeakReference"]
 
 
 T = TypeVar("T")  # Any type.
-WRT = TypeVar("WRT", bound="WeakReference")  # WeakReference type.
 
-
-_cache = {}  # type: Dict[Type[WRT], WeakValueDictionary[int, WRT]]
 _DEAD_REF = ref(
     type("Dead", (object,), {"__slots__": ("__weakref__",)})()
 )
+
+_cache = (
+    {}
+)  # type: Dict[Type["WeakReference"], WeakValueDictionary[int, "WeakReference"]]
 
 
 def _reduce_dead(cls):

@@ -8,11 +8,16 @@ except ImportError:
 __all__ = ["GenericMeta"]
 
 
-if _GenericMeta is type:
-    GenericMeta = type
-else:
+if _GenericMeta is not type:
     class GenericMeta(_GenericMeta):
 
         def __ne__(cls, other):
             # type: (object) -> bool
-            return not super(GenericMeta, cls).__eq__(other)  # fix python 2 bug
+            is_equal = cls.__eq__(other)
+            if is_equal is NotImplemented:
+                return NotImplemented
+            else:
+                return not is_equal
+
+else:
+    GenericMeta = type  # type: ignore
