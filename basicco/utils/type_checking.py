@@ -13,6 +13,7 @@ from .import_path import (
     import_from_path,
 )
 from .qualified_name import get_qualified_name
+from .unique_iterator import unique_iterator
 
 if TYPE_CHECKING:
     from typing import Any, Iterable, Optional, Tuple, Type, Union
@@ -79,7 +80,9 @@ def flatten_types(types):
     elif isinstance(types, (string_types, type)):
         return (types,)
     elif isinstance(types, collections_abc.Iterable):
-        return tuple(chain.from_iterable(flatten_types(t) for t in types))
+        return tuple(
+            unique_iterator(chain.from_iterable(flatten_types(t) for t in types))
+        )
     else:
         raise TypeError(type(types).__name__)
 

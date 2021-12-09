@@ -1,26 +1,43 @@
-"""Weak reference-like object that supports pickling."""
+"""Weak Reference-like object that supports pickling."""
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, Generic, TypeVar
-from weakref import ref as _ref
+from weakref import WeakValueDictionary, ref
+
+from six import with_metaclass
 
 from .recursive_repr import recursive_repr
+from .generic_meta import GenericMeta
 
 if TYPE_CHECKING:
-    from typing import Any, Optional, Tuple, Type
+    from typing import Dict, Any, Optional, Type
 
 __all__ = ["WeakReference"]
 
 
 T = TypeVar("T")  # Any type.
 
+_DEAD_REF = ref(
+    type("Dead", (object,), {"__slots__": ("__weakref__",)})()
+)
 
-class WeakReference(Generic[T], object):
+_cache = (
+    {}
+)  # type: Dict[Type["WeakReference"], WeakValueDictionary[int, "WeakReference"]]
+
+
+def _reduce_dead(cls):
+    self = super(WeakReference, cls).__new__(cls)  # type: ignore
+    self.__init__(None)
+    return self
+
+
+class WeakReference(with_metaclass(GenericMeta, Generic[T])):
     """
-    Weak reference-like object that supports pickling.
+    Weak Reference-like object that supports pickling.
 
     .. code:: python
 
-        >>> import pickle
         >>> from basicco.utils.weak_reference import WeakReference
         >>> class MyClass(object):
         ...     pass
@@ -38,14 +55,57 @@ class WeakReference(Generic[T], object):
 
     __slots__ = ("__weakref__", "__ref")
 
+    @staticmethod
+    def __new__(cls, obj=None):
+        # type: (Type[WeakReference[T]], T) -> WeakReference[T]
+        cache = _cache.setdefault(cls, WeakValueDictionary())
+        if obj is None:
+            obj_ref = _DEAD_REF
+        else:
+            obj_ref = ref(obj)
+
+        obj_ref_id = id(obj_ref)
+        try:
+            self = cache[obj_ref_id]
+        except KeyError:
+            pass
+        else:
+            try:
+                if self.__ref is obj_ref:
+                    return self
+            except ReferenceError:
+                pass
+
+        self = cache[obj_ref_id] = super(WeakReference, cls).__new__(cls)
+        return self
+
     def __init__(self, obj=None):
         # type: (T) -> None
         if obj is None:
-            self.__ref = _ref(
-                type("Dead", (object,), {"__slots__": ("__weakref__",)})()
-            )
+            self.__ref = _DEAD_REF
         else:
-            self.__ref = _ref(obj)
+            self.__ref = ref(obj)
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo=None):
+        if memo is None:
+            memo = {}
+        self_id = id(self)
+        try:
+            copy = memo[self_id]
+        except KeyError:
+            cls = type(self)
+            obj = self()
+            if self is WeakReference():
+                assert obj is None
+                copy = memo[self_id] = self
+            elif obj is None:
+                copy = memo[self_id] = _reduce_dead(cls)
+            else:
+                copy = memo[self_id] = cls(deepcopy(obj, memo))  # type: ignore
+        return copy
 
     def __hash__(self):
         """
@@ -66,11 +126,7 @@ class WeakReference(Generic[T], object):
         :return: True if equal.
         :rtype: bool or NotImplemented
         """
-        if self is other:
-            return True
-        if not isinstance(other, WeakReference):
-            return False
-        return self.__ref == other.__ref
+        return self is other
 
     def __ne__(self, other):
         # type: (Any) -> bool
@@ -129,5 +185,11 @@ class WeakReference(Generic[T], object):
         return self.__ref()
 
     def __reduce__(self):
-        # type: () -> Tuple[Type[WeakReference], Tuple[Optional[T]]]
-        return type(self), (self(),)
+        cls = type(self)
+        obj = self()
+        if self is WeakReference():
+            assert obj is None
+            return cls, (None,)
+        if obj is None:
+            return _reduce_dead, (cls,)
+        return cls, (obj,)

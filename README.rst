@@ -307,6 +307,12 @@ Dummy (no-op) context manager.
     >>> do_something(thread_safe=False)
     did something
 
+generic_meta
+^^^^^^^^^^^^
+Python 3 doesn't have a `typing.GenericMeta` metaclass, so this will resolve to `type`
+on newer versions of Python. For Python 2, it resolves to an improved version of the
+metaclass (see `generic`_).
+
 import_path
 ^^^^^^^^^^^
 Generate import paths with support for qualified names and import from them.
@@ -337,6 +343,24 @@ Python 2.7 compatible way to find the qualified name inspired by
     ...
     >>> get_qualified_name(Asset.Config)
     'Asset.Config'
+
+recursive_repr
+^^^^^^^^^^^^^^
+Decorator that prevents recursion error for `__repr__` methods.
+
+.. code:: python
+
+    >>> from basicco.utils.recursive_repr import recursive_repr
+
+    >>> class MyClass(object):
+    ...
+    ...     @recursive_repr
+    ...     def __repr__(self):
+    ...         return "MyClass<" + repr(self) + ">"
+    ...
+    >>> my_obj = MyClass()
+    >>> repr(my_obj)
+    'MyClass<...>'
 
 reducer
 ^^^^^^^
@@ -477,6 +501,17 @@ Runtime type checking with support for import paths.
     >>> assert_is_callable(3)
     Traceback (most recent call last):
     TypeError: got non-callable 'int' object, expected a callable
+
+unique_iterator
+^^^^^^^^^^^^^^^
+Iterator that yields unique values.
+
+.. code:: python
+
+    >>> from basicco.utils.unique_iterator import unique_iterator
+
+    >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
+    [1, 2, 3, 4, 5]
 
 weak_reference
 ^^^^^^^^^^^^^^
