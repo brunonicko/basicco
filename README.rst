@@ -52,6 +52,8 @@ frozen
 Class decorator that prevents changing the attribute values for classes and/or their
 instances after they have been initialized.
 
+Features are also available through the metaclass `basicco.frozen.FrozenMeta`.
+
 .. code:: python
 
     >>> from basicco import Base, frozen
@@ -115,6 +117,8 @@ Runtime-checked version of the
 Can be used directly on methods but also on properties, classmethods, and staticmethods
 (even in Python 2.7).
 
+Features are also available through the metaclass `basicco.final.FinalMeta`.
+
 This decorator is still recognized by Mypy static type checking, and it also prevents
 subclassing and/or member overriding during runtime:
 
@@ -167,6 +171,8 @@ Augmented version of the
 `abc.abstractmethod <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_
 decorator.
 
+Features are also available through the metaclass `basicco.abstract.AbstractMeta`.
+
 Can be used directly on methods but also on classes, properties, classmethods, and
 staticmethods (even in Python 2.7).
 
@@ -198,10 +204,12 @@ staticmethods (even in Python 2.7).
     Traceback (most recent call last):
     TypeError: can't instantiate abstract class 'Asset'
 
-\__qualname__
-^^^^^^^^^^^^^
+qualified
+^^^^^^^^^
 Support for qualified name falling back to AST parsing of the source code and/or class
 definition hierarchy.
+
+Features are also available through the metaclass `basicco.qualified.QualifiedMeta`.
 
 Bases have a `__qualname__` attribute (even in Python 2.7):
 
@@ -215,9 +223,11 @@ Bases have a `__qualname__` attribute (even in Python 2.7):
     >>> Asset.Config.__qualname__
     'Asset.Config'
 
-\__reduce__
-^^^^^^^^^^^
+reducible
+^^^^^^^^^
 Support for pickling instances of classes that utilize qualified name and/or slots.
+
+Features are also available through the metaclass `basicco.reducible.ReducibleMeta`.
 
 Slotted and/or nested bases can be pickled (even in Python 2.7):
 
@@ -240,6 +250,8 @@ generic
 ^^^^^^^
 Better support for the `typing.Generic` class (even in Python 2.7).
 
+Features are also available through the metaclass `basicco.generic.GenericMeta`.
+
 In Python 2.7 (without using `Basicco`) the example below would give you True due to a
 bug in the `typing` module. The `Base`_ fixes that bug.
 
@@ -253,6 +265,46 @@ bug in the `typing` module. The `Base`_ fixes that bug.
     ...
     >>> Asset[int] != Asset[int,]
     False
+
+explicit_hash
+^^^^^^^^^^^^^
+Force `__hash__` to be declared when `__eq__` is declared (explicit is better than
+implicit).
+
+Features are also available through the metaclass
+`basicco.explicit_hash.ExplicitHashMeta`.
+
+.. code:: python
+
+    >>> from basicco import Base
+    >>> class Asset(Base):
+    ...     def __eq__(self, other):
+    ...         pass
+    ...
+    Traceback (most recent call last):
+    TypeError: declared '__eq__' in 'Asset', but didn't declare '__hash__'
+
+namespaced
+^^^^^^^^^^
+Dedicated/private (not shared with subclasses) `namespace`_ for storing data.
+
+Features are also available through the metaclass `basicco.namespaced.NamespacedMeta`.
+
+.. code:: python
+
+    >>> from basicco import Base
+    >>> class Asset(Base):
+    ...     pass
+    ...
+    >>> class SubAsset(Asset):
+    ...     pass
+    ...
+    >>> Asset._namespace is not SubAsset._namespace
+    True
+    >>> Asset._namespace.typename = "Asset"
+    >>> SubAsset._namespace.typename = "SubAsset"
+    >>> Asset._namespace
+    Namespace({'typename': 'Asset'})
 
 Utilities
 ---------
@@ -309,9 +361,9 @@ Dummy (no-op) context manager.
 
 generic_meta
 ^^^^^^^^^^^^
-Python 3 doesn't have a `typing.GenericMeta` metaclass, so this will resolve to `type`
-on newer versions of Python. For Python 2, it resolves to an improved version of the
-metaclass (see `generic`_).
+Python 3 doesn't have a `typing.GenericMeta` metaclass, so
+`basicco.utils.generic_meta.GenericMeta` will resolve to `type` on newer versions of
+Python. For Python 2, it resolves to an improved version of the metaclass.
 
 import_path
 ^^^^^^^^^^^
@@ -328,6 +380,32 @@ Generate import paths with support for qualified names and import from them.
     '__main__|Asset.Config'
     >>> import_from_path('__main__|Asset.Config')
     <class '__main__.Asset.Config'>
+
+namespace
+^^^^^^^^^
+Wraps a dictionary/mapping and provides attribute-style access to it.
+
+.. code:: python
+
+    >>> from basicco.utils.namespace import Namespace
+    >>> ns = Namespace({"bar": "foo"})
+    >>> ns.foo = "bar"
+    >>> ns.foo
+    'bar'
+    >>> ns.bar
+    'foo'
+
+private_naming
+^^^^^^^^^^^^^^
+Functions to privatize/deprivatize member names.
+
+.. code:: python
+
+    >>> from basicco.utils.private_naming import privatize_name, deprivatize_name
+    >>> privatize_name("Foo", "__member")
+    '_Foo__member'
+    >>> deprivatize_name("_Foo__member")
+    ('__member', 'Foo')
 
 qualified_name
 ^^^^^^^^^^^^^^
