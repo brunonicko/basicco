@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="0.4.0",
+    version="0.4.1",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description=(
