@@ -3,7 +3,7 @@ import pickle
 
 import pytest
 
-from basicco.utils.weak_reference import WeakReference
+from basicco.utils.weak_reference import WeakReference, UniqueHashWeakReference
 
 
 class Cls(object):
@@ -103,6 +103,24 @@ def test_deepcopy():
 
     assert _xr() is _x
     assert _xr2() is _x
+
+
+def test_hashing():
+    class Unhashable(object):
+        __hash__ = None
+
+    unhashable = Unhashable()
+    unhashable_ref = WeakReference(unhashable)
+    hashable_ref = UniqueHashWeakReference(unhashable)
+
+    assert unhashable_ref is not hashable_ref
+
+    with pytest.raises(TypeError):
+        hash(unhashable_ref)
+
+    assert hash(hashable_ref) == object.__hash__(hashable_ref)
+
+    assert WeakReference() is not UniqueHashWeakReference()
 
 
 if __name__ == "__main__":
