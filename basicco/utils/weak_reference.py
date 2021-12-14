@@ -3,6 +3,7 @@
 from copy import deepcopy
 from typing import TYPE_CHECKING, Generic, TypeVar
 from weakref import WeakValueDictionary, ref
+from threading import RLock
 
 from six import with_metaclass
 
@@ -17,13 +18,13 @@ __all__ = ["WeakReference"]
 
 T = TypeVar("T")  # Any type.
 
-_DEAD_REF = ref(
-    type("Dead", (object,), {"__slots__": ("__weakref__",)})()
-)
+_DEAD_REF = ref(type("Dead", (object,), {"__slots__": ("__weakref__",)})())
 
 _cache = (
     {}
 )  # type: Dict[Type["WeakReference"], WeakValueDictionary[int, "WeakReference"]]
+
+_lock = RLock()
 
 
 def _reduce_dead(cls):
@@ -58,26 +59,27 @@ class WeakReference(with_metaclass(GenericMeta, Generic[T])):
     @staticmethod
     def __new__(cls, obj=None):
         # type: (Type[WeakReference[T]], T) -> WeakReference[T]
-        cache = _cache.setdefault(cls, WeakValueDictionary())
-        if obj is None:
-            obj_ref = _DEAD_REF
-        else:
-            obj_ref = ref(obj)
+        with _lock:
+            cache = _cache.setdefault(cls, WeakValueDictionary())
+            if obj is None:
+                obj_ref = _DEAD_REF
+            else:
+                obj_ref = ref(obj)
 
-        obj_ref_id = id(obj_ref)
-        try:
-            self = cache[obj_ref_id]
-        except KeyError:
-            pass
-        else:
+            obj_ref_id = id(obj_ref)
             try:
-                if self.__ref is obj_ref:
-                    return self
-            except ReferenceError:
+                self = cache[obj_ref_id]
+            except KeyError:
                 pass
+            else:
+                try:
+                    if self.__ref is obj_ref:
+                        return self
+                except ReferenceError:
+                    pass
 
-        self = cache[obj_ref_id] = super(WeakReference, cls).__new__(cls)
-        return self
+            self = cache[obj_ref_id] = super(WeakReference, cls).__new__(cls)
+            return self
 
     def __init__(self, obj=None):
         # type: (T) -> None

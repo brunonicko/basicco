@@ -9,8 +9,8 @@ __all__ = ["GenericMeta"]
 
 
 if _GenericMeta is not type:
-    class GenericMeta(_GenericMeta):
 
+    class GenericMeta(_GenericMeta):
         def __ne__(cls, other):
             # type: (object) -> bool
             is_equal = cls.__eq__(other)
@@ -18,6 +18,7 @@ if _GenericMeta is not type:
                 return NotImplemented
             else:
                 return not is_equal
+
 
 else:
     GenericMeta = type  # type: ignore

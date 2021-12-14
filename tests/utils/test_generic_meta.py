@@ -3,12 +3,12 @@ import typing
 
 from six import with_metaclass
 
-from basicco.generic import GenericMeta
+from basicco.utils.generic_meta import GenericMeta
 
 T = typing.TypeVar("T")
 
 
-def test_generic():
+def test_generic_meta():
     class Class(with_metaclass(GenericMeta, object)):
         pass
 

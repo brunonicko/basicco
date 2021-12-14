@@ -1,45 +1,23 @@
+import os
 import pytest
-import pickle
 
-from basicco import Base
-
-
-def test_pickle_base():
-    obj = AM.BM()
-    assert hasattr(obj, "__dict__")
-    pickled_obj = pickle.loads(pickle.dumps(obj))
-    assert pickled_obj.a == 1
-    assert pickled_obj.b == 2
-    assert pickled_obj.c == 3
+from basicco import BaseMeta, Base
 
 
-def test_pickle_slotted_base():
-    obj = AM.BM.CM()
-    assert not hasattr(obj, "__dict__")
-    pickled_obj = pickle.loads(pickle.dumps(obj))
-    assert pickled_obj.a == 1
-    assert pickled_obj.b == 2
-    assert pickled_obj.c == 3
+def test_base_meta_integration():
+    base_dir = os.path.join(os.path.dirname(__file__), "meta")
+    test_files = [
+        os.path.join(base_dir, f)
+        for f in os.listdir(base_dir)
+        if f.startswith("test_") and f.endswith(".py")
+    ]
+    for test_file in sorted(test_files):
+        pytest.main([test_file, "--metacls=basicco|BaseMeta", "-qq"])
 
 
-class AM(Base):
-    class BM(Base):
-        def __init__(self):
-            self.a, self.b, self.__c = 1, 2, 3
-
-        @property
-        def c(self):
-            return self.__c
-
-        class CM(Base):
-            __slots__ = ("a", "b", "__c")
-
-            def __init__(self):
-                self.a, self.b, self.__c = 1, 2, 3
-
-            @property
-            def c(self):
-                return self.__c
+def test_base():
+    assert isinstance(Base, BaseMeta)
+    assert isinstance(Base(), Base)
 
 
 if __name__ == "__main__":

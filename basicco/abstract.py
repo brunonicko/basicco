@@ -125,6 +125,19 @@ class AbstractMeta(ABCMeta):
     Finds abstract members in properties and descriptors for both Python 2.7 and 3.7+.
     """
 
+    @staticmethod
+    def __new__(mcs, name, bases, dct, **kwargs):
+
+        # Prevent members with '_abc_' prefix from being declared.
+        for member_name in dct:
+            if member_name.startswith("_abc_"):
+                error = ("can't have class member '{}.{}' prefixed with '{}'").format(
+                    name, member_name, "_abc_"
+                )
+                raise TypeError(error)
+
+        return super(AbstractMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+
     def __init__(cls, name, bases, dct, **kwargs):
         super(AbstractMeta, cls).__init__(name, bases, dct, **kwargs)
         cls.__gather_abstract_members()

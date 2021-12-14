@@ -1,8 +1,9 @@
-from sys import version_info
-
 from six import with_metaclass
 
 from .generic import GenericMeta
+from .reducible import ReducibleMeta
+from .explicit_hash import ExplicitHashMeta
+from .namespaced import NamespacedMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .final import final, is_final, is_final_member, FinalMeta
 from .qualified import get_qualified_name, QualifiedMeta
@@ -17,6 +18,7 @@ from .frozen import (
     FrozenMeta,
 )
 from .utils.reducer import reducer
+from .utils.namespace import Namespace
 
 __all__ = [
     "Base",
@@ -37,7 +39,16 @@ __all__ = [
 ]
 
 
-class BaseMeta(FrozenMeta, FinalMeta, AbstractMeta, QualifiedMeta, GenericMeta):
+class BaseMeta(
+    FrozenMeta,
+    FinalMeta,
+    AbstractMeta,
+    QualifiedMeta,
+    NamespacedMeta,
+    ExplicitHashMeta,
+    ReducibleMeta,
+    GenericMeta,
+):
     """Metaclass for :class:`Base`."""
 
 
@@ -46,6 +57,3 @@ class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
     __slots__ = (FROZEN_SLOT,)
-
-    if version_info[0:2] < (3, 4):
-        __reduce__ = reducer
