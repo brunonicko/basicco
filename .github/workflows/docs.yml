@@ -26,4 +26,4 @@ jobs:
         pip install -r requirements_dev.txt
     - name: Test docs build
       run: |
-        ./docs/make html
+        sphinx-build -M html "./docs/source" "./docs/build"
