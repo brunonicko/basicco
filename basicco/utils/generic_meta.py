@@ -19,6 +19,5 @@ if _GenericMeta is not type:
             else:
                 return not is_equal
 
-
 else:
     GenericMeta = type  # type: ignore
