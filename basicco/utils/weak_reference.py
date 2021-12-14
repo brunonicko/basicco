@@ -13,7 +13,7 @@ from .generic_meta import GenericMeta
 if TYPE_CHECKING:
     from typing import Dict, Any, Optional, Type
 
-__all__ = ["WeakReference"]
+__all__ = ["WeakReference", "UniqueHashWeakReference"]
 
 
 T = TypeVar("T")  # Any type.
@@ -100,7 +100,7 @@ class WeakReference(with_metaclass(GenericMeta, Generic[T])):
         except KeyError:
             cls = type(self)
             obj = self()
-            if self is WeakReference():
+            if self is type(self)():
                 assert obj is None
                 copy = memo[self_id] = self
             elif obj is None:
@@ -189,9 +189,32 @@ class WeakReference(with_metaclass(GenericMeta, Generic[T])):
     def __reduce__(self):
         cls = type(self)
         obj = self()
-        if self is WeakReference():
+        if self is type(self)():
             assert obj is None
             return cls, (None,)
         if obj is None:
             return _reduce_dead, (cls,)
         return cls, (obj,)
+
+
+class UniqueHashWeakReference(WeakReference, Generic[T]):
+    """
+    Weak Reference-like object that supports pickling and has a unique id-based hash.
+
+    .. code:: python
+
+        >>> import pickle
+        >>> from basicco.utils.weak_reference import UniqueHashWeakReference
+        >>> class MyClass(object):
+        ...     __hash__ = None
+        ...
+        >>> strong = MyClass()
+        >>> weak = UniqueHashWeakReference(strong)
+        >>> hash(weak) == object.__hash__(weak)
+        True
+    """
+
+    __slots__ = ()
+
+    def __hash__(self):
+        return object.__hash__(self)

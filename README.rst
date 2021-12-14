@@ -606,3 +606,18 @@ Weak reference-like object that supports pickling.
     >>> weak = WeakReference(strong)
     >>> pickle.loads(pickle.dumps((strong, weak)))
     (<__main__.MyClass object at...>, <WeakReference object at...; to 'MyClass' at...>)
+
+There's also a unique hash weak reference-like class that has a hash based on itself
+(and not on the object being referenced):
+
+.. code:: python
+
+    >>> import pickle
+    >>> from basicco.utils.weak_reference import UniqueHashWeakReference
+    >>> class MyClass(object):
+    ...     __hash__ = None
+    ...
+    >>> strong = MyClass()
+    >>> weak = UniqueHashWeakReference(strong)
+    >>> hash(weak) == object.__hash__(weak)
+    True
