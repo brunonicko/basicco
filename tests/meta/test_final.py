@@ -5,9 +5,19 @@ from six import with_metaclass
 from basicco.final import final, FinalMeta
 
 
-def test_final_class():
+@pytest.fixture()
+def meta(pytestconfig):
+    metacls = pytestconfig.getoption("metacls")
+    if metacls:
+        meta_module, meta_name = metacls.split("|")
+        return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
+    else:
+        return FinalMeta
+
+
+def test_final_class(meta):
     @final
-    class Class(with_metaclass(FinalMeta, object)):
+    class Class(with_metaclass(meta, object)):
         pass
 
     # Class should be tagged as final.
@@ -22,7 +32,7 @@ def test_final_class():
         assert not SubClass
 
 
-def test_final_method():
+def test_final_method(meta):
     def dummy_decorator(func):
         return func
 
@@ -44,7 +54,7 @@ def test_final_method():
     # Different kinds of decorated members should be recognized as final.
     for decorator in decorators:
 
-        class Class(with_metaclass(FinalMeta, object)):
+        class Class(with_metaclass(meta, object)):
             @decorator
             @final
             def method(self):
@@ -68,7 +78,7 @@ def test_final_method():
             assert not SubClass
 
 
-def test_descriptor():
+def test_descriptor(meta):
     class Descriptor(object):
         def __init__(self, func):
             self.func = func
@@ -76,7 +86,7 @@ def test_descriptor():
         def __get__(self, instance, owner):
             return 3
 
-    class Class(with_metaclass(FinalMeta, object)):
+    class Class(with_metaclass(meta, object)):
         @final
         @Descriptor
         def method(self):

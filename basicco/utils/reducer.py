@@ -7,9 +7,7 @@ __all__ = ["reducer"]
 
 
 def reducer(self):
-    """
-    Default reducer method that implements qualified name and slots for Python 2.7.
-    """
+    """Reducer method that supports qualified name and slots for Python 2.7."""
     return _reducer, (get_import_path(type(self)), get_state(self))
 
 
