@@ -9,9 +9,7 @@ from typing import TYPE_CHECKING
 from six import iteritems
 
 if TYPE_CHECKING:
-    from typing import Any, Set, TypeVar
-
-    AT = TypeVar("AT", bound="AbstractMeta")
+    from typing import Any, Set
 
 __all__ = ["abstract", "is_abstract", "is_abstract_member", "AbstractMeta"]
 
@@ -24,7 +22,6 @@ __abstract = abstract
 
 
 def _abstract(obj):
-    # type: (AT) -> AT
     if isclass(obj):
         super_new = obj.__dict__.get("__new__")
         if isinstance(super_new, staticmethod):

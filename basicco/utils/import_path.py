@@ -286,9 +286,9 @@ def import_from_path(import_path, default_module=None, builtin_modules=None):
     )
     if imported_generics:
         if len(imported_generics) == 1:
-            obj = obj[imported_generics[0]]
+            obj = obj[imported_generics[0]]  # type: ignore
         else:
-            obj = obj[imported_generics]
+            obj = obj[imported_generics]  # type: ignore
     return obj
 
 
