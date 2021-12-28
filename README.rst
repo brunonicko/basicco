@@ -359,6 +359,33 @@ Dummy (no-op) context manager.
     >>> do_something(thread_safe=False)
     did something
 
+wrapped_dict
+^^^^^^^^^^^^
+Read-only mapping that wraps a dictionary. If the wrapped dictionary mutates, that is
+reflected on the the wrapped mapping too.
+
+.. code:: python
+
+    >>> from basicco.utils.wrapped_dict import WrappedDict
+    >>> internal = {"foo": "bar"}
+    >>> dct = WrappedDict(internal)
+    >>> dct["foo"]
+    'bar'
+    >>> internal["foo"] = "biz"
+    >>> dct["foo"]
+    'biz'
+
+frozen_dict
+^^^^^^^^^^^
+Frozen dictionary implementation with methods that produce new copies instead of
+mutating the original one. It doesn't wrap a dictionary, it always makes a copy.
+
+.. code:: python
+
+    >>> from basicco.utils.frozen_dict import FrozenDict
+    >>> dct1 = FrozenDict({"foo": "bar"})
+    >>> dct2 = dct1.update({"a": "b"})
+
 generic_meta
 ^^^^^^^^^^^^
 Python 3 doesn't have a `typing.GenericMeta` metaclass, so
