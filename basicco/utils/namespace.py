@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 from six import string_types, iteritems
 
 if TYPE_CHECKING:
-    from typing import Any, Optional, Mapping
+    from typing import Any, Optional, Mapping, Union
 
-__all__ = ["Namespace"]
+__all__ = ["ReadOnlyNamespace", "Namespace"]
 
 
 _WRAPPED = "__wrapped__"
@@ -18,20 +18,18 @@ _init = lambda s, w: object.__setattr__(s, _WRAPPED, w)
 _read = lambda s: object.__getattribute__(s, _WRAPPED)
 
 
-class Namespace(object):
-    """
-    Wraps a dictionary/mapping and provides attribute-style access to it.
-
-    :param wraps: Dictionary/mapping to be wrapped.
-    """
+class ReadOnlyNamespace(object):
+    """Wraps a mapping and provides read-only attribute-style access to it."""
 
     __slots__ = (_WRAPPED, "__weakref__")
     __hash__ = None  # type: ignore
 
     def __init__(self, wraps=None):
-        # type: (Optional[Mapping[str, Any]]) -> None
+        # type: (Optional[Union[Mapping[str, Any], ReadOnlyNamespace]]) -> None
         if wraps is None:
             wraps = {}
+        elif isinstance(wraps, ReadOnlyNamespace):
+            wraps = _read(wraps)
         _init(self, wraps)
 
     def __copy__(self):
@@ -54,13 +52,13 @@ class Namespace(object):
         return type(self), (_read(self),)
 
     def __eq__(self, other):
-        return isinstance(other, Namespace) and _read(other) == _read(self)
+        return isinstance(other, ReadOnlyNamespace) and _read(other) == _read(self)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return "Namespace({})".format(repr(_read(self)))
+        return "{}({})".format(type(self).__name__, repr(_read(self)))
 
     def __contains__(self, name):
         return name in _read(self)
@@ -74,12 +72,6 @@ class Namespace(object):
 
     def __getitem__(self, name):
         return _read(self)[name]
-
-    def __setitem__(self, name, value):
-        _read(self)[name] = value
-
-    def __delitem__(self, name):
-        del _read(self)[name]
 
     def __dir__(self):
         cls = type(self)
@@ -97,6 +89,50 @@ class Namespace(object):
             return self[name]
         except KeyError:
             raise AttributeError(name)
+
+    def __setattr__(self, name, value):
+        cls = type(self)
+        if hasattr(cls, name):
+            member = getattr(cls, name)
+            if hasattr(member, "__set__"):
+                object.__setattr__(self, name, value)
+            else:
+                error = "can't change '{}' attribute/method".format(name)
+                raise AttributeError(error)
+        else:
+            error = "read_only namespace, can't set attribute"
+            raise AttributeError(error)
+
+    def __delattr__(self, name):
+        cls = type(self)
+        if hasattr(cls, name):
+            member = getattr(cls, name)
+            if hasattr(member, "__delete__"):
+                object.__delattr__(self, name)
+            else:
+                error = "can't delete '{}' attribute/method".format(name)
+                raise AttributeError(error)
+        else:
+            error = "read_only namespace, can't delete attribute"
+            raise AttributeError(error)
+
+
+class Namespace(ReadOnlyNamespace):
+    """Wraps a mapping and provides attribute-style access to it."""
+
+    __slots__ = ()
+
+    def __init__(self, wraps=None):
+        # type: (Optional[Union[Mapping[str, Any], ReadOnlyNamespace]]) -> None
+        if isinstance(wraps, ReadOnlyNamespace) and not isinstance(wraps, Namespace):
+            wraps = dict(_read(wraps))
+        super(Namespace, self).__init__(wraps=wraps)
+
+    def __setitem__(self, name, value):
+        _read(self)[name] = value
+
+    def __delitem__(self, name):
+        del _read(self)[name]
 
     def __setattr__(self, name, value):
         cls = type(self)

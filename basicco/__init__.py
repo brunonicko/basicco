@@ -52,7 +52,6 @@ class BaseMeta(
     """Metaclass for :class:`Base`."""
 
 
-@freeze
 class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
