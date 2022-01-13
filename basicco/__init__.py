@@ -5,7 +5,7 @@ from .reducible import ReducibleMeta
 from .explicit_hash import ExplicitHashMeta
 from .namespaced import NamespacedMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
-from .final import final, is_final, is_final_member, FinalMeta
+from .finalized import final, is_final, is_final_member, FinalizedMeta
 from .qualified import get_qualified_name, QualifiedMeta
 from .frozen import (
     FROZEN_SLOT,
@@ -41,7 +41,7 @@ __all__ = [
 
 class BaseMeta(
     FrozenMeta,
-    FinalMeta,
+    FinalizedMeta,
     AbstractMeta,
     QualifiedMeta,
     NamespacedMeta,
@@ -56,3 +56,10 @@ class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
     __slots__ = (FROZEN_SLOT,)
+
+    def __ne__(self, other):
+        is_equal = self.__eq__(other)
+        if is_equal is NotImplemented:
+            return NotImplemented
+        else:
+            return not is_equal

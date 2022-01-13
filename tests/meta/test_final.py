@@ -2,7 +2,7 @@ import pytest
 
 from six import with_metaclass
 
-from basicco.final import final, FinalMeta
+from basicco.finalized import final, FinalizedMeta
 
 
 @pytest.fixture()
@@ -12,7 +12,7 @@ def meta(pytestconfig):
         meta_module, meta_name = metacls.split("|")
         return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
     else:
-        return FinalMeta
+        return FinalizedMeta
 
 
 def test_final_class(meta):
