@@ -15,9 +15,9 @@ if TYPE_CHECKING:
     from typing import TypeVar, Optional, Type, Set
 
     T = TypeVar("T")
-    FT = TypeVar("FT", bound="FinalMeta")
+    FT = TypeVar("FT", bound="FinalizedMeta")
 
-__all__ = ["final", "is_final", "is_final_member", "FinalMeta"]
+__all__ = ["final", "is_final", "is_final_member", "FinalizedMeta"]
 
 _FINAL_CLASS_TAG = "__isfinalclass__"
 _FINAL_METHOD_TAG = "__isfinalmethod__"
@@ -69,11 +69,11 @@ def is_final_member(member):
     return _is_final
 
 
-class FinalMeta(type):
+class FinalizedMeta(type):
     """Enables runtime-checking for `final` decorator."""
 
     def __init__(cls, name, bases, dct, **kwargs):
-        super(FinalMeta, cls).__init__(name, bases, dct, **kwargs)
+        super(FinalizedMeta, cls).__init__(name, bases, dct, **kwargs)
         cls.__gather_final_members()
 
     def __gather_final_members(cls):
@@ -108,9 +108,9 @@ class FinalMeta(type):
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
 
     def __setattr__(cls, name, value):
-        super(FinalMeta, cls).__setattr__(name, value)
+        super(FinalizedMeta, cls).__setattr__(name, value)
         cls.__gather_final_members()
 
     def __delattr__(cls, name):
-        super(FinalMeta, cls).__delattr__(name)
+        super(FinalizedMeta, cls).__delattr__(name)
         cls.__gather_final_members()

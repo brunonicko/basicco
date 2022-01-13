@@ -109,15 +109,15 @@ at any point in time, you can use the `freeze` function instead:
     Traceback (most recent call last):
     AttributeError: 'Asset' instance is frozen, can't set attribute
 
-final
-^^^^^
+finalized
+^^^^^^^^^
 Runtime-checked version of the
 `typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
 
 Can be used directly on methods but also on properties, classmethods, and staticmethods
 (even in Python 2.7).
 
-Features are also available through the metaclass `basicco.final.FinalMeta`.
+Features are also available through the metaclass `basicco.final.FinalizedMeta`.
 
 This decorator is still recognized by Mypy static type checking, and it also prevents
 subclassing and/or member overriding during runtime:
