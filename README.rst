@@ -487,6 +487,15 @@ Python 2.7 compatible reducer method that works with qualified name and slots.
     >>> pickle.loads(pickled)
     <__main__.Asset.Config object at...>
 
+sentinel_value
+^^^^^^^^^^^^^^
+Function to create unique, constant sentinel values.
+
+.. code:: python
+
+    >>> from basicco.utils.sentinel_value import sentinel_value
+    >>> NothingType, Nothing = sentinel_value("Nothing")
+
 state
 ^^^^^
 Utility functions for managing an object's state.
@@ -617,6 +626,17 @@ Iterator that yields unique values.
 
     >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
     [1, 2, 3, 4, 5]
+
+value_factoring
+^^^^^^^^^^^^^^^
+Value factoring with support for lazy import paths.
+
+.. code:: python
+
+    >>> from basicco.utils.value_factoring import fabricate_value
+
+    >>> fabricate_value("str", 3)
+    '3'
 
 weak_reference
 ^^^^^^^^^^^^^^
