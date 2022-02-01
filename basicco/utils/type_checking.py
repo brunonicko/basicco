@@ -35,9 +35,11 @@ __all__ = [
     "import_types",
     "is_instance",
     "is_subclass",
+    "is_iterable",
     "assert_is_instance",
     "assert_is_subclass",
     "assert_is_callable",
+    "assert_is_iterable",
 ]
 
 TEXT_TYPE = text_type  # type: Type
@@ -335,6 +337,25 @@ def is_subclass(
         return cls in imported_types
 
 
+def is_iterable(value, include_strings=False):
+    # type: (Any, bool) -> bool
+    """
+    Tell whether a value is an iterable or not.
+    By default, strings are not considered iterables.
+
+    :param value: Value.
+
+    :param include_strings: Whether to consider strings as iterables.
+    :type include_strings: bool
+
+    :return: True if iterable.
+    :rtype: bool
+    """
+    return isinstance(value, collections_abc.Iterable) and (
+        (not isinstance(value, string_types) or include_strings)
+    )
+
+
 def assert_is_instance(
     obj,  # type: Any
     types,  # type: InputTypes
@@ -512,10 +533,30 @@ def assert_is_callable(value):
 
     :param value: Value.
 
-    :raises TypeError: Value is not a match.
+    :raises TypeError: Value is not a callable.
     """
     if not callable(value):
         error = "got non-callable '{}' object, expected a callable".format(
             type(value).__name__,
+        )
+        raise TypeError(error)
+
+
+def assert_is_iterable(value, include_strings=False):
+    # type: (Any, bool) -> None
+    """
+    Assert a value is iterable.
+    By default, strings are not considered iterables.
+
+    :param value: Value.
+
+    :param include_strings: Whether to consider strings as iterables.
+    :type include_strings: bool
+
+    :raises TypeError: Value is not iterable.
+    """
+    if not is_iterable(value, include_strings=include_strings):
+        error = "got non-iterable '{}' object, expected an iterable".format(
+            type(value).__name__
         )
         raise TypeError(error)

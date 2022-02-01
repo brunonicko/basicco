@@ -7,6 +7,8 @@ from basicco.utils.type_checking import (
     assert_is_callable,
     assert_is_instance,
     assert_is_subclass,
+    assert_is_iterable,
+    is_iterable,
     flatten_types,
     format_types,
     get_type_names,
@@ -133,6 +135,17 @@ def test_is_subclass():
     assert is_subclass(SubCls, ()) is False
 
 
+def test_is_iterable():
+    assert not is_iterable(3)
+    assert not is_iterable(False)
+    assert not is_iterable("foo")
+
+    assert is_iterable("foo", include_strings=True)
+    assert is_iterable([])
+    assert is_iterable({})
+    assert is_iterable(set())
+
+
 def test_assert_is_instance():
     assert_is_instance(None, None)
     assert_is_instance(None, (None,))
@@ -232,6 +245,23 @@ def test_assert_is_callable():
 
     with pytest.raises(TypeError):
         assert_is_callable(3)
+
+
+def test_assert_is_iterable():
+    with pytest.raises(TypeError):
+        assert_is_iterable(3)
+
+    with pytest.raises(TypeError):
+        assert_is_iterable(False)
+
+    with pytest.raises(TypeError):
+        assert_is_iterable("foo")
+
+    assert_is_iterable("foo", include_strings=True)
+
+    assert_is_iterable([])
+    assert_is_iterable({})
+    assert_is_iterable(set())
 
 
 if __name__ == "__main__":
