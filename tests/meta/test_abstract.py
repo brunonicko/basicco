@@ -2,19 +2,11 @@ import pytest
 
 from six import with_metaclass
 
+from basicco import BaseMeta
 from basicco.abstract import abstract, AbstractMeta
 
 
-@pytest.fixture()
-def meta(pytestconfig):
-    metacls = pytestconfig.getoption("metacls")
-    if metacls:
-        meta_module, meta_name = metacls.split("|")
-        return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
-    else:
-        return AbstractMeta
-
-
+@pytest.mark.parametrize("meta", (AbstractMeta, BaseMeta))
 def test_abstract_class(meta):
     @abstract
     class Class(with_metaclass(meta, object)):
@@ -29,6 +21,7 @@ def test_abstract_class(meta):
     assert SubClass()
 
 
+@pytest.mark.parametrize("meta", (AbstractMeta, BaseMeta))
 def test_super_new(meta):
     class Class(with_metaclass(meta, object)):
         @staticmethod
@@ -47,6 +40,7 @@ def test_super_new(meta):
     assert obj.new_called is True
 
 
+@pytest.mark.parametrize("meta", (AbstractMeta, BaseMeta))
 def test_abstract_method(meta):
     def dummy_decorator(func):
         return func
@@ -87,6 +81,7 @@ def test_abstract_method(meta):
             Class()
 
 
+@pytest.mark.parametrize("meta", (AbstractMeta, BaseMeta))
 def test_descriptor(meta):
     class Descriptor(object):
         def __init__(self, func):

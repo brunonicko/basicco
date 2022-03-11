@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from .caller_module import get_caller_module
-from .import_path import import_from_path
+from .import_path import MODULE_SEPARATOR, import_from_path
 
 if TYPE_CHECKING:
     from typing import Tuple, Optional
@@ -62,7 +62,7 @@ def sentinel_value(
 
     def __reduce__(self):
         cls = type(self)
-        path = "|".join((cls.__module__, cls.__name__))
+        path = MODULE_SEPARATOR.join((cls.__module__, cls.__name__))
         return _sentinel_reducer, (path,)
 
     dct = {

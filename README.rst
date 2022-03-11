@@ -47,68 +47,6 @@ classes:
     ...     pass
     ...
 
-frozen
-^^^^^^
-Class decorator that prevents changing the attribute values for classes and/or their
-instances after they have been initialized.
-
-Features are also available through the metaclass `basicco.frozen.FrozenMeta`.
-
-.. code:: python
-
-    >>> from basicco import Base, frozen
-    >>> @frozen(classes=True)
-    ... class Asset(Base):
-    ...     typename = "geometry"
-    ...
-    >>> Asset.typename = "nurbs"
-    Traceback (most recent call last):
-    AttributeError: class 'Asset' is frozen, can't set class attribute
-
-.. code:: python
-
-    >>> from basicco import Base, frozen
-    >>> @frozen(instances=True)
-    ... class Asset(Base):
-    ...     def __init__(self, name, typename):
-    ...         self.name = name
-    ...         self.typename = typename
-    ...
-    >>> asset = Asset("cube", "geometry")
-    >>> asset.name = "sphere"
-    Traceback (most recent call last):
-    AttributeError: 'Asset' instance is frozen, can't set attribute
-
-If you wish to freeze a class without freezing its subclasses or to freeze an instance
-at any point in time, you can use the `freeze` function instead:
-
-.. code:: python
-
-    >>> from basicco import Base, freeze
-    >>> class Asset(Base):
-    ...     typename = "geometry"
-    ...
-    >>> Asset.typename = "nurbs"  # this works, since the class is not frozen yet
-    >>> freeze(Asset)  # will freeze the class (not its subclasses)
-    >>> Asset.typename = "joint"
-    Traceback (most recent call last):
-    AttributeError: class 'Asset' is frozen, can't set class attribute
-
-.. code:: python
-
-    >>> from basicco import Base, freeze
-    >>> class Asset(Base):
-    ...     def __init__(self, name, typename):
-    ...         self.name = name
-    ...         self.typename = typename
-    ...
-    >>> asset = Asset("cube", "geometry")
-    >>> asset.name = "sphere"  # this works, since the instance is not frozen yet
-    >>> freeze(asset)
-    >>> asset.name = "cone"
-    Traceback (most recent call last):
-    AttributeError: 'Asset' instance is frozen, can't set attribute
-
 finalized
 ^^^^^^^^^
 Runtime-checked version of the

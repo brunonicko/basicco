@@ -95,7 +95,10 @@ class QualifiedMeta(type):
 
         @property  # type: ignore
         def __qualname__(cls):  # type: ignore
-            return cls.__get_qualified_name()
+            try:
+                return cls.__get_qualified_name()
+            except QualnameError:
+                raise AttributeError("__qualname__")
 
         @__qualname__.setter
         def __qualname__(cls, value):

@@ -2,19 +2,11 @@ import pytest
 
 from six import with_metaclass
 
+from basicco import BaseMeta
 from basicco.finalized import final, FinalizedMeta
 
 
-@pytest.fixture()
-def meta(pytestconfig):
-    metacls = pytestconfig.getoption("metacls")
-    if metacls:
-        meta_module, meta_name = metacls.split("|")
-        return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
-    else:
-        return FinalizedMeta
-
-
+@pytest.mark.parametrize("meta", (FinalizedMeta, BaseMeta))
 def test_final_class(meta):
     @final
     class Class(with_metaclass(meta, object)):
@@ -32,6 +24,7 @@ def test_final_class(meta):
         assert not SubClass
 
 
+@pytest.mark.parametrize("meta", (FinalizedMeta, BaseMeta))
 def test_final_method(meta):
     def dummy_decorator(func):
         return func
@@ -78,6 +71,7 @@ def test_final_method(meta):
             assert not SubClass
 
 
+@pytest.mark.parametrize("meta", (FinalizedMeta, BaseMeta))
 def test_descriptor(meta):
     class Descriptor(object):
         def __init__(self, func):

@@ -5,7 +5,7 @@ __all__ = [
     "NamespacedMeta",
 ]
 
-_NAMESPACE_ATTR = "_{}__".format(privatize_name("NamespacedMeta", "namespace"))
+_NAMESPACE_ATTR = privatize_name("NamespacedMeta", "__namespace")
 
 
 class NamespacedMeta(type):
