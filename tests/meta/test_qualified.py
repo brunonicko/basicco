@@ -2,20 +2,13 @@ import pytest
 
 from six import with_metaclass, PY2
 
+from basicco import BaseMeta
 from basicco.qualified import get_qualified_name, QualifiedMeta, _PARENT_ATTRIBUTE
 
 
-@pytest.fixture()
-def meta(pytestconfig):
-    metacls = pytestconfig.getoption("metacls")
-    if metacls:
-        meta_module, meta_name = metacls.split("|")
-        return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
-    else:
-        return QualifiedMeta
-
-
-@pytest.mark.parametrize("force_ast", (True, False))
+@pytest.mark.parametrize(
+    ("force_ast", "meta"), [(True, False), (QualifiedMeta, BaseMeta)]
+)
 def test_qualified_meta(meta, force_ast):
 
     # Asset reference to parent class.
@@ -41,6 +34,7 @@ def test_qualified_meta(meta, force_ast):
         del AM.__qualname__
 
 
+@pytest.mark.parametrize("meta", (QualifiedMeta, BaseMeta))
 def test_qualname_property(meta):
     def func():
         class X(with_metaclass(meta, object)):

@@ -3,21 +3,13 @@ import typing
 
 from six import with_metaclass
 
+from basicco import BaseMeta
 from basicco.generic import GenericMeta
 
 T = typing.TypeVar("T")
 
 
-@pytest.fixture()
-def meta(pytestconfig):
-    metacls = pytestconfig.getoption("metacls")
-    if metacls:
-        meta_module, meta_name = metacls.split("|")
-        return getattr(__import__(meta_module, fromlist=[meta_name]), meta_name)
-    else:
-        return GenericMeta
-
-
+@pytest.mark.parametrize("meta", (GenericMeta, BaseMeta))
 def test_generic(meta):
     class Class(with_metaclass(meta, object)):
         pass

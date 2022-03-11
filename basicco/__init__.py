@@ -7,16 +7,6 @@ from .namespaced import NamespacedMeta
 from .abstract import abstract, is_abstract, is_abstract_member, AbstractMeta
 from .finalized import final, is_final, is_final_member, FinalizedMeta
 from .qualified import get_qualified_name, QualifiedMeta
-from .frozen import (
-    FROZEN_SLOT,
-    frozen,
-    freeze,
-    is_frozen,
-    will_class_be_frozen,
-    will_subclasses_be_frozen,
-    will_instance_be_frozen,
-    FrozenMeta,
-)
 from .utils.reducer import reducer
 from .utils.namespace import Namespace
 
@@ -30,17 +20,10 @@ __all__ = [
     "is_final",
     "is_final_member",
     "get_qualified_name",
-    "frozen",
-    "freeze",
-    "is_frozen",
-    "will_class_be_frozen",
-    "will_subclasses_be_frozen",
-    "will_instance_be_frozen",
 ]
 
 
 class BaseMeta(
-    FrozenMeta,
     FinalizedMeta,
     AbstractMeta,
     QualifiedMeta,
@@ -55,7 +38,7 @@ class BaseMeta(
 class Base(with_metaclass(BaseMeta, object)):
     """Base class."""
 
-    __slots__ = (FROZEN_SLOT,)
+    __slots__ = ()
 
     def __ne__(self, other):
         is_equal = self.__eq__(other)
