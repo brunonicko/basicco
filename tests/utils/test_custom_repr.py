@@ -1,11 +1,11 @@
 import pytest
 
-from basicco.utils.custom_repr import custom_iterable_repr, custom_mapping_repr
+from basicco.utils import custom_repr
 
 
 def test_custom_mapping_repr():
     assert (
-        custom_mapping_repr(
+        custom_repr.mapping_repr(
             {1: 4, "2": 3, 3: 2, "4": "1"},
             prefix="Mapping<",
             template="{key}=={value}",
@@ -23,7 +23,7 @@ def test_custom_mapping_repr():
 
 def test_custom_iterable_repr():
     assert (
-        custom_iterable_repr(
+        custom_repr.iterable_repr(
             ["a", 1, 2.0, "3.0", 4, None],
             prefix="Iterable -",
             template="> {value} <",

@@ -4,8 +4,6 @@ from re import compile as re_compile
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
-from six import string_types, iteritems
-
 if TYPE_CHECKING:
     from typing import Any, Optional, Mapping, Union
 

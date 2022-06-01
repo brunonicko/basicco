@@ -1,76 +1,49 @@
 """Custom representation functions."""
 
-from typing import TYPE_CHECKING
+from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, Tuple
 
-from six import iteritems
-
-if TYPE_CHECKING:
-    from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, Tuple
-
-__all__ = ["custom_mapping_repr", "custom_iterable_repr"]
+__all__ = ["mapping_repr", "iterable_repr"]
 
 
-def custom_mapping_repr(
-    mapping,  # type: Mapping
-    prefix="{",  # type: str
-    template="{key}: {value}",  # type: str
-    separator=", ",  # type: str
-    suffix="}",  # type: str
-    sorting=False,  # type: bool
-    sort_key=None,  # type: Optional[Callable[[Any], Any]]
-    reverse=False,  # type: bool
-    key_repr=repr,  # type: Callable[[Any], Any]
-    value_repr=repr,  # type: Callable[[Any], Any]
-):
-    # type: (...) -> str
+def mapping_repr(
+    mapping: Mapping,
+    prefix: str = "{",
+    template: str = "{key}: {value}",
+    separator: str = ", ",
+    suffix: str = "}",
+    sorting: bool = False,
+    sort_key: Optional[Callable[[Tuple[Any, Any]], Any]] = None,
+    reverse: bool = False,
+    key_repr: Callable[[Any], str] = repr,
+    value_repr: Callable[[Any], str] = repr,
+) -> str:
     """
     Get custom representation of a mapping.
 
     .. code:: python
 
-        >>> from basicco.utils.custom_repr import custom_mapping_repr
+        >>> from basicco.utils import custom_repr
 
         >>> dct = {"a": 1, "b": 2}
-        >>> custom_mapping_repr(
+        >>> custom_repr.mapping_repr(
         ...     dct, prefix="<", suffix=">", template="{key}={value}", sorting=True
         ... )
         "<'a'=1, 'b'=2>"
 
     :param mapping: Mapping.
-    :type mapping: collections.abc.Mapping
-
     :param prefix: Prefix.
-    :type prefix: str
-
     :param template: Item format template ({key} and {value}).
-    :type template: str
-
     :param separator: Separator.
-    :type separator: str
-
     :param suffix: Suffix.
-    :type suffix: str
-
     :param sorting: Whether to sort keys.
-    :type sorting: bool
-
     :param sort_key: Sorting key.
-    :type sort_key: function or None
-
     :param reverse: Reverse sorting.
-    :type reverse: bool
-
     :param key_repr: Key representation function.
-    :type key_repr: function
-
     :param value_repr: Value representation function.
-    :type value_repr: function
-
     :return: Custom representation.
-    :rtype: str
     """
     parts = []
-    iterable = iteritems(mapping)  # type: Iterable[Tuple[Hashable, Any]]
+    iterable: Iterable[Tuple[Hashable, Any]] = mapping.items()
     if sort_key is None:
         sort_key = lambda item: item[0]
     if sorting:
@@ -81,58 +54,38 @@ def custom_mapping_repr(
     return prefix + separator.join(parts) + suffix
 
 
-def custom_iterable_repr(
-    iterable,  # type: Iterable
-    prefix="[",  # type: str
-    template="{value}",  # type: str
-    separator=", ",  # type: str
-    suffix="]",  # type: str
-    sorting=False,  # type: bool
-    sort_key=None,  # type: Optional[Callable[[Any], Any]]
-    reverse=False,  # type: bool
-    value_repr=repr,  # type: Callable[[Any], Any]
-):
-    # type: (...) -> str
+def iterable_repr(
+    iterable: Iterable,
+    prefix: str = "[",
+    template: str = "{value}",
+    separator: str = ", ",
+    suffix: str = "]",
+    sorting: bool = False,
+    sort_key: Optional[Callable[[Any], Any]] = None,
+    reverse: bool = False,
+    value_repr: Callable[[Any], str] = repr,
+) -> str:
     """
     Get custom representation of an iterable.
 
     .. code:: python
 
-        >>> from basicco.utils.custom_repr import custom_iterable_repr
+        >>> from basicco.utils import custom_repr
 
         >>> tup = ("a", "b", "c", 1, 2, 3)
-        >>> custom_iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
+        >>> custom_repr.iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
         '<a, b, c, 1, 2, 3>'
 
     :param iterable: Iterable.
-    :type iterable: collections.abc.Iterable
-
     :param prefix: Prefix.
-    :type prefix: str
-
     :param template: Item format template ({key} and {value}).
-    :type template: str
-
     :param separator: Separator.
-    :type separator: str
-
     :param suffix: Suffix.
-    :type suffix: str
-
     :param sorting: Whether to sort the iterable or not.
-    :type sorting: bool
-
     :param sort_key: Sorting key.
-    :type sort_key: function
-
     :param reverse: Reverse sorting.
-    :type reverse: bool
-
     :param value_repr: Value representation function.
-    :type value_repr: function
-
     :return: Custom representation.
-    :rtype: str
     """
     parts = []
     if sorting:
