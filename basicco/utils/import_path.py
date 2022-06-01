@@ -45,12 +45,13 @@ def _get_alias_origin(obj: Any) -> Tuple[Optional[Type], Optional[Tuple[Any, ...
         return None, None
 
 
-def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS) -> Any:
+def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> Any:
     """
     Import from a dot path.
 
     :param path: Dot path.
     :param builtin_paths: Builtin module paths in fallback order.
+    :param generic: Whether to import generic.
     :return: Imported module/object.
     """
 
@@ -62,6 +63,8 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS) -> Any:
     if not path:
         raise ValueError("empty path")
     path, generic_paths = extract_generic_paths(path)
+    if not generic:
+        generic_paths = ()
     path_parts = path.split(".")
 
     # Import the module.
@@ -153,13 +156,13 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
     return path, tuple(extracted_generic_paths)
 
 
-def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generics: bool = True) -> str:
+def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> str:
     """
     Get dot path to an object or module.
 
     :param obj: Object or module.
     :param builtin_paths: Builtin module paths in fallback order.
-    :param generics: Whether to include path to generics as well.
+    :param generic: Whether to include path to generic as well.
     :return: Dot path.
     """
 
@@ -175,16 +178,19 @@ def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generics: bool = Tru
         generic_suffix = "".join(
             (
                 "[",
-                ", ".join(get_path(ga, builtin_paths=builtin_paths, generics=generics) for ga in generic_args),
+                ", ".join(get_path(ga, builtin_paths=builtin_paths, generic=generic) for ga in generic_args),
                 "]",
             )
         )
 
     # Get qualified name and module.
-    if generic_origin is not None:
-        module, qualified_name = generic_origin.__module__, generic_origin.__qualname__
-    else:
-        module, qualified_name = obj.__module__, obj.__qualname__
+    try:
+        if generic_origin is not None:
+            module, qualified_name = generic_origin.__module__, generic_origin.__qualname__
+        else:
+            module, qualified_name = obj.__module__, obj.__qualname__
+    except AttributeError:
+        raise TypeError(f"non-importable instance of {type(obj).__name__!r}") from None
     if not module:
         raise AttributeError(f"can't get module for {obj}")
     if module in builtin_paths:
@@ -196,9 +202,9 @@ def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generics: bool = Tru
 
     # Assemble path and test for consistency.
     path = ".".join(p for p in (module, qualified_name) if p)
-    if generics and generic_suffix:
+    if generic and generic_suffix:
         path += generic_suffix
-    elif not generics and generic_origin is not None:
+    elif not generic and generic_origin is not None:
         obj = generic_origin
     try:
         imported_obj = import_path(path, builtin_paths=builtin_paths)
