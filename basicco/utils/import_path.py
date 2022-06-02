@@ -1,4 +1,4 @@
-"""Import from lazy dot paths."""
+"""Import from/generate lazy dot paths."""
 
 from typing import Any, Iterable, Tuple, List, Optional, Type
 
@@ -8,6 +8,7 @@ __all__ = ["import_path", "extract_generic_paths", "get_path"]
 _BUILTINS = ("builtins", "typing")
 _NOTHING = object()
 _SPECIAL_VALUES = {
+    "...": ...,
     "None": None,
     "NoneType": type(None),
     "True": True,
@@ -48,6 +49,12 @@ def _get_alias_origin(obj: Any) -> Tuple[Optional[Type], Optional[Tuple[Any, ...
 def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> Any:
     """
     Import from a dot path.
+
+    .. code:: python
+
+        >>> from basicco.utils.import_path import import_path
+        >>> import_path("itertools.chain")
+        <class 'itertools.chain'>
 
     :param path: Dot path.
     :param builtin_paths: Builtin module paths in fallback order.
@@ -108,6 +115,12 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
     """
     Extract generic paths from dot path.
 
+    .. code:: python
+
+        >>> from basicco.utils.import_path import extract_generic_paths
+        >>> extract_generic_paths("tuple[int, str]")
+        ('tuple', ('int', 'str'))
+
     :param path: Dot path.
     :return: Dot path and generic paths.
     """
@@ -159,6 +172,13 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
 def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> str:
     """
     Get dot path to an object or module.
+
+    .. code:: python
+
+        >>> import abc
+        >>> from basicco.utils.import_path import get_path
+        >>> get_path(abc.ABC)
+        'abc.ABC'
 
     :param obj: Object or module.
     :param builtin_paths: Builtin module paths in fallback order.

@@ -1,4 +1,4 @@
-"""Utilities to retrieve the caller's module name."""
+"""Retrieve the caller's module name."""
 
 import inspect
 from typing import Optional

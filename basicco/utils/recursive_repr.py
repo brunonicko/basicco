@@ -1,89 +1,100 @@
 """Recursive-ready `repr` decorator."""
 
-from collections import Counter
-from functools import wraps
-from threading import local
-from typing import TYPE_CHECKING
-
-from six import raise_from
-
-if TYPE_CHECKING:
-    from typing import Callable, Optional, TypeVar
-
-    T = TypeVar("T")
+import collections
+import functools
+import contextvars
+from typing import Callable, Optional, TypeVar, Literal, overload
 
 __all__ = ["recursive_repr"]
 
-_local = local()
+
+T = TypeVar("T")
+
+_reprs: contextvars.ContextVar[collections.Counter[int]] = contextvars.ContextVar("_reprs")
 
 
-def recursive_repr(func):
-    # type: (Callable[..., T]) -> Callable[..., T]
+@overload
+def recursive_repr(
+    maybe_func: Callable[..., T],
+    max_depth: Optional[int] = 1,
+    max_repr: str = "...",
+) -> Callable[..., T]:
+    pass
+
+
+@overload
+def recursive_repr(
+    maybe_func: Literal[None],
+    max_depth: Optional[int] = 1,
+    max_repr: str = "...",
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    pass
+
+
+def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
     """
     Decorate a representation method/function and prevents infinite recursion.
 
     .. code:: python
 
         >>> from basicco.utils.recursive_repr import recursive_repr
-
         >>> class MyClass(object):
         ...
         ...     @recursive_repr
         ...     def __repr__(self):
-        ...         return "MyClass<" + repr(self) + ">"
+        ...         return f"MyClass<{self!r}>"
         ...
         >>> my_obj = MyClass()
         >>> repr(my_obj)
         'MyClass<...>'
 
-    :param func: The '__repr__' and/or '__str__' method/function.
-    :type func: function
-
-    :return: Decorated method function.
-    :rtype: function
+    :param maybe_func: The '__repr__' and/or '__str__' method/function or None.
+    :param max_depth: Maximum depth.
+    :param max_repr: Repr text to return after max depth has been reached.
+    :return: Decorated method function or decorator.
     """
-    max_depth = 1  # type: Optional[int]
-    max_global_depth = 2  # type: Optional[int]
 
-    @wraps(func)
-    def decorated(*args, **kwargs):
-        try:
-            self = args[0]
-        except IndexError:
-            exc = RuntimeError("'recursive_repr' needs to be used on a instance method")
-            raise_from(exc, None)
-            raise exc
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
 
-        self_id = id(self)
-        try:
-            reprs = _local.reprs
-        except AttributeError:
-            reprs = _local.reprs = Counter()
-        try:
-            global_reprs = _local.global_reprs
-        except AttributeError:
-            global_reprs = _local.global_reprs = [0]
+        @functools.wraps(func)
+        def decorated(*args, **kwargs):
 
-        reprs[self_id] += 1
-        global_reprs[0] += 1
-        try:
-            if max_depth is not None and reprs[self_id] > max_depth:
-                return "..."
-            elif max_global_depth is not None and global_reprs[0] > max_global_depth:
-                if isinstance(self, type):
-                    return type.__repr__(self)
+            # Get self (or cls for class methods).
+            try:
+                self = args[0]
+            except IndexError:
+                raise RuntimeError("'recursive_repr' needs to decorate a class/instance method") from None
+            self_id = id(self)
+
+            # Get reprs counter for current context and increment it for self.
+            reprs_token = None
+            try:
+                reprs = _reprs.get()
+            except LookupError:
+                reprs = collections.Counter()
+                reprs_token = _reprs.set(reprs)
+            reprs[self_id] += 1
+
+            # Return representation.
+            try:
+                if max_depth is not None and reprs[self_id] > max_depth:
+                    return max_repr
                 else:
-                    return object.__repr__(self)
-            else:
-                return func(*args, **kwargs)
-        finally:
-            reprs[self_id] -= 1
-            if not reprs[self_id]:
-                del reprs[self_id]
-            if not reprs:
-                del _local.reprs
-            global_reprs[0] -= 1
-            if not global_reprs[0]:
-                del _local.global_reprs
+                    return func(*args, **kwargs)
+            finally:
 
-    return decorated
+                # Decrement repr counter and clean up if needed.
+                reprs[self_id] -= 1
+                if not reprs[self_id]:
+                    del reprs[self_id]
+
+                if reprs_token is not None:
+                    _reprs.reset(reprs_token)
+
+        return decorated
+
+    # Return decorated or decorated.
+    if maybe_func is not None:
+        return decorator(maybe_func)
+    else:
+        return decorator

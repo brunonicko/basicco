@@ -23,7 +23,6 @@ def mapping_repr(
     .. code:: python
 
         >>> from basicco.utils import custom_repr
-
         >>> dct = {"a": 1, "b": 2}
         >>> custom_repr.mapping_repr(
         ...     dct, prefix="<", suffix=">", template="{key}={value}", sorting=True
@@ -71,7 +70,6 @@ def iterable_repr(
     .. code:: python
 
         >>> from basicco.utils import custom_repr
-
         >>> tup = ("a", "b", "c", 1, 2, 3)
         >>> custom_repr.iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
         '<a, b, c, 1, 2, 3>'
