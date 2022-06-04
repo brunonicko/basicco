@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["2.7", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v2
@@ -28,6 +28,4 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -vv -rs tests
-    - name: Docstring tests
-      run: |
-        python -m pytest --doctest-modules -vv -rs basicco
+        python -m pytest --doctest-modules -vv -rs README.rst

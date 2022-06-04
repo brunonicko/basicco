@@ -1,17 +1,13 @@
-__all__ = [
-    "ExplicitHashMeta",
-]
+"""Metaclass that forces `__hash__` to be declared when `__eq__` is declared."""
+
+__all__ = ["ExplicitHashMeta"]
 
 
 class ExplicitHashMeta(type):
+    """Metaclass that forces `__hash__` to be declared when `__eq__` is declared."""
+
     @staticmethod
     def __new__(mcs, name, bases, dct, **kwargs):
-
-        # Force '__hash__' to be declared when '__eq__' is declared (be explicit).
         if "__eq__" in dct and "__hash__" not in dct:
-            error = ("declared '__eq__' in '{}', but didn't declare '__hash__'").format(
-                name
-            )
-            raise TypeError(error)
-
+            raise TypeError(f"declared '__eq__' in {name!r} but didn't declare '__hash__'")
         return super(ExplicitHashMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)

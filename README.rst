@@ -23,48 +23,174 @@ Basicco
 
 Motivation
 ----------
-While developing Python software for Visual Effects pipelines, I found myself having to
-write the same boiler-plate code over and over again, as well as struggling with
-compatibility issues and feature gaps between Python 2.7 and Python 3.7+.
-
-So I decided to implement solutions for those issues at the `Base`_, literally.
+While developing Python software for Visual Effects pipelines, I found myself writing the same general lower-level
+utilities over and over again. So I decided to package those up into `Basicco`.
 
 Overview
 --------
-`Basicco` provides a `Base`_ class and multiple lower-level `Utilities`_ that enhance
-code compatibility, readability, and validation.
+`Basicco` provides a collection of lower-level `Utilities`_ that enhance code readability and validation.
 
-Base
-----
-The `Base`_ class enables functionalities provided by `Basicco`.
-It is designed to be a simple drop-in replacement for `object` when defining your base
-classes:
+Utilities
+---------
+
+abstract_class
+^^^^^^^^^^^^^^
+Decorator that prevents an abstract class from being instantiated.
+
+This works even if the class doesn't have any abstract methods or properties.
+Concrete subclasses (non-decorated) are able to be instantiated without any issues.
 
 .. code:: python
 
-    >>> from basicco import Base
-    >>> class Asset(Base):  # inherit from Base instead of object
+    >>> from basicco.abstract_class import abstract_class
+    >>> @abstract_class
+    ... class Abstract:
     ...     pass
     ...
+    >>> class Concrete(Abstract):
+    ...     pass
+    ...
+    >>> concrete = Concrete()
+    >>> abstract = Abstract()
+    Traceback (most recent call last):
+    NotImplementedError: can't instantiate abstract class 'Abstract'
 
-finalized
-^^^^^^^^^
-Runtime-checked version of the
-`typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
-
-Can be used directly on methods but also on properties, classmethods, and staticmethods
-(even in Python 2.7).
-
-Features are also available through the metaclass `basicco.final.FinalizedMeta`.
-
-This decorator is still recognized by Mypy static type checking, and it also prevents
-subclassing and/or member overriding during runtime:
+caller_module
+^^^^^^^^^^^^^
+Retrieve the caller's module name.
 
 .. code:: python
 
-    >>> from basicco import Base, final
+    >>> from basicco.caller_module import caller_module
+    >>> def do_something():
+    ...     return f"I was called by {caller_module()}"
+    ...
+    >>> do_something()
+    'I was called by __main__'
+
+custom_repr
+^^^^^^^^^^^
+Custom representation functions.
+
+.. code:: python
+
+    >>> from basicco.custom_repr import mapping_repr
+    >>> dct = {"a": 1, "b": 2}
+    >>> mapping_repr(dct, prefix="<", suffix=">", template="{key}={value}", sorting=True)
+    "<'a'=1, 'b'=2>"
+
+.. code:: python
+
+    >>> from basicco.custom_repr import iterable_repr
+    >>> tup = ("a", "b", "c", 1, 2, 3)
+    >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
+    '<a, b, c, 1, 2, 3>'
+
+explicit_hash
+^^^^^^^^^^^^^
+Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
+
+.. code:: python
+
+    >>> from basicco.explicit_hash import ExplicitHashMeta
+    >>> class Asset(metaclass=ExplicitHashMeta):
+    ...     def __eq__(self, other):
+    ...         pass
+    ...
+    Traceback (most recent call last):
+    TypeError: declared '__eq__' in 'Asset' but didn't declare '__hash__'
+
+import_path
+^^^^^^^^^^^
+Generate importable dot paths and import from them.
+
+.. code:: python
+
+    >>> import itertools
+    >>> from basicco.import_path import get_path, import_path
+    >>> get_path(itertools.chain)
+    'itertools.chain'
+    >>> import_path("itertools.chain")
+    <class 'itertools.chain'>
+
+.. code:: python
+
+    >>> from basicco.import_path import extract_generic_paths
+    >>> extract_generic_paths("Tuple[int, str]")
+    ('Tuple', ('int', 'str'))
+
+namespace
+^^^^^^^^^
+Wraps a dictionary/mapping and provides attribute-style access to it.
+
+.. code:: python
+
+    >>> from basicco.namespace import Namespace
+    >>> ns = Namespace({"bar": "foo"})
+    >>> ns.bar
+    'foo'
+
+.. code:: python
+
+    >>> from basicco.namespace import MutableNamespace
+    >>> ns = MutableNamespace({"bar": "foo"})
+    >>> ns.foo = "bar"
+    >>> ns.foo
+    'bar'
+    >>> ns.bar
+    'foo'
+
+Also provides a `NamespacedMeta` metaclass for adding a `__namespace__` private property that is unique to each class.
+
+.. code:: python
+
+    >>> from basicco.namespace import NamespacedMeta
+    >>> class Asset(metaclass=NamespacedMeta):
+    ...     pass
+    ...
+    >>> Asset.__namespace__.foo = "bar"
+
+privatize
+^^^^^^^^^
+Functions to privatize/deprivatize member names.
+
+.. code:: python
+
+    >>> from basicco.privatize import privatize, deprivatize
+    >>> privatize("__member", "Foo")
+    '_Foo__member'
+    >>> deprivatize("_Foo__member")
+    ('__member', 'Foo')
+
+recursive_repr
+^^^^^^^^^^^^^^
+Decorator that prevents infinite recursion for `__repr__` methods.
+
+.. code:: python
+
+    >>> from basicco.recursive_repr import recursive_repr
+    >>> class MyClass:
+    ...
+    ...     @recursive_repr
+    ...     def __repr__(self):
+    ...         return f"MyClass<{self!r}>"
+    ...
+    >>> my_obj = MyClass()
+    >>> repr(my_obj)
+    'MyClass<...>'
+
+runtime_final
+^^^^^^^^^^^^^
+Runtime-checked version of the `typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
+
+Can be used on methods, properties, classmethods, staticmethods, and classes that have `FinalizedMeta` as a metaclass.
+It is also recognized by static type checkers and prevents subclassing and/or member overriding during runtime:
+
+.. code:: python
+
+    >>> from basicco.runtime_final import FinalizedMeta, final
     >>> @final
-    ... class Asset(Base):
+    ... class Asset(metaclass=FinalizedMeta):
     ...     pass
     ...
     >>> class SubAsset(Asset):
@@ -75,8 +201,8 @@ subclassing and/or member overriding during runtime:
 
 .. code:: python
 
-    >>> from basicco import Base, final
-    >>> class Asset(Base):
+    >>> from basicco.runtime_final import FinalizedMeta, final
+    >>> class Asset(metaclass=FinalizedMeta):
     ...     @final
     ...     def method(self):
     ...         pass
@@ -89,8 +215,8 @@ subclassing and/or member overriding during runtime:
 
 .. code:: python
 
-    >>> from basicco import Base, final
-    >>> class Asset(Base):
+    >>> from basicco.runtime_final import FinalizedMeta, final
+    >>> class Asset(metaclass=FinalizedMeta):
     ...     @property
     ...     @final
     ...     def prop(self):
@@ -103,506 +229,12 @@ subclassing and/or member overriding during runtime:
     Traceback (most recent call last):
     TypeError: can't override final member 'prop'
 
-abstract
-^^^^^^^^
-Augmented version of the
-`abc.abstractmethod <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_
-decorator.
-
-Features are also available through the metaclass `basicco.abstract.AbstractMeta`.
-
-Can be used directly on methods but also on classes, properties, classmethods, and
-staticmethods (even in Python 2.7).
-
-.. code:: python
-
-    >>> from basicco import Base, abstract
-    >>> class Asset(Base):
-    ...     @abstract
-    ...     def method(self):
-    ...         pass
-    ...
-    ...     @property
-    ...     @abstract
-    ...     def prop(self):
-    ...         return None
-    ...
-    >>> Asset()
-    Traceback (most recent call last):
-    TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
-
-.. code:: python
-
-    >>> from basicco import Base, abstract
-    >>> @abstract
-    ... class Asset(Base):
-    ...     pass
-    ...
-    >>> Asset()
-    Traceback (most recent call last):
-    TypeError: can't instantiate abstract class 'Asset'
-
-qualified
-^^^^^^^^^
-Support for qualified name falling back to AST parsing of the source code and/or class
-definition hierarchy.
-
-Features are also available through the metaclass `basicco.qualified.QualifiedMeta`.
-
-Bases have a `__qualname__` attribute (even in Python 2.7):
-
-.. code:: python
-
-    >>> from basicco import Base
-    >>> class Asset(Base):
-    ...     class Config(Base):
-    ...         pass
-    ...
-    >>> Asset.Config.__qualname__
-    'Asset.Config'
-
-reducible
-^^^^^^^^^
-Support for pickling instances of classes that utilize qualified name and/or slots.
-
-Features are also available through the metaclass `basicco.reducible.ReducibleMeta`.
-
-Slotted and/or nested bases can be pickled (even in Python 2.7):
-
-.. code:: python
-
-    >>> import pickle
-    >>> from basicco import Base
-    >>> class Asset(Base):
-    ...     class Config(Base):
-    ...         __slots__ = ("name", "version")
-    ...         def __init__(self):
-    ...             self.name = "cube"
-    ...             self.version = 2
-    ...
-    >>> pickled = pickle.dumps(Asset.Config())
-    >>> pickle.loads(pickled)
-    <__main__.Asset.Config object at...>
-
-generic
-^^^^^^^
-Better support for the `typing.Generic` class (even in Python 2.7).
-
-Features are also available through the metaclass `basicco.generic.GenericMeta`.
-
-In Python 2.7 (without using `Basicco`) the example below would give you True due to a
-bug in the `typing` module. The `Base`_ fixes that bug.
-
-.. code:: python
-
-    >>> from typing import Generic, TypeVar
-    >>> from basicco import Base
-    >>> T = TypeVar("T")
-    >>> class Asset(Base, Generic[T]):
-    ...     pass
-    ...
-    >>> Asset[int] != Asset[int,]
-    False
-
-explicit_hash
-^^^^^^^^^^^^^
-Force `__hash__` to be declared when `__eq__` is declared (explicit is better than
-implicit).
-
-Features are also available through the metaclass
-`basicco.explicit_hash.ExplicitHashMeta`.
-
-.. code:: python
-
-    >>> from basicco import Base
-    >>> class Asset(Base):
-    ...     def __eq__(self, other):
-    ...         pass
-    ...
-    Traceback (most recent call last):
-    TypeError: declared '__eq__' in 'Asset', but didn't declare '__hash__'
-
-namespaced
-^^^^^^^^^^
-Dedicated/private (not shared with subclasses) `namespace`_ for storing data.
-
-Features are also available through the metaclass `basicco.namespaced.NamespacedMeta`.
-
-.. code:: python
-
-    >>> from basicco import Base
-    >>> class Asset(Base):
-    ...     pass
-    ...
-    >>> class SubAsset(Asset):
-    ...     pass
-    ...
-    >>> Asset._namespace is not SubAsset._namespace
-    True
-    >>> Asset._namespace.typename = "Asset"
-    >>> SubAsset._namespace.typename = "SubAsset"
-    >>> Asset._namespace
-    Namespace({'typename': 'Asset'})
-
-Utilities
----------
-
-caller_module
-^^^^^^^^^^^^^
-Retrieve the caller's module name.
-
-.. code:: python
-
-    >>> from basicco.utils.caller_module import get_caller_module
-    >>> def do_something():
-    ...     caller_module = get_caller_module()
-    ...     return "I was called by {}".format(caller_module)
-    ...
-    >>> do_something()
-    'I was called by __main__'
-
-custom_repr
-^^^^^^^^^^^
-Custom representation functions.
-
-.. code:: python
-
-    >>> from basicco.utils.custom_repr import custom_mapping_repr
-    >>> dct = {"a": 1, "b": 2}
-    >>> custom_mapping_repr(
-    ...     dct, prefix="<", suffix=">", template="{key}={value}", sorting=True
-    ... )
-    "<'a'=1, 'b'=2>"
-
-.. code:: python
-
-    >>> from basicco.utils.custom_repr import custom_iterable_repr
-    >>> tup = ("a", "b", "c", 1, 2, 3)
-    >>> custom_iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
-    '<a, b, c, 1, 2, 3>'
-
-dummy_context
-^^^^^^^^^^^^^
-Dummy (no-op) context manager.
-
-.. code:: python
-
-    >>> from threading import RLock
-    >>> from basicco.utils.dummy_context import dummy_context
-    >>> lock = RLock()
-    >>> def do_something(thread_safe=True):
-    ...     with lock if thread_safe else dummy_context():
-    ...         print("did something")
-    ...
-    >>> do_something(thread_safe=False)
-    did something
-
-wrapped_dict
-^^^^^^^^^^^^
-Read-only mapping that wraps a dictionary. If the wrapped dictionary mutates, that is
-reflected on the the wrapped mapping too.
-
-.. code:: python
-
-    >>> from basicco.utils.wrapped_dict import WrappedDict
-    >>> internal = {"foo": "bar"}
-    >>> dct = WrappedDict(internal)
-    >>> dct["foo"]
-    'bar'
-    >>> internal["foo"] = "biz"
-    >>> dct["foo"]
-    'biz'
-
-frozen_dict
-^^^^^^^^^^^
-Frozen dictionary implementation with methods that produce new copies instead of
-mutating the original one. It doesn't wrap a dictionary, it always makes a copy.
-
-.. code:: python
-
-    >>> from basicco.utils.frozen_dict import FrozenDict
-    >>> dct1 = FrozenDict({"foo": "bar"})
-    >>> dct2 = dct1.update({"a": "b"})
-
-generic_meta
-^^^^^^^^^^^^
-Python 3 doesn't have a `typing.GenericMeta` metaclass, so
-`basicco.utils.generic_meta.GenericMeta` will resolve to `type` on newer versions of
-Python. For Python 2, it resolves to an improved version of the metaclass.
-
-import_path
-^^^^^^^^^^^
-Generate import paths with support for qualified names and import from them.
-
-.. code:: python
-
-    >>> from basicco.utils.import_path import get_import_path, import_from_path
-    >>> class Asset(Base):
-    ...     class Config(Base):
-    ...         pass
-    ...
-    >>> get_import_path(Asset.Config)
-    '__main__|Asset.Config'
-    >>> import_from_path('__main__|Asset.Config')
-    <class '__main__.Asset.Config'>
-
-namespace
-^^^^^^^^^
-Wraps a dictionary/mapping and provides attribute-style access to it.
-
-.. code:: python
-
-    >>> from basicco.utils.namespace import Namespace
-    >>> ns = Namespace({"bar": "foo"})
-    >>> ns.foo = "bar"
-    >>> ns.foo
-    'bar'
-    >>> ns.bar
-    'foo'
-
-private_naming
-^^^^^^^^^^^^^^
-Functions to privatize/deprivatize member names.
-
-.. code:: python
-
-    >>> from basicco.utils.private_naming import privatize_name, deprivatize_name
-    >>> privatize_name("Foo", "__member")
-    '_Foo__member'
-    >>> deprivatize_name("_Foo__member")
-    ('__member', 'Foo')
-
-qualified_name
-^^^^^^^^^^^^^^
-Python 2.7 compatible way to find the qualified name inspired by
-`wbolster/qualname <https://github.com/wbolster/qualname>`_.
-
-.. code:: python
-
-    >>> from basicco.utils.qualified_name import get_qualified_name
-    >>> class Asset(object):
-    ...     class Config(object):
-    ...         pass
-    ...
-    >>> get_qualified_name(Asset.Config)
-    'Asset.Config'
-
-recursive_repr
-^^^^^^^^^^^^^^
-Decorator that prevents recursion error for `__repr__` methods.
-
-.. code:: python
-
-    >>> from basicco.utils.recursive_repr import recursive_repr
-
-    >>> class MyClass(object):
-    ...
-    ...     @recursive_repr
-    ...     def __repr__(self):
-    ...         return "MyClass<" + repr(self) + ">"
-    ...
-    >>> my_obj = MyClass()
-    >>> repr(my_obj)
-    'MyClass<...>'
-
-reducer
-^^^^^^^
-Python 2.7 compatible reducer method that works with qualified name and slots.
-
-.. code:: python
-
-    >>> import pickle
-    >>> from basicco.utils.reducer import reducer
-    >>> class Asset(object):
-    ...     class Config(object):
-    ...         __reduce__ = reducer  # reducer method
-    ...         __slots__ = ("name", "version")
-    ...         def __init__(self):
-    ...             self.name = "cube"
-    ...             self.version = 2
-    ...
-    >>> pickled = pickle.dumps(Asset.Config())
-    >>> pickle.loads(pickled)
-    <__main__.Asset.Config object at...>
-
-sentinel_value
-^^^^^^^^^^^^^^
-Function to create unique, constant sentinel values.
-
-.. code:: python
-
-    >>> from basicco.utils.sentinel_value import sentinel_value
-    >>> NothingType, Nothing = sentinel_value("Nothing")
-
-state
-^^^^^
-Utility functions for managing an object's state.
-
-.. code:: python
-
-    >>> from basicco.utils.state import get_state, update_state
-    >>> class SlottedObject(object):
-    ...     __slots__ = ("a", "b")
-    ...     def __init__(self, a, b):
-    ...         self.a = a
-    ...         self.b = b
-    ...
-    >>> slotted_obj = SlottedObject(1, 2)
-    >>> obj_state = get_state(slotted_obj)
-    >>> obj_state["a"], obj_state["b"]
-    (1, 2)
-    >>> update_state(slotted_obj, {"a": 3, "b": 4})
-    >>> obj_state = get_state(slotted_obj)
-    >>> obj_state["a"], obj_state["b"]
-    (3, 4)
-
-type_checking
-^^^^^^^^^^^^^
-Runtime type checking with support for import paths.
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.utils.type_checking import is_instance
-
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> is_instance(3, int)
-    True
-    >>> is_instance(3, (chain, int))
-    True
-    >>> is_instance(3, ())
-    False
-    >>> is_instance(SubChain(), "itertools|chain")
-    True
-    >>> is_instance(chain(), "itertools|chain", subtypes=False)
-    True
-    >>> is_instance(SubChain(), "itertools|chain", subtypes=False)
-    False
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.utils.type_checking import is_subclass
-
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> is_subclass(int, int)
-    True
-    >>> is_subclass(int, (chain, int))
-    True
-    >>> is_subclass(int, ())
-    False
-    >>> is_subclass(SubChain, "itertools|chain")
-    True
-    >>> is_subclass(chain, "itertools|chain", subtypes=False)
-    True
-    >>> is_subclass(SubChain, "itertools|chain", subtypes=False)
-    False
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.utils.type_checking import assert_is_instance
-
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> assert_is_instance(3, int)
-    >>> assert_is_instance(3, (chain, int))
-    >>> assert_is_instance(3, ())
-    Traceback (most recent call last):
-    ValueError: no types were provided to perform assertion
-    >>> assert_is_instance(3, "itertools|chain")
-    Traceback (most recent call last):
-    TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
-    >>> assert_is_instance(chain(), "itertools|chain", subtypes=False)
-    >>> assert_is_instance(SubChain(), "itertools|chain", subtypes=False)
-    Traceback (most recent call last):
-    TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.utils.type_checking import assert_is_subclass
-
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> assert_is_subclass(int, int)
-    >>> assert_is_subclass(int, (chain, int))
-    >>> assert_is_subclass(int, ())
-    Traceback (most recent call last):
-    ValueError: no types were provided to perform assertion
-    >>> assert_is_subclass(int, "itertools|chain")
-    Traceback (most recent call last):
-    TypeError: got 'int', expected class 'chain' or any of its subclasses
-    >>> assert_is_subclass(chain, "itertools|chain", subtypes=False)
-    >>> assert_is_subclass(SubChain, "itertools|chain", subtypes=False)
-    Traceback (most recent call last):
-    TypeError: got 'SubChain', expected class 'chain' (subclasses are not accepted)
-
-.. code:: python
-
-    >>> from basicco.utils.type_checking import assert_is_subclass
-
-    >>> assert_is_callable(int)
-    >>> assert_is_callable(lambda: None)
-    >>> assert_is_callable(3)
-    Traceback (most recent call last):
-    TypeError: got non-callable 'int' object, expected a callable
-
 unique_iterator
 ^^^^^^^^^^^^^^^
 Iterator that yields unique values.
 
 .. code:: python
 
-    >>> from basicco.utils.unique_iterator import unique_iterator
-
+    >>> from basicco.unique_iterator import unique_iterator
     >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
     [1, 2, 3, 4, 5]
-
-value_factoring
-^^^^^^^^^^^^^^^
-Value factoring with support for lazy import paths.
-
-.. code:: python
-
-    >>> from basicco.utils.value_factoring import fabricate_value
-
-    >>> fabricate_value("str", 3)
-    '3'
-
-weak_reference
-^^^^^^^^^^^^^^
-Weak reference-like object that supports pickling.
-
-.. code:: python
-
-    >>> import pickle
-    >>> from basicco.utils.weak_reference import WeakReference
-    >>> class MyClass(object):
-    ...     pass
-    ...
-    >>> strong = MyClass()
-    >>> weak = WeakReference(strong)
-    >>> pickle.loads(pickle.dumps((strong, weak)))
-    (<__main__.MyClass object at...>, <WeakReference object at...; to 'MyClass' at...>)
-
-There's also a unique hash weak reference-like class that has a hash based on itself
-(and not on the object being referenced):
-
-.. code:: python
-
-    >>> import pickle
-    >>> from basicco.utils.weak_reference import UniqueHashWeakReference
-    >>> class MyClass(object):
-    ...     __hash__ = None
-    ...
-    >>> strong = MyClass()
-    >>> weak = UniqueHashWeakReference(strong)
-    >>> hash(weak) == object.__hash__(weak)
-    True
