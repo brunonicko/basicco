@@ -20,15 +20,6 @@ def mapping_repr(
     """
     Get custom representation of a mapping.
 
-    .. code:: python
-
-        >>> from basicco.utils import custom_repr
-        >>> dct = {"a": 1, "b": 2}
-        >>> custom_repr.mapping_repr(
-        ...     dct, prefix="<", suffix=">", template="{key}={value}", sorting=True
-        ... )
-        "<'a'=1, 'b'=2>"
-
     :param mapping: Mapping.
     :param prefix: Prefix.
     :param template: Item format template ({key} and {value}).
@@ -66,13 +57,6 @@ def iterable_repr(
 ) -> str:
     """
     Get custom representation of an iterable.
-
-    .. code:: python
-
-        >>> from basicco.utils import custom_repr
-        >>> tup = ("a", "b", "c", 1, 2, 3)
-        >>> custom_repr.iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
-        '<a, b, c, 1, 2, 3>'
 
     :param iterable: Iterable.
     :param prefix: Prefix.

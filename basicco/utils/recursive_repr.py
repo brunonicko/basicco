@@ -1,4 +1,4 @@
-"""Recursive-ready `repr` decorator."""
+"""Decorator that prevents infinite recursion for `__repr__` methods."""
 
 import collections
 import functools
@@ -8,17 +8,17 @@ from typing import Callable, Optional, TypeVar, Literal, overload
 __all__ = ["recursive_repr"]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 _reprs: contextvars.ContextVar[collections.Counter[int]] = contextvars.ContextVar("_reprs")
 
 
 @overload
 def recursive_repr(
-    maybe_func: Callable[..., T],
+    maybe_func: Callable[..., _T],
     max_depth: Optional[int] = 1,
     max_repr: str = "...",
-) -> Callable[..., T]:
+) -> Callable[..., _T]:
     pass
 
 
@@ -27,26 +27,13 @@ def recursive_repr(
     maybe_func: Literal[None],
     max_depth: Optional[int] = 1,
     max_repr: str = "...",
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
     pass
 
 
 def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
     """
-    Decorate a representation method/function and prevents infinite recursion.
-
-    .. code:: python
-
-        >>> from basicco.utils.recursive_repr import recursive_repr
-        >>> class MyClass(object):
-        ...
-        ...     @recursive_repr
-        ...     def __repr__(self):
-        ...         return f"MyClass<{self!r}>"
-        ...
-        >>> my_obj = MyClass()
-        >>> repr(my_obj)
-        'MyClass<...>'
+    Decorate a representation method/function to prevent infinite recursion.
 
     :param maybe_func: The '__repr__' and/or '__str__' method/function or None.
     :param max_depth: Maximum depth.
@@ -54,7 +41,7 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
     :return: Decorated method function or decorator.
     """
 
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+    def decorator(func: Callable[..., _T]) -> Callable[..., _T]:
 
         @functools.wraps(func)
         def decorated(*args, **kwargs):

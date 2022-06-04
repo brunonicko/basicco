@@ -2,12 +2,11 @@
 
 import re
 import copy
-from typing import Optional, Generic, Mapping, Iterator, Union, Tuple, TypeVar
+from typing import Any, Optional, Generic, Mapping, Iterator, Union, Tuple, TypeVar
 
-__all__ = ["Namespace", "MutableNamespace"]
+__all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 
 
-_KTS = TypeVar("_KTS", bound=str)
 _VT = TypeVar("_VT")
 
 _WRAPPED_SLOT = "__wrapped__"
@@ -16,12 +15,12 @@ _init = lambda s, w: object.__setattr__(s, _WRAPPED_SLOT, w)
 _read = lambda s: object.__getattribute__(s, _WRAPPED_SLOT)
 
 
-class Namespace(Generic[_KTS, _VT]):
+class Namespace(Generic[_VT]):
     """Read-only namespace that wraps a mapping."""
 
     __slots__ = (_WRAPPED_SLOT,)
 
-    def __init__(self, wrapped: Optional[Union[Mapping[_KTS, _VT], "Namespace[_KTS, _VT]"]] = None) -> None:
+    def __init__(self, wrapped: Optional[Union[Mapping[str, _VT], "Namespace[_VT]"]] = None) -> None:
         """
         :param wrapped: Mapping/Namespace to be wrapped.
         """
@@ -65,7 +64,7 @@ class Namespace(Generic[_KTS, _VT]):
     def __len__(self) -> int:
         return len(_read(self))
 
-    def __iter__(self) -> Iterator[Tuple[_KTS, _VT]]:
+    def __iter__(self) -> Iterator[Tuple[str, _VT]]:
         for key, value in _read(self).items():
             yield key, value
 
@@ -82,7 +81,7 @@ class Namespace(Generic[_KTS, _VT]):
             raise AttributeError(name)
 
 
-class MutableNamespace(Namespace[_KTS, _VT]):
+class MutableNamespace(Namespace[_VT]):
     """Mutable namespace that wraps a mapping."""
 
     __slots__ = ()
@@ -111,3 +110,17 @@ class MutableNamespace(Namespace[_KTS, _VT]):
                 del _read(self)[name]
             except KeyError:
                 raise AttributeError(name) from None
+
+
+class NamespacedMeta(type):
+    """Metaclass that adds a private mutable `__namespace__` as a class property."""
+
+    @property
+    def __namespace__(cls) -> MutableNamespace[Any]:
+        """Class namespace."""
+        try:
+            return cls.__dict__["__namespace"]
+        except KeyError:
+            namespace: MutableNamespace[Any] = MutableNamespace()
+            type.__setattr__(cls, "__namespace", MutableNamespace())
+            return namespace

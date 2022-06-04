@@ -1,53 +1,35 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
-from inspect import isclass, getmro
-from functools import wraps
-from typing import TYPE_CHECKING
+import inspect
+import functools
+from typing import TypeVar, Optional, Type, Set, Callable, final
 
-try:
-    from typing import final
-except ImportError:
-    final = lambda f: f
+__all__ = ["final", "is_final", "FinalizedMeta"]
 
-from six import iteritems
 
-if TYPE_CHECKING:
-    from typing import TypeVar, Optional, Type, Set
-
-    T = TypeVar("T")
-    FT = TypeVar("FT", bound="FinalizedMeta")
-
-__all__ = ["final", "is_final", "is_final_member", "FinalizedMeta"]
-
-_FINAL_CLASS_TAG = "__isfinalclass__"
-_FINAL_METHOD_TAG = "__isfinalmethod__"
-
-_FINAL_METHODS = "__finalmethods__"
+_T = TypeVar("_T")
+_FINAL_CLASS_TAG = "__is_final_class__"
+_FINAL_METHOD_TAG = "__is_final_method__"
+_FINAL_METHODS = "__final_methods__"
 
 
 __final = final
 
 
 def _final(obj):
-    # type: (FT) -> FT
-    if isclass(obj):
+    if inspect.isclass(obj):
+        if not isinstance(obj, FinalizedMeta):
+            raise TypeError(f"class {obj.__name__!r} doesn't have {FinalizedMeta.__name__!r} as its metaclass")
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
         object.__setattr__(obj, _FINAL_METHOD_TAG, True)
     return __final(obj)
 
 
-globals()["final"] = wraps(final)(_final)  # trick IDEs/static type checkers
+globals()["final"] = functools.wraps(final)(_final)  # trick IDEs/static type checkers
 
 
-def is_final(obj):
-    if isclass(obj):
-        return getattr(obj, _FINAL_CLASS_TAG, False)
-    else:
-        return is_final_member(obj)
-
-
-def is_final_member(member):
+def _is_final_member(member):
     _is_final = False
 
     # Descriptor.
@@ -69,8 +51,21 @@ def is_final_member(member):
     return _is_final
 
 
+def is_final(obj: Callable) -> bool:
+    """
+    Tell whether a class/method is final.
+
+    :param obj: Class or method.
+    :return: True if final.
+    """
+    if inspect.isclass(obj):
+        return getattr(obj, _FINAL_CLASS_TAG, False)
+    else:
+        return _is_final_member(obj)
+
+
 class FinalizedMeta(type):
-    """Enables runtime-checking for `final` decorator."""
+    """Metaclass that enables runtime-checking for `final` decorator."""
 
     def __init__(cls, name, bases, dct, **kwargs):
         super(FinalizedMeta, cls).__init__(name, bases, dct, **kwargs)
@@ -81,27 +76,23 @@ class FinalizedMeta(type):
         # Iterate over MRO of the class.
         final_cls = None  # type: Optional[Type]
         final_member_names = set()  # type: Set[str]
-        for base in reversed(getmro(cls)):
+        for base in reversed(inspect.getmro(cls)[:-1]):
 
             # Prevent subclassing final classes.
             if getattr(base, _FINAL_CLASS_TAG, False) is True:
                 if final_cls is not None:
-                    error = "can't subclass final class {}".format(
-                        repr(final_cls.__name__)
-                    )
-                    raise TypeError(error)
+                    raise TypeError(f"can't subclass final class {final_cls.__name__!r}")
                 final_cls = base
 
             # Find final members.
-            for member_name, member in iteritems(base.__dict__):
+            for member_name, member in base.__dict__.items():
 
                 # Can't override final members.
                 if member_name in final_member_names:
-                    error = "can't override final member {}".format(repr(member_name))
-                    raise TypeError(error)
+                    raise TypeError(f"can't override final member {member_name!r}")
 
                 # Keep track of final members.
-                if is_final_member(member):
+                if _is_final_member(member):
                     final_member_names.add(member_name)
 
             # Store final methods.

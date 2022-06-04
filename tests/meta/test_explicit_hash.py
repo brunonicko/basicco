@@ -3,7 +3,7 @@ import pytest
 from six import with_metaclass
 
 from basicco import BaseMeta
-from basicco.explicit_hash import ExplicitHashMeta
+from basicco.utils.explicit_hash import ExplicitHashMeta
 
 
 @pytest.mark.parametrize("meta", (ExplicitHashMeta, BaseMeta))

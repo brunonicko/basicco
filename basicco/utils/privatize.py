@@ -1,3 +1,5 @@
+"""Functions to privatize/deprivatize member names."""
+
 import re
 from typing import Tuple, Optional
 
