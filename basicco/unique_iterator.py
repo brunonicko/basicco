@@ -12,11 +12,8 @@ def unique_iterator(iterator: Iterator[T]) -> Iterator[T]:
     """
     Iterator that yields unique values.
 
-    .. code:: python
-
-        >>> from basicco.utils.unique_iterator import unique_iterator
-        >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
-        [1, 2, 3, 4, 5]
+    :param iterator: Iterator.
+    :return: Unique iterator.
     """
     seen = set()
     for value in iterator:

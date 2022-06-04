@@ -1,6 +1,6 @@
 from pytest import main
 
-from basicco.utils.unique_iterator import unique_iterator
+from basicco.unique_iterator import unique_iterator
 
 
 def test_unique_iterator():

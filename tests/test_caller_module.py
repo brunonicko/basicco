@@ -1,6 +1,6 @@
 import pytest
 
-from basicco.utils import caller_module
+from basicco import caller_module
 
 
 def test_caller_module():

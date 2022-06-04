@@ -20,6 +20,9 @@ def caller_module(frames: int = 0) -> Optional[str]:
         return None
     else:
         if module is None:
-            return None
+            try:
+                return frame[0].f_globals["__name__"]
+            except (IndexError, KeyError):
+                return None
         else:
             return module.__name__

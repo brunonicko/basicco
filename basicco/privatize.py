@@ -29,5 +29,5 @@ def deprivatize(name: str) -> Tuple[str, Optional[str]]:
     matches = re.match(r"^_([^_]+)__[^_]+.*?(?<!__)$", name)
     if matches:
         cls_name = matches.groups()[0]
-        return name[len(cls_name) + 1:], cls_name
+        return name[len(cls_name) + 1 :], cls_name
     return name, None

@@ -30,8 +30,8 @@ def abstract_class(cls: Type[_T]) -> Type[_T]:
     # Replace it with one that checks for abstraction.
     @functools.wraps(original_new or object.__new__)
     def __new__(cls_, *args, **kwargs):
-        if type.__getattribute__(cls_, _ABSTRACT_CLASS) is cls:
-            raise NotImplementedError(f"can't instantiate abstract class {cls.__qualname__!r}")
+        if type.__getattribute__(cls_, _ABSTRACT_CLASS) is cls_:
+            raise NotImplementedError(f"can't instantiate abstract class {cls_.__qualname__!r}")
         elif original_new is not None:
             return original_new(cls_, *args, **kwargs)
         else:

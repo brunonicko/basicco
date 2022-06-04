@@ -50,12 +50,6 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bo
     """
     Import from a dot path.
 
-    .. code:: python
-
-        >>> from basicco.utils.import_path import import_path
-        >>> import_path("itertools.chain")
-        <class 'itertools.chain'>
-
     :param path: Dot path.
     :param builtin_paths: Builtin module paths in fallback order.
     :param generic: Whether to import generic.
@@ -92,7 +86,7 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bo
         raise ImportError(f"could not import module for {path!r}")
 
     # Import the object.
-    obj_path_parts = path_parts[len(module_path_parts):]
+    obj_path_parts = path_parts[len(module_path_parts) :]
     if not obj_path_parts:
         if generic_paths:
             raise ImportError(f"can't import generics {generic_paths!r} for module {path!r}")
@@ -114,12 +108,6 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bo
 def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
     """
     Extract generic paths from dot path.
-
-    .. code:: python
-
-        >>> from basicco.utils.import_path import extract_generic_paths
-        >>> extract_generic_paths("tuple[int, str]")
-        ('tuple', ('int', 'str'))
 
     :param path: Dot path.
     :return: Dot path and generic paths.
@@ -169,20 +157,19 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
     return path, tuple(extracted_generic_paths)
 
 
-def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> str:
+def get_path(
+    obj,
+    builtin_paths: Iterable[str] = _BUILTINS,
+    generic: bool = True,
+    check: bool = True,
+) -> str:
     """
     Get dot path to an object or module.
-
-    .. code:: python
-
-        >>> import abc
-        >>> from basicco.utils.import_path import get_path
-        >>> get_path(abc.ABC)
-        'abc.ABC'
 
     :param obj: Object or module.
     :param builtin_paths: Builtin module paths in fallback order.
     :param generic: Whether to include path to generic as well.
+    :param check: Whether to check path for consistency.
     :return: Dot path.
     """
 
@@ -206,7 +193,10 @@ def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True
     # Get qualified name and module.
     try:
         if generic_origin is not None:
-            module, qualified_name = generic_origin.__module__, generic_origin.__qualname__
+            module, qualified_name = (
+                generic_origin.__module__,
+                generic_origin.__qualname__,
+            )
         else:
             module, qualified_name = obj.__module__, obj.__qualname__
     except AttributeError:
@@ -220,7 +210,7 @@ def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True
     if "<locals>" in qualified_name:
         raise AttributeError(f"local name {qualified_name!r} is not importable")
 
-    # Assemble path and test for consistency.
+    # Assemble path and check for consistency.
     path = ".".join(p for p in (module, qualified_name) if p)
     if generic and generic_suffix:
         path += generic_suffix
@@ -231,6 +221,7 @@ def get_path(obj, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True
         if imported_obj != obj:
             raise ImportError()
     except (ImportError, AttributeError):
-        raise ImportError(f"import path {path!r} is not consistent for {obj}") from None
+        if check:
+            raise ImportError(f"import path {path!r} is not consistent for {obj}") from None
 
     return path

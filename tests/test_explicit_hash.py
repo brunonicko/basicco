@@ -1,14 +1,10 @@
 import pytest
 
-from six import with_metaclass
-
-from basicco import BaseMeta
-from basicco.utils.explicit_hash import ExplicitHashMeta
+from basicco.explicit_hash import ExplicitHashMeta
 
 
-@pytest.mark.parametrize("meta", (ExplicitHashMeta, BaseMeta))
-def test_force_explicit_hash_declaration(meta):
-    class Class(with_metaclass(meta, object)):
+def test_force_explicit_hash_declaration():
+    class Class(metaclass=ExplicitHashMeta):
         pass
 
     with pytest.raises(TypeError):

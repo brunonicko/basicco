@@ -2,7 +2,7 @@
 
 import re
 import copy
-from typing import Any, Optional, Generic, Mapping, Iterator, Union, Tuple, TypeVar
+from typing import Any, Optional, Mapping, Iterator, Union, Tuple, Iterable, TypeVar
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 
@@ -15,7 +15,7 @@ _init = lambda s, w: object.__setattr__(s, _WRAPPED_SLOT, w)
 _read = lambda s: object.__getattribute__(s, _WRAPPED_SLOT)
 
 
-class Namespace(Generic[_VT]):
+class Namespace(Iterable[Tuple[str, _VT]]):
     """Read-only namespace that wraps a mapping."""
 
     __slots__ = (_WRAPPED_SLOT,)

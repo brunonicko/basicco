@@ -27,6 +27,7 @@ def _final(obj):
 
 
 globals()["final"] = functools.wraps(final)(_final)  # trick IDEs/static type checkers
+globals()["final"].__doc__ = "A decorator to indicate final methods and final classes."
 
 
 def _is_final_member(member):

@@ -23,23 +23,12 @@ Basicco
 
 Motivation
 ----------
-While developing Python software for Visual Effects pipelines, I found myself writing the same boiler-plate utilities
-over and over again. So I decided to implement solutions for those issues at the `Base`_, quite literally.
+While developing Python software for Visual Effects pipelines, I found myself writing the same general lower-level
+utilities over and over again. So I decided to package those up into `Basicco`.
 
 Overview
 --------
-`Basicco` provides a `Base`_ classes and multiple lower-level `Utilities`_ that enhance code readability and validation.
-
-Base
-----
-The `Base`_ class is designed to be a simple drop-in replacement for `object` when defining your base classes:
-
-.. code:: python
-
-    >>> from basicco import Base
-    >>> class Asset(Base):  # inherit from Base instead of object
-    ...     pass
-    ...
+`Basicco` provides a collection of lower-level `Utilities`_ that enhance code readability and validation.
 
 Utilities
 ---------
@@ -48,9 +37,12 @@ abstract_class
 ^^^^^^^^^^^^^^
 Decorator that prevents an abstract class from being instantiated.
 
+This works even if the class doesn't have any abstract methods or properties.
+Concrete subclasses (non-decorated) are able to be instantiated without any issues.
+
 .. code:: python
 
-    >>> from basicco.utils.abstract_class import abstract_class
+    >>> from basicco.abstract_class import abstract_class
     >>> @abstract_class
     ... class Abstract:
     ...     pass
@@ -69,7 +61,7 @@ Retrieve the caller's module name.
 
 .. code:: python
 
-    >>> from basicco.utils.caller_module import caller_module
+    >>> from basicco.caller_module import caller_module
     >>> def do_something():
     ...     return f"I was called by {caller_module()}"
     ...
@@ -82,14 +74,14 @@ Custom representation functions.
 
 .. code:: python
 
-    >>> from basicco.utils.custom_repr import mapping_repr
+    >>> from basicco.custom_repr import mapping_repr
     >>> dct = {"a": 1, "b": 2}
     >>> mapping_repr(dct, prefix="<", suffix=">", template="{key}={value}", sorting=True)
     "<'a'=1, 'b'=2>"
 
 .. code:: python
 
-    >>> from basicco.utils.custom_repr import iterable_repr
+    >>> from basicco.custom_repr import iterable_repr
     >>> tup = ("a", "b", "c", 1, 2, 3)
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
@@ -100,13 +92,13 @@ Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
 
 .. code:: python
 
-    >>> from basicco.utils.explicit_hash import ExplicitHashMeta
+    >>> from basicco.explicit_hash import ExplicitHashMeta
     >>> class Asset(metaclass=ExplicitHashMeta):
     ...     def __eq__(self, other):
     ...         pass
     ...
     Traceback (most recent call last):
-    TypeError: declared '__eq__' in 'Asset', but didn't declare '__hash__'
+    TypeError: declared '__eq__' in 'Asset' but didn't declare '__hash__'
 
 import_path
 ^^^^^^^^^^^
@@ -114,15 +106,29 @@ Generate importable dot paths and import from them.
 
 .. code:: python
 
-    >>> from basicco.utils.import_path import get_path, import_path
-    >>> class Asset(Base):
-    ...     class Config(Base):
-    ...         pass
-    ...
-    >>> get_path(Asset.Config)
-    '__main__.Asset.Config'
-    >>> import_path("__main__.Asset.Config")
-    <class '__main__.Asset.Config'>
+    >>> import itertools
+    >>> from basicco.import_path import get_path, import_path
+    >>> get_path(itertools.chain)
+    'itertools.chain'
+    >>> import_path("itertools.chain")
+    <class 'itertools.chain'>
+
+Generic paths and typing unions are also supported.
+
+.. code:: python
+
+    >>> from typing import Union
+    >>> from basicco.import_path import get_path, import_path
+    >>> get_path(Union[str, int])
+    'Union[str, int]'
+    >>> import_path("Union[str, int]")
+    typing.Union[str, int]
+
+.. code:: python
+
+    >>> from basicco.import_path import extract_generic_paths
+    >>> extract_generic_paths("Tuple[int, str]")
+    ('Tuple', ('int', 'str'))
 
 namespace
 ^^^^^^^^^
@@ -130,8 +136,15 @@ Wraps a dictionary/mapping and provides attribute-style access to it.
 
 .. code:: python
 
-    >>> from basicco.utils.namespace import Namespace
+    >>> from basicco.namespace import Namespace
     >>> ns = Namespace({"bar": "foo"})
+    >>> ns.bar
+    'foo'
+
+.. code:: python
+
+    >>> from basicco.namespace import MutableNamespace
+    >>> ns = MutableNamespace({"bar": "foo"})
     >>> ns.foo = "bar"
     >>> ns.foo
     'bar'
@@ -142,7 +155,7 @@ Also provides a `NamespacedMeta` metaclass for adding a `__namespace__` private 
 
 .. code:: python
 
-    >>> from basicco.utils.namespace import NamespacedMeta
+    >>> from basicco.namespace import NamespacedMeta
     >>> class Asset(metaclass=NamespacedMeta):
     ...     pass
     ...
@@ -154,10 +167,10 @@ Functions to privatize/deprivatize member names.
 
 .. code:: python
 
-    >>> from basicco.utils.privatize import privatize_name, deprivatize_name
-    >>> privatize_name("Foo", "__member")
+    >>> from basicco.privatize import privatize, deprivatize
+    >>> privatize("__member", "Foo")
     '_Foo__member'
-    >>> deprivatize_name("_Foo__member")
+    >>> deprivatize("_Foo__member")
     ('__member', 'Foo')
 
 recursive_repr
@@ -166,8 +179,8 @@ Decorator that prevents infinite recursion for `__repr__` methods.
 
 .. code:: python
 
-    >>> from basicco.utils.recursive_repr import recursive_repr
-    >>> class MyClass(object):
+    >>> from basicco.recursive_repr import recursive_repr
+    >>> class MyClass:
     ...
     ...     @recursive_repr
     ...     def __repr__(self):
@@ -186,7 +199,7 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> from basicco.utils.runtime_final import FinalizedMeta, final
+    >>> from basicco.runtime_final import FinalizedMeta, final
     >>> @final
     ... class Asset(metaclass=FinalizedMeta):
     ...     pass
@@ -199,7 +212,7 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> from basicco.utils.runtime_final import FinalizedMeta, final
+    >>> from basicco.runtime_final import FinalizedMeta, final
     >>> class Asset(metaclass=FinalizedMeta):
     ...     @final
     ...     def method(self):
@@ -213,7 +226,7 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> from basicco.utils.runtime_final import FinalizedMeta, final
+    >>> from basicco.runtime_final import FinalizedMeta, final
     >>> class Asset(metaclass=FinalizedMeta):
     ...     @property
     ...     @final
@@ -233,6 +246,6 @@ Iterator that yields unique values.
 
 .. code:: python
 
-    >>> from basicco.utils.unique_iterator import unique_iterator
+    >>> from basicco.unique_iterator import unique_iterator
     >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
     [1, 2, 3, 4, 5]

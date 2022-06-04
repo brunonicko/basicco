@@ -42,7 +42,6 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
     """
 
     def decorator(func: Callable[..., _T]) -> Callable[..., _T]:
-
         @functools.wraps(func)
         def decorated(*args, **kwargs):
 
