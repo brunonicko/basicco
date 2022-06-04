@@ -113,17 +113,6 @@ Generate importable dot paths and import from them.
     >>> import_path("itertools.chain")
     <class 'itertools.chain'>
 
-Generic paths and typing unions are also supported.
-
-.. code:: python
-
-    >>> from typing import Union
-    >>> from basicco.import_path import get_path, import_path
-    >>> get_path(Union[str, int])
-    'Union[str, int]'
-    >>> import_path("Union[str, int]")
-    typing.Union[str, int]
-
 .. code:: python
 
     >>> from basicco.import_path import extract_generic_paths

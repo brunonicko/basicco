@@ -4,13 +4,14 @@ import collections
 import functools
 import contextvars
 from typing import Callable, Optional, TypeVar, Literal, overload
+from typing import Counter as TCounter
 
 __all__ = ["recursive_repr"]
 
 
 _T = TypeVar("_T")
 
-_reprs: contextvars.ContextVar[collections.Counter[int]] = contextvars.ContextVar("_reprs")
+_reprs: contextvars.ContextVar[TCounter[int]] = contextvars.ContextVar("_reprs")
 
 
 @overload

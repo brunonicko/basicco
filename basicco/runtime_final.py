@@ -2,7 +2,12 @@
 
 import inspect
 import functools
-from typing import TypeVar, Optional, Type, Set, Callable, final
+from typing import TypeVar, Optional, Type, Set, Callable
+
+try:
+    from typing import final
+except ImportError:
+    final = lambda f: f  # type: ignore
 
 __all__ = ["final", "is_final", "FinalizedMeta"]
 
