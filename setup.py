@@ -6,15 +6,16 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="3.0.0",
+    version="3.1.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
-    description="Collection of lower-level Utilities that enhance code readability and validation.",
+    description="Collection of low-level utilities that enhance code readability and validation.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/brunonicko/basicco",
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
-    package_data={"basicco": ["py.typed"]},
+    package_data={"basicco": ["py.typed", "*.pyi"]},
+    install_requires=["typing_extensions"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",

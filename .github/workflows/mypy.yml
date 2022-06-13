@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install invoke mypy
+        pip install invoke mypy tippo
     - name: Mypy check
       run: |
         inv mypy

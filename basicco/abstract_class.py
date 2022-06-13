@@ -1,7 +1,8 @@
 """Decorator that prevents an abstract class from being instantiated."""
 
 import functools
-from typing import Type, TypeVar
+
+from tippo import Type, TypeVar
 
 __all__ = ["abstract_class"]
 
