@@ -1,6 +1,6 @@
 """Custom representation functions."""
 
-from typing import Any, Callable, Hashable, Iterable, Mapping, Optional, Tuple
+from tippo import Any, Callable, Hashable, Iterable, Mapping, Optional, Tuple
 
 __all__ = ["mapping_repr", "iterable_repr"]
 

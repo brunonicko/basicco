@@ -1,6 +1,6 @@
 """Import from/generate lazy dot paths."""
 
-from typing import Any, Iterable, Tuple, List, Optional, Type
+from tippo import Any, Iterable, Tuple, List, Optional, Type
 
 __all__ = ["import_path", "extract_generic_paths", "get_path"]
 

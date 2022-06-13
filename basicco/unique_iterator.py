@@ -1,6 +1,6 @@
 """Iterator that yields unique values."""
 
-from typing import Iterator, TypeVar
+from tippo import Iterator, TypeVar
 
 __all__ = ["unique_iterator"]
 

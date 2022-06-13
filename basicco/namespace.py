@@ -2,7 +2,8 @@
 
 import re
 import copy
-from typing import Any, Optional, Mapping, Iterator, Union, Tuple, Iterable, TypeVar
+
+from tippo import Any, Optional, Mapping, Iterator, Union, Tuple, Iterable, TypeVar
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 

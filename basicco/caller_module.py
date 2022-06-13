@@ -1,7 +1,8 @@
 """Retrieve the caller's module name."""
 
 import inspect
-from typing import Optional
+
+from tippo import Optional
 
 __all__ = ["caller_module"]
 

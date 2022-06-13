@@ -1,11 +1,4 @@
-import sys
-
 from invoke import task  # type: ignore
-
-
-if sys.version_info[0:2] < (3, 10):
-    sys.stderr.write(f"Python 3.10+ is required for development tasks, you are running {sys.version}\n")
-    sys.exit(1)
 
 
 @task
@@ -34,11 +27,11 @@ def lint(c):
     c.run("flake8 basicco --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run("flake8 tests --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run(
-        "flake8 basicco --count --ignore=F403,F401,E203,E731,C901,W503 "
+        "flake8 basicco --count --ignore=F403,F401,E203,E731,C901,W503,F811 "
         "--max-line-length=120 --statistics"
     )
     c.run(
-        "flake8 tests --count --ignore=F403,F401,E203,E731,C901,W503 "
+        "flake8 tests --count --ignore=F403,F401,E203,E731,C901,W503,F811 "
         "--max-line-length=120 --statistics"
     )
 
@@ -55,3 +48,4 @@ def checks(c):
     lint(c)
     mypy(c)
     tox(c)
+    docs(c)

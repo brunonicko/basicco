@@ -1,22 +1,16 @@
 """Decorator that prevents infinite recursion for `__repr__` methods."""
 
-import collections
 import functools
 import contextvars
-from typing import Callable, Optional, Union, TypeVar, overload
-from typing import Counter as TCounter
 
-try:
-    from typing import Literal
-except ImportError:
-    Literal = Union  # type: ignore
+from tippo import Counter, Callable, Optional, TypeVar, Literal, overload
 
 __all__ = ["recursive_repr"]
 
 
 _T = TypeVar("_T")
 
-_reprs: contextvars.ContextVar[TCounter[int]] = contextvars.ContextVar("_reprs")
+_reprs: contextvars.ContextVar[Counter[int]] = contextvars.ContextVar("_reprs")
 
 
 @overload
@@ -63,7 +57,7 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
             try:
                 reprs = _reprs.get()
             except LookupError:
-                reprs = collections.Counter()
+                reprs = Counter()
                 reprs_token = _reprs.set(reprs)
             reprs[self_id] += 1
 

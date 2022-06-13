@@ -1,7 +1,8 @@
 """Functions to privatize/deprivatize member names."""
 
 import re
-from typing import Tuple, Optional
+
+from tippo import Tuple, Optional
 
 __all__ = ["privatize", "deprivatize"]
 
