@@ -9,7 +9,7 @@ setuptools.setup(
     version="3.1.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
-    description="Collection of low-level utilities that enhance code readability and validation.",
+    description="Collection of lower-level utilities that enhance code readability and validation.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/brunonicko/basicco",
