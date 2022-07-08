@@ -71,7 +71,10 @@ except ImportError:
 
         def reset(self, token):
             # type: (Token) -> None
-            setattr(_local, self.__uuid, token.old_value)
+            if token.old_value is MISSING:
+                delattr(_local, self.__uuid)
+            else:
+                setattr(_local, self.__uuid, token.old_value)
 
         @property
         def name(self):
