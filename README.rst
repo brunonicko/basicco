@@ -122,7 +122,7 @@ Functions to mangle/unmangle/extract private names.
 
 .. code:: python
 
-    >>> from basicco.mangle import mangle, unmangle, extract
+    >>> from basicco.mangling import mangle, unmangle, extract
     >>> mangle("__member", "Foo")
     '_Foo__member'
     >>> unmangle("_Foo__member", "Foo")
