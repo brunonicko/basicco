@@ -8,7 +8,7 @@ caller_module (api)
    :members:
 
 context_vars (api)
------------------
+------------------
 
 .. automodule:: basicco.context_vars
    :members:
