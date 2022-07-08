@@ -1,5 +1,7 @@
 """Iterator that yields unique values."""
 
+from __future__ import absolute_import, division, print_function
+
 from tippo import Iterator, TypeVar
 
 __all__ = ["unique_iterator"]
@@ -8,7 +10,8 @@ __all__ = ["unique_iterator"]
 T = TypeVar("T")
 
 
-def unique_iterator(iterator: Iterator[T]) -> Iterator[T]:
+def unique_iterator(iterator):
+    # type: (Iterator[T]) -> Iterator[T]
     """
     Iterator that yields unique values.
 

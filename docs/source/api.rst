@@ -1,16 +1,16 @@
 API Documentation
 =================
 
-abstract_class (api)
---------------------
-
-.. automodule:: basicco.abstract_class
-   :members:
-
 caller_module (api)
 -------------------
 
 .. automodule:: basicco.caller_module
+   :members:
+
+context_vars (api)
+-----------------
+
+.. automodule:: basicco.context_vars
    :members:
 
 custom_repr (api)
@@ -31,16 +31,22 @@ import_path (api)
 .. automodule:: basicco.import_path
    :members:
 
+mangling (api)
+--------------
+
+.. automodule:: basicco.mangling
+   :members:
+
 namespace (api)
 ---------------
 
 .. automodule:: basicco.namespace
    :members:
 
-privatize (api)
----------------
+qualname (api)
+--------------
 
-.. automodule:: basicco.privatize
+.. automodule:: basicco.qualname
    :members:
 
 recursive_repr (api)

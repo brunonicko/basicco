@@ -1,9 +1,14 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
+from __future__ import absolute_import, division, print_function
+
 import inspect
 import functools
 
-from tippo import TypeVar, Optional, Type, Set, Callable, final
+from tippo import TYPE_CHECKING, TypeVar, final
+
+if TYPE_CHECKING:
+    from tippo import Type, Set, Callable, final
 
 __all__ = ["final", "is_final", "FinalizedMeta"]
 
@@ -20,7 +25,8 @@ __final = final
 def _final(obj):
     if inspect.isclass(obj):
         if not isinstance(obj, FinalizedMeta):
-            raise TypeError(f"class {obj.__name__!r} doesn't have {FinalizedMeta.__name__!r} as its metaclass")
+            error = "class {!r} doesn't have {!r} as its metaclass".format(obj.__name__, FinalizedMeta.__name__)
+            raise TypeError(error)
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
         object.__setattr__(obj, _FINAL_METHOD_TAG, True)
@@ -53,7 +59,8 @@ def _is_final_member(member):
     return _is_final
 
 
-def is_final(obj: Callable) -> bool:
+def is_final(obj):
+    # type: (Callable) -> bool
     """
     Tell whether a class/method is final.
 
@@ -76,14 +83,15 @@ class FinalizedMeta(type):
     def __gather_final_members(cls):
 
         # Iterate over MRO of the class.
-        final_cls = None  # type: Optional[Type]
+        final_cls = None  # type: Type | None
         final_member_names = set()  # type: Set[str]
         for base in reversed(inspect.getmro(cls)[:-1]):
 
             # Prevent subclassing final classes.
             if getattr(base, _FINAL_CLASS_TAG, False) is True:
                 if final_cls is not None:
-                    raise TypeError(f"can't subclass final class {final_cls.__name__!r}")
+                    error = "can't subclass final class {!r}".format(final_cls.__name__)
+                    raise TypeError(error)
                 final_cls = base
 
             # Find final members.
@@ -91,7 +99,8 @@ class FinalizedMeta(type):
 
                 # Can't override final members.
                 if member_name in final_member_names:
-                    raise TypeError(f"can't override final member {member_name!r}")
+                    error = "can't override final member {!r}".format(member_name)
+                    raise TypeError(error)
 
                 # Keep track of final members.
                 if _is_final_member(member):

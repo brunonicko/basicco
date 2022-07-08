@@ -1,10 +1,13 @@
+from __future__ import absolute_import, division, print_function
+
 import pytest
+import six
 
 from basicco.explicit_hash import ExplicitHashMeta
 
 
 def test_force_explicit_hash_declaration():
-    class Class(metaclass=ExplicitHashMeta):
+    class Class(six.with_metaclass(ExplicitHashMeta, object)):
         pass
 
     with pytest.raises(TypeError):

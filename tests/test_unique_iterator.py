@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from pytest import main
 
 from basicco.unique_iterator import unique_iterator

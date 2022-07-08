@@ -1,14 +1,23 @@
 """Import from/generate lazy dot paths."""
 
-from tippo import Any, Iterable, Tuple, List, Optional, Type
+from __future__ import absolute_import, division, print_function
+
+import types
+import six
+from tippo import TYPE_CHECKING
+
+from .qualname import qualname
+
+if TYPE_CHECKING:
+    from tippo import Any, Iterable, Type
 
 __all__ = ["import_path", "extract_generic_paths", "get_path"]
 
 
-_BUILTINS = ("builtins", "typing")
+_BUILTINS = ("builtins", "tippo")
 _NOTHING = object()
 _SPECIAL_VALUES = {
-    "...": ...,
+    "...": Ellipsis,
     "None": None,
     "NoneType": type(None),
     "True": True,
@@ -19,7 +28,8 @@ _SPECIAL_VALUES = {
 _SPECIAL_PATHS = {v: k for k, v in _SPECIAL_VALUES.items()}
 
 
-def _import_builtin(path: str, builtin_paths: Iterable[str]):
+def _import_builtin(path, builtin_paths):
+    # type: (str, Iterable[str]) -> Any
     for builtin_path in builtin_paths:
         try:
             return import_path(".".join((builtin_path, path)), builtin_paths=())
@@ -28,7 +38,8 @@ def _import_builtin(path: str, builtin_paths: Iterable[str]):
     return _NOTHING
 
 
-def _get_generic(obj: Any, generic_paths: Tuple[str, ...], builtin_paths: Iterable[str]) -> Any:
+def _get_generic(obj, generic_paths, builtin_paths):
+    # type: (Any, tuple[str, ...], Iterable[str]) -> Any
     generics = tuple(import_path(gp, builtin_paths=builtin_paths) for gp in generic_paths)
     if generics:
         if len(generics) == 1:
@@ -39,14 +50,16 @@ def _get_generic(obj: Any, generic_paths: Tuple[str, ...], builtin_paths: Iterab
         return obj
 
 
-def _get_alias_origin(obj: Any) -> Tuple[Optional[Type], Optional[Tuple[Any, ...]]]:
+def _get_alias_origin(obj):
+    # type: (Any) -> tuple[Type | None, tuple | None]
     if getattr(obj, "__origin__", None) is not None and getattr(obj, "__args__", None) is not None:
         return obj.__origin__, obj.__args__
     else:
         return None, None
 
 
-def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bool = True) -> Any:
+def import_path(path, builtin_paths=_BUILTINS, generic=True):
+    # type: (str, Iterable[str], bool) -> Any
     """
     Import from a dot path.
 
@@ -83,13 +96,18 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bo
         builtin_obj = _import_builtin(path, builtin_paths)
         if builtin_obj is not _NOTHING:
             return _get_generic(builtin_obj, generic_paths, builtin_paths)
-        raise ImportError(f"could not import module for {path!r}")
+        error = "could not import module for {!r}".format(path)
+        raise ImportError(error)
+
+    # Reset the module path parts (workaround for things like six.moves).
+    module_path_parts = module.__name__.split(".")  # type: ignore
 
     # Import the object.
     obj_path_parts = path_parts[len(module_path_parts) :]
     if not obj_path_parts:
         if generic_paths:
-            raise ImportError(f"can't import generics {generic_paths!r} for module {path!r}")
+            error = "can't import generics {!r} for module {!r}".format(generic_paths, path)
+            raise ImportError(error)
         return module
     previous_obj = module
     obj = _NOTHING
@@ -105,7 +123,8 @@ def import_path(path: str, builtin_paths: Iterable[str] = _BUILTINS, generic: bo
     return _get_generic(obj, generic_paths, builtin_paths)
 
 
-def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
+def extract_generic_paths(path):
+    # type: (str) -> tuple[str, tuple[str, ...]]
     """
     Extract generic paths from dot path.
 
@@ -118,13 +137,14 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
 
         # Separate generic paths string from import path.
         if path.count("[") != path.count("]") or not path.endswith("]"):
-            raise ValueError(f"invalid path {path!r}")
+            error = "invalid path {!r}".format(path)
+            raise ValueError(error)
         first_index = path.index("[") + 1
         stop_index = len(path) - list(reversed(path)).index("]") - 1
         generic_paths = path[first_index:stop_index]
 
         # Split on commas but not the ones inside brackets.
-        extracted_generic_paths: List[str] = []
+        extracted_generic_paths = []  # type: list[str]
         current_path = ""
         in_brackets = 0
         for character in generic_paths:
@@ -142,7 +162,8 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
 
         # Assert the correct number of levels.
         if in_brackets != 0:
-            raise ValueError(f"invalid generic paths {generic_paths!r} in {path!r}")
+            error = "invalid generic paths {!r} in {!r}".format(generic_paths, path)
+            raise ValueError(error)
 
         # Append the rest of the string.
         if current_path:
@@ -158,11 +179,12 @@ def extract_generic_paths(path: str) -> Tuple[str, Tuple[str, ...]]:
 
 
 def get_path(
-    obj,
-    builtin_paths: Iterable[str] = _BUILTINS,
-    generic: bool = True,
-    check: bool = True,
-) -> str:
+    obj,  # type: Any
+    builtin_paths=_BUILTINS,  # type: Iterable[str]
+    generic=True,  # type: bool
+    check=True,  # type: bool
+):
+    # type: (...) -> str
     """
     Get dot path to an object or module.
 
@@ -173,12 +195,16 @@ def get_path(
     :return: Dot path.
     """
 
+    # Module.
+    if isinstance(obj, types.ModuleType):
+        return obj.__name__
+
     # Special paths.
     if obj in _SPECIAL_PATHS:
         return _SPECIAL_PATHS[obj]
 
     # Get generic suffix.
-    generic_suffix: str = ""
+    generic_suffix = ""
     generic_origin, generic_args = _get_alias_origin(obj)
     if generic_origin is not None:
         assert generic_args is not None
@@ -193,22 +219,34 @@ def get_path(
     # Get qualified name and module.
     try:
         if generic_origin is not None:
-            module, qualified_name = (
-                generic_origin.__module__,
-                generic_origin.__qualname__,
-            )
+            module = generic_origin.__module__
         else:
-            module, qualified_name = obj.__module__, obj.__qualname__
+            module = obj.__module__
     except AttributeError:
-        raise TypeError(f"non-importable instance of {type(obj).__name__!r}") from None
+        error = "non-importable instance of {!r}".format(type(obj).__name__)
+        exc = TypeError(error)  # type: Exception
+        six.raise_from(exc, None)
+        raise exc
+    else:
+        if generic_origin is not None:
+            short_name = generic_origin.__name__
+            qualified_name = qualname(generic_origin, short_name)
+        else:
+            short_name = obj.__name__
+            qualified_name = qualname(obj, short_name)
+        if qualified_name.count(".") < 1:
+            qualified_name = short_name
     if not module:
-        raise AttributeError(f"can't get module for {obj}")
+        error = "can't get module for {}".format(obj)
+        raise AttributeError(error)
     if module in builtin_paths:
         module = ""
     if not qualified_name:
-        raise AttributeError(f"can't get qualified name for {obj}")
+        error = "can't get qualified name for {}".format(obj)
+        raise AttributeError(error)
     if "<locals>" in qualified_name:
-        raise AttributeError(f"local name {qualified_name!r} is not importable")
+        error = "local name {!r} is not importable".format(qualified_name)
+        raise AttributeError(error)
 
     # Assemble path and check for consistency.
     path = ".".join(p for p in (module, qualified_name) if p)
@@ -222,6 +260,9 @@ def get_path(
             raise ImportError()
     except (ImportError, AttributeError):
         if check:
-            raise ImportError(f"import path {path!r} is not consistent for {obj}") from None
+            error = "import path {!r} is not consistent for {}".format(path, obj)
+            exc = ImportError(error)
+            six.raise_from(exc, None)
+            raise exc
 
     return path

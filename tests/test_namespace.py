@@ -1,5 +1,8 @@
+from __future__ import absolute_import, division, print_function
+
 from pickle import loads, dumps
 
+import six
 from pytest import main
 
 from basicco.namespace import _WRAPPED_SLOT, Namespace, MutableNamespace, NamespacedMeta
@@ -71,7 +74,7 @@ def test_wrap_namespace():
 
 
 def test_private_namespace():
-    class Class(metaclass=NamespacedMeta):
+    class Class(six.with_metaclass(NamespacedMeta)):
         pass
 
     assert isinstance(Class.__namespace__, MutableNamespace)
