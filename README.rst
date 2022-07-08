@@ -44,7 +44,7 @@ Retrieve the caller's module name.
 
     >>> from basicco.caller_module import caller_module
     >>> def do_something():
-    ...     return f"I was called by {caller_module()}"
+    ...     return "I was called by {}".format(caller_module())
     ...
     >>> do_something()
     'I was called by __main__'
@@ -187,7 +187,7 @@ Decorator that prevents infinite recursion for `__repr__` methods.
     ...
     ...     @recursive_repr
     ...     def __repr__(self):
-    ...         return f"MyClass<{self!r}>"
+    ...         return "MyClass<{!r}>".format(self)
     ...
     >>> my_obj = MyClass()
     >>> repr(my_obj)
