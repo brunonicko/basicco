@@ -38,7 +38,7 @@ def test_get_path():
     class LocalClass(object):
         pass
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(ImportError):
         get_path(LocalClass)
 
 

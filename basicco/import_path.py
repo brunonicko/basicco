@@ -246,7 +246,7 @@ def get_path(
         raise AttributeError(error)
     if "<locals>" in qualified_name:
         error = "local name {!r} is not importable".format(qualified_name)
-        raise AttributeError(error)
+        raise ImportError(error)
 
     # Assemble path and check for consistency.
     path = ".".join(p for p in (module, qualified_name) if p)
