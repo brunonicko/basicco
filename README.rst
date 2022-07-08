@@ -108,7 +108,7 @@ Generate importable dot paths and import from them.
     >>> get_path(itertools.chain)
     'itertools.chain'
     >>> import_path("itertools.chain")
-    <class 'itertools.chain'>
+    <... 'itertools.chain'>
 
 .. code:: python
 
