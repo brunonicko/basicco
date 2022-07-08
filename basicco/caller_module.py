@@ -1,13 +1,14 @@
 """Retrieve the caller's module name."""
 
-import inspect
+from __future__ import absolute_import, division, print_function
 
-from tippo import Optional
+import inspect
 
 __all__ = ["caller_module"]
 
 
-def caller_module(frames: int = 0) -> Optional[str]:
+def caller_module(frames=0):
+    # type: (int) -> str | None
     """
     Get caller module name if possible.
 

@@ -1,11 +1,14 @@
+from __future__ import absolute_import, division, print_function
+
 import pytest
+import six
 
 from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta
 
 
 def test_final_class():
     @final
-    class Class(metaclass=FinalizedMeta):
+    class Class(six.with_metaclass(FinalizedMeta, object)):
         pass
 
     # Class should be tagged as final.
@@ -24,7 +27,7 @@ def test_final_method():
     def dummy_decorator(func):
         return func
 
-    class PropertyLikeDescriptor:
+    class PropertyLikeDescriptor(object):
         def __init__(self, fget):
             self.fget = fget
 
@@ -42,7 +45,7 @@ def test_final_method():
     # Different kinds of decorated members should be recognized as final.
     for decorator in decorators:
 
-        class Class(metaclass=FinalizedMeta):
+        class Class(six.with_metaclass(FinalizedMeta, object)):
             @decorator
             @final
             def method(self):
@@ -67,14 +70,14 @@ def test_final_method():
 
 
 def test_descriptor():
-    class Descriptor:
+    class Descriptor(object):
         def __init__(self, func):
             self.func = func
 
         def __get__(self, instance, owner):
             return 3
 
-    class Class(metaclass=FinalizedMeta):
+    class Class(six.with_metaclass(FinalizedMeta, object)):
         @final
         @Descriptor
         def method(self):

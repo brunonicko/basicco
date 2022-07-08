@@ -1,9 +1,15 @@
 """Namespace/Bunch-like object."""
 
+from __future__ import absolute_import, division, print_function
+
 import re
 import copy
 
-from tippo import Any, Optional, Mapping, Iterator, Union, Tuple, Iterable, TypeVar
+import six
+from tippo import TYPE_CHECKING, Iterable, Tuple, TypeVar
+
+if TYPE_CHECKING:
+    from tippo import Any, Mapping, Iterator
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 
@@ -21,7 +27,8 @@ class Namespace(Iterable[Tuple[str, _VT]]):
 
     __slots__ = (_WRAPPED_SLOT,)
 
-    def __init__(self, wrapped: Optional[Union[Mapping[str, _VT], "Namespace[_VT]"]] = None) -> None:
+    def __init__(self, wrapped=None):
+        # type: (Mapping[str, _VT] | Namespace[_VT] | None) -> None
         """
         :param wrapped: Mapping/Namespace to be wrapped.
         """
@@ -33,7 +40,7 @@ class Namespace(Iterable[Tuple[str, _VT]]):
 
     def __dir__(self):
         keys = {k for k in _read(self) if isinstance(k, str) and not hasattr(type(self), k) and _MEMBER_REGEX.match(k)}
-        return sorted(keys.union(super().__dir__()))
+        return sorted(keys)
 
     def __eq__(self, other):
         return isinstance(other, Namespace) and _read(other) == _read(self)
@@ -42,7 +49,7 @@ class Namespace(Iterable[Tuple[str, _VT]]):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return f"{type(self).__qualname__}({_read(self)})"
+        return "{}({})".format(type(self).__name__, _read(self))
 
     def __reduce__(self):
         return type(self), (_read(self),)
@@ -62,17 +69,21 @@ class Namespace(Iterable[Tuple[str, _VT]]):
             _init(deep_copied, copy.deepcopy(_read(self), memo))
         return deep_copied
 
-    def __len__(self) -> int:
+    def __len__(self):
+        # type: () -> int
         return len(_read(self))
 
-    def __iter__(self) -> Iterator[Tuple[str, _VT]]:
+    def __iter__(self):
+        # type: () -> Iterator[Tuple[str, _VT]]
         for key, value in _read(self).items():
             yield key, value
 
-    def __contains__(self, name: str) -> bool:
+    def __contains__(self, name):
+        # type: (str) -> bool
         return name in _read(self)
 
-    def __getattribute__(self, name: str) -> _VT:
+    def __getattribute__(self, name):
+        # type: (str) -> _VT
         cls = type(self)
         if hasattr(cls, name):
             return object.__getattribute__(self, name)
@@ -87,41 +98,48 @@ class MutableNamespace(Namespace[_VT]):
 
     __slots__ = ()
 
-    def __setattr__(self, name: str, value: _VT) -> None:
+    def __setattr__(self, name, value):
+        # type: (str, _VT) -> None
         cls = type(self)
         if hasattr(cls, name):
             member = getattr(cls, name)
             if hasattr(member, "__set__"):
                 object.__setattr__(self, name, value)
             else:
-                raise AttributeError(f"can't change '{name!r}' attribute/method")
+                error = "can't change '{!r}' attribute/method".format(name)
+                raise AttributeError(error)
         else:
             _read(self)[name] = value
 
-    def __delattr__(self, name: str) -> None:
+    def __delattr__(self, name):
+        # type: (str) -> None
         cls = type(self)
         if hasattr(cls, name):
             member = getattr(cls, name)
             if hasattr(member, "__delete__"):
                 object.__delattr__(self, name)
             else:
-                raise AttributeError(f"can't delete '{name!r}' attribute/method")
+                error = "can't delete '{!r}' attribute/method".format(name)
+                raise AttributeError(error)
         else:
             try:
                 del _read(self)[name]
             except KeyError:
-                raise AttributeError(name) from None
+                exc = AttributeError(name)
+                six.raise_from(exc, None)
+                raise exc
 
 
 class NamespacedMeta(type):
     """Metaclass that adds a private mutable `__namespace__` as a class property."""
 
     @property
-    def __namespace__(cls) -> MutableNamespace[Any]:
+    def __namespace__(cls):
+        # type: () -> MutableNamespace[Any]
         """Class namespace."""
         try:
             return cls.__dict__["__namespace"]
         except KeyError:
-            namespace: MutableNamespace[Any] = MutableNamespace()
+            namespace = MutableNamespace()  # type: MutableNamespace[Any]
             type.__setattr__(cls, "__namespace", MutableNamespace())
             return namespace

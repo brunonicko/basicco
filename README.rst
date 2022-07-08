@@ -23,8 +23,11 @@ Basicco
 
 Motivation
 ----------
-While developing Python software for Visual Effects pipelines, I found myself writing the same general lower-level
-utilities over and over again. So I decided to package those up into `Basicco`.
+While developing Python software for Visual Effects pipelines, I found myself having to write the same boiler-plate
+code over and over again, as well as struggling with compatibility issues and feature gaps between Python 2.7 and
+Python 3.7+.
+
+So I decided to implement solutions for those issues at the base, and `basicco` was born.
 
 Overview
 --------
@@ -32,28 +35,6 @@ Overview
 
 Utilities
 ---------
-
-abstract_class
-^^^^^^^^^^^^^^
-Decorator that prevents an abstract class from being instantiated.
-
-This works even if the class doesn't have any abstract methods or properties.
-Concrete subclasses (non-decorated) are able to be instantiated without any issues.
-
-.. code:: python
-
-    >>> from basicco.abstract_class import abstract_class
-    >>> @abstract_class
-    ... class Abstract:
-    ...     pass
-    ...
-    >>> class Concrete(Abstract):
-    ...     pass
-    ...
-    >>> concrete = Concrete()
-    >>> abstract = Abstract()
-    Traceback (most recent call last):
-    NotImplementedError: can't instantiate abstract class 'Abstract'
 
 caller_module
 ^^^^^^^^^^^^^
@@ -63,10 +44,25 @@ Retrieve the caller's module name.
 
     >>> from basicco.caller_module import caller_module
     >>> def do_something():
-    ...     return f"I was called by {caller_module()}"
+    ...     return "I was called by {}".format(caller_module())
     ...
     >>> do_something()
     'I was called by __main__'
+
+context_vars
+^^^^^^^^^^^^
+Rough implementation of `ContextVar` for Python 2.7 that works with threads.
+
+.. code:: python
+
+    >>> from basicco.context_vars import ContextVar
+    >>> my_var = ContextVar("my_var", default="bar")
+    >>> token = my_var.set("foo")
+    >>> my_var.get()
+    'foo'
+    >>> my_var.reset(token)
+    >>> my_var.get()
+    'bar'
 
 custom_repr
 ^^^^^^^^^^^
@@ -92,8 +88,9 @@ Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
 
 .. code:: python
 
+    >>> import six
     >>> from basicco.explicit_hash import ExplicitHashMeta
-    >>> class Asset(metaclass=ExplicitHashMeta):
+    >>> class Asset(six.with_metaclass(ExplicitHashMeta, object)):
     ...     def __eq__(self, other):
     ...         pass
     ...
@@ -111,13 +108,27 @@ Generate importable dot paths and import from them.
     >>> get_path(itertools.chain)
     'itertools.chain'
     >>> import_path("itertools.chain")
-    <class 'itertools.chain'>
+    <... 'itertools.chain'>
 
 .. code:: python
 
     >>> from basicco.import_path import extract_generic_paths
     >>> extract_generic_paths("Tuple[int, str]")
     ('Tuple', ('int', 'str'))
+
+mangling
+^^^^^^^^
+Functions to mangle/unmangle/extract private names.
+
+.. code:: python
+
+    >>> from basicco.mangling import mangle, unmangle, extract
+    >>> mangle("__member", "Foo")
+    '_Foo__member'
+    >>> unmangle("_Foo__member", "Foo")
+    '__member'
+    >>> extract("_Foo__member")
+    ('__member', 'Foo')
 
 namespace
 ^^^^^^^^^
@@ -144,23 +155,16 @@ Also provides a `NamespacedMeta` metaclass for adding a `__namespace__` private 
 
 .. code:: python
 
+    >>> from six import with_metaclass
     >>> from basicco.namespace import NamespacedMeta
-    >>> class Asset(metaclass=NamespacedMeta):
+    >>> class Asset(with_metaclass(NamespacedMeta, object)):
     ...     pass
     ...
     >>> Asset.__namespace__.foo = "bar"
 
-privatize
-^^^^^^^^^
-Functions to privatize/deprivatize member names.
-
-.. code:: python
-
-    >>> from basicco.privatize import privatize, deprivatize
-    >>> privatize("__member", "Foo")
-    '_Foo__member'
-    >>> deprivatize("_Foo__member")
-    ('__member', 'Foo')
+qualname
+^^^^^^^^
+Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
 
 recursive_repr
 ^^^^^^^^^^^^^^
@@ -169,11 +173,11 @@ Decorator that prevents infinite recursion for `__repr__` methods.
 .. code:: python
 
     >>> from basicco.recursive_repr import recursive_repr
-    >>> class MyClass:
+    >>> class MyClass(object):
     ...
     ...     @recursive_repr
     ...     def __repr__(self):
-    ...         return f"MyClass<{self!r}>"
+    ...         return "MyClass<{!r}>".format(self)
     ...
     >>> my_obj = MyClass()
     >>> repr(my_obj)
@@ -188,9 +192,10 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
+    >>> import six
     >>> from basicco.runtime_final import FinalizedMeta, final
     >>> @final
-    ... class Asset(metaclass=FinalizedMeta):
+    ... class Asset(six.with_metaclass(FinalizedMeta, object)):
     ...     pass
     ...
     >>> class SubAsset(Asset):
@@ -201,8 +206,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
+    >>> import six
     >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(metaclass=FinalizedMeta):
+    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
     ...     @final
     ...     def method(self):
     ...         pass
@@ -215,8 +221,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
+    >>> import six
     >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(metaclass=FinalizedMeta):
+    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
     ...     @property
     ...     @final
     ...     def prop(self):

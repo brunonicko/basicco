@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import pytest
 
 from basicco.recursive_repr import recursive_repr

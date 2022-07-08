@@ -1,22 +1,28 @@
 """Custom representation functions."""
 
-from tippo import Any, Callable, Hashable, Iterable, Mapping, Optional, Tuple
+from __future__ import absolute_import, division, print_function
+
+from tippo import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from tippo import Any, Callable, Hashable, Iterable, Mapping, Optional
 
 __all__ = ["mapping_repr", "iterable_repr"]
 
 
 def mapping_repr(
-    mapping: Mapping,
-    prefix: str = "{",
-    template: str = "{key}: {value}",
-    separator: str = ", ",
-    suffix: str = "}",
-    sorting: bool = False,
-    sort_key: Optional[Callable[[Tuple[Any, Any]], Any]] = None,
-    reverse: bool = False,
-    key_repr: Callable[[Any], str] = repr,
-    value_repr: Callable[[Any], str] = repr,
-) -> str:
+    mapping,  # type: Mapping
+    prefix="{",  # type: str
+    template="{key}{value}",  # type: str
+    separator=", ",  # type: str
+    suffix="}",  # type: str
+    sorting=False,  # type: bool
+    sort_key=None,  # type: Callable[[tuple[Any, Any]], Any] | None
+    reverse=False,  # type: bool
+    key_repr=repr,  # type: Callable[[Any], str]
+    value_repr=repr,  # type: Callable[[Any], str]
+):
+    # type: (...) -> str
     """
     Get custom representation of a mapping.
 
@@ -33,7 +39,7 @@ def mapping_repr(
     :return: Custom representation.
     """
     parts = []
-    iterable: Iterable[Tuple[Hashable, Any]] = mapping.items()
+    iterable = mapping.items()  # type: Iterable[tuple[Hashable, Any]]
     if sort_key is None:
         sort_key = lambda item: item[0]
     if sorting:
@@ -45,16 +51,17 @@ def mapping_repr(
 
 
 def iterable_repr(
-    iterable: Iterable,
-    prefix: str = "[",
-    template: str = "{value}",
-    separator: str = ", ",
-    suffix: str = "]",
-    sorting: bool = False,
-    sort_key: Optional[Callable[[Any], Any]] = None,
-    reverse: bool = False,
-    value_repr: Callable[[Any], str] = repr,
-) -> str:
+    iterable,  # type: Iterable
+    prefix="[",  # type: str
+    template="{value}",  # type: str
+    separator=", ",  # type: str
+    suffix="]",  # type: str
+    sorting=False,  # type: bool
+    sort_key=None,  # type: Optional[Callable[[Any], Any]]
+    reverse=False,  # type: bool
+    value_repr=repr,  # type: Callable[[Any], str]
+):
+    # type: (...) -> str
     """
     Get custom representation of an iterable.
 
