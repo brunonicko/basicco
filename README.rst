@@ -166,16 +166,6 @@ qualname
 ^^^^^^^^
 Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
 
-.. code:: python
-
-    >>> from basicco.qualname import qualname
-    >>> class Asset(object):
-    ...     class Setup(object):
-    ...         pass
-    ...
-    >>> qualname(Asset.Setup)
-    'Asset.Setup'
-
 recursive_repr
 ^^^^^^^^^^^^^^
 Decorator that prevents infinite recursion for `__repr__` methods.
