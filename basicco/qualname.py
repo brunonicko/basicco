@@ -172,8 +172,11 @@ def qualname(obj, fallback=None, force_ast=False):
                     return qualified_name
 
     # No way to reliably retrieve qualified name.
-    error = "qualified name could not be retrieved from source code for {}".format(repr(obj.__name__))
-    raise QualnameError(error)
+    if fallback is None:
+        error = "qualified name could not be retrieved from source code for {}".format(repr(obj.__name__))
+        raise QualnameError(error)
+    else:
+        return fallback
 
 
 class _Visitor(ast.NodeVisitor):
