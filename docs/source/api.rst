@@ -37,6 +37,12 @@ mangling (api)
 .. automodule:: basicco.mangling
    :members:
 
+mapping_proxy (api)
+-------------------
+
+.. automodule:: basicco.mapping_proxy
+   :members:
+
 namespace (api)
 ---------------
 

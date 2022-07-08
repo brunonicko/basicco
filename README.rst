@@ -130,6 +130,18 @@ Functions to mangle/unmangle/extract private names.
     >>> extract("_Foo__member")
     ('__member', 'Foo')
 
+mapping_proxy
+^^^^^^^^^^^^^
+Mapping Proxy type (read-only) for older Python versions.
+
+.. code:: python
+
+    >>> from basicco.mapping_proxy import MappingProxyType
+    >>> internal_dict = {"foo": "bar"}
+    >>> proxy_dict = MappingProxyType(internal_dict)
+    >>> proxy_dict["foo"]
+    'bar'
+
 namespace
 ^^^^^^^^^
 Wraps a dictionary/mapping and provides attribute-style access to it.
