@@ -1,32 +1,25 @@
 import sys
-import functools
 from invoke import task  # type: ignore
 
 PY_VERSION = sys.version_info[:2]
 
 
-def requires_python(*python):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            if PY_VERSION < python:
-                error = "can't run {!r} task in python {}".format(func.__name__, PY_VERSION)
-                raise RuntimeError(error)
-            return func(*args, **kwargs)
-        return wrapped
-    return decorator
+def require_python(*python):
+    if PY_VERSION < python:
+        error = "can't run {!r} task in python {}".format(func.__name__, PY_VERSION)
+        raise RuntimeError(error)
 
 
 @task
-@requires_python(3, 10)
 def black(c):
+    require_python(3, 10)
     c.run("black basicco --line-length=120")
     c.run("black tests --line-length=120")
 
 
 @task
-@requires_python(3, 10)
 def lint(c):
+    require_python(3, 10)
     c.run("flake8 basicco --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run("flake8 tests --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run(
@@ -40,27 +33,27 @@ def lint(c):
 
 
 @task
-@requires_python(3, 10)
 def mypy(c):
+    require_python(3, 10)
     c.run("mypy basicco")
 
 
 @task
-@requires_python(2, 7)
 def tests(c):
+    require_python(2, 7)
     c.run("python -m pytest -vv -rs tests")
     c.run("python -m pytest --doctest-modules -vv -rs README.rst")
 
 
 @task
-@requires_python(3, 10)
 def docs(c):
+    require_python(3, 10)
     c.run("sphinx-build -M html ./docs/source ./docs/build")
 
 
 @task
-@requires_python(3, 10)
 def checks(c):
+    require_python(3, 10)
     black(c)
     lint(c)
     mypy(c)
