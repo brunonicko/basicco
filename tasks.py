@@ -10,7 +10,7 @@ def requires_python(*python):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             if PY_VERSION < python:
-                error = "can't run {!r} task in python {}".format(func.__name__, python_version)
+                error = "can't run {!r} task in python {}".format(func.__name__, PY_VERSION)
                 raise RuntimeError(error)
             return func(*args, **kwargs)
         return wrapped
@@ -18,22 +18,10 @@ def requires_python(*python):
 
 
 @task
-@requires_python(2, 7)
-def tests(c):
-    c.run("python -m pytest -vv -rs tests")
-    c.run("python -m pytest --doctest-modules -vv -rs README.rst")
-
-
-@task
 @requires_python(3, 10)
-def docs(c):
-    c.run("sphinx-build -M html ./docs/source ./docs/build")
-
-
-@task
-@requires_python(3, 10)
-def mypy(c):
-    c.run("mypy basicco")
+def black(c):
+    c.run("black basicco --line-length=120")
+    c.run("black tests --line-length=120")
 
 
 @task
@@ -53,9 +41,21 @@ def lint(c):
 
 @task
 @requires_python(3, 10)
-def black(c):
-    c.run("black basicco --line-length=120")
-    c.run("black tests --line-length=120")
+def mypy(c):
+    c.run("mypy basicco")
+
+
+@task
+@requires_python(2, 7)
+def tests(c):
+    c.run("python -m pytest -vv -rs tests")
+    c.run("python -m pytest --doctest-modules -vv -rs README.rst")
+
+
+@task
+@requires_python(3, 10)
+def docs(c):
+    c.run("sphinx-build -M html ./docs/source ./docs/build")
 
 
 @task
