@@ -11,10 +11,10 @@ from .qualname import qualname
 if TYPE_CHECKING:
     from tippo import Any, Iterable, Type
 
-__all__ = ["import_path", "extract_generic_paths", "get_path"]
+__all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_path"]
 
 
-_BUILTINS = ("builtins", "tippo")
+DEFAULT_BUILTIN_PATHS = ("builtins", "tippo")
 _NOTHING = object()
 _SPECIAL_VALUES = {
     "...": Ellipsis,
@@ -58,7 +58,7 @@ def _get_alias_origin(obj):
         return None, None
 
 
-def import_path(path, builtin_paths=_BUILTINS, generic=True):
+def import_path(path, builtin_paths=DEFAULT_BUILTIN_PATHS, generic=True):
     # type: (str, Iterable[str], bool) -> Any
     """
     Import from a dot path.
@@ -180,7 +180,7 @@ def extract_generic_paths(path):
 
 def get_path(
     obj,  # type: Any
-    builtin_paths=_BUILTINS,  # type: Iterable[str]
+    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
     generic=True,  # type: bool
     check=True,  # type: bool
 ):

@@ -43,6 +43,7 @@ def recursive_repr(
 def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
     """
     Decorate a representation method/function to prevent infinite recursion.
+
     :param maybe_func: The '__repr__' and/or '__str__' method/function or None.
     :param max_depth: Maximum depth.
     :param max_repr: Repr text to return after max depth has been reached.
