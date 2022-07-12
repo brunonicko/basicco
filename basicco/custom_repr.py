@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 from tippo import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from tippo import Any, Callable, Hashable, Iterable, Mapping, Optional
+    from tippo import Any, Callable, Hashable, Iterable, Mapping
 
 __all__ = ["mapping_repr", "iterable_repr"]
 
@@ -57,7 +57,7 @@ def iterable_repr(
     separator=", ",  # type: str
     suffix="]",  # type: str
     sorting=False,  # type: bool
-    sort_key=None,  # type: Optional[Callable[[Any], Any]]
+    sort_key=None,  # type: Callable[[Any], Any] | None
     reverse=False,  # type: bool
     value_repr=repr,  # type: Callable[[Any], str]
 ):
