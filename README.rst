@@ -290,6 +290,7 @@ type_checking
 Runtime type checking with support for import paths.
 
 .. code:: python
+
     >>> from itertools import chain
     >>> from basicco.type_checking import is_instance
     >>> class SubChain(chain):
@@ -308,7 +309,10 @@ Runtime type checking with support for import paths.
     >>> is_instance(SubChain(), "itertools.chain", subtypes=False)
     False
 
+Asserting an instance's type:
+
 .. code:: python
+
     >>> from itertools import chain
     >>> from basicco.type_checking import assert_is_instance
     >>> class SubChain(chain):
