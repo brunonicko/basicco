@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import types
 import six
+from six import moves
 from tippo import TYPE_CHECKING
 
 from .qualname import qualname
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 __all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_path"]
 
 
-DEFAULT_BUILTIN_PATHS = ("builtins", "tippo")
+DEFAULT_BUILTIN_PATHS = (moves.builtins.__name__, "tippo")
 _NOTHING = object()
 _SPECIAL_VALUES = {
     "...": Ellipsis,
