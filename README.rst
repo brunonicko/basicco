@@ -97,6 +97,20 @@ Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
     Traceback (most recent call last):
     TypeError: declared '__eq__' in 'Asset' but didn't declare '__hash__'
 
+fabricate_value
+^^^^^^^^^^^^^^^
+Run a value through a callable factory (or None).
+
+.. code:: python
+
+    >>> from basicco.fabricate_value import fabricate_value
+    >>> fabricate_value(None, 3)
+    3
+    >>> fabricate_value(str, 3)
+    '3'
+    >>> fabricate_value("str", 3)  # use an import path
+    '3'
+
 import_path
 ^^^^^^^^^^^
 Generate importable dot paths and import from them.
@@ -247,6 +261,74 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     ...         pass
     Traceback (most recent call last):
     TypeError: can't override final member 'prop'
+
+scrape_class
+^^^^^^^^^^^^
+Scrape a class and get a dictionary with filtered named members.
+This will respect the MRO (supports multiple inheritance).
+
+.. code:: python
+
+    >>> from basicco.scrape_class import scrape_class
+    >>> class Field(object):
+    ...     pass
+    ...
+    >>> class Asset(object):
+    ...     name = Field()
+    ...     version = Field()
+    ...
+    >>> class SubAsset(Asset):
+    ...     sub_name = Field()
+    ...
+    >>> def field_filter(base, member_name, member):
+    ...     return isinstance(member, Field)
+    >>> sorted(scrape_class(SubAsset, field_filter))
+    ['name', 'sub_name', 'version']
+
+type_checking
+^^^^^^^^^^^^^
+Runtime type checking with support for import paths.
+
+.. code:: python
+    >>> from itertools import chain
+    >>> from basicco.type_checking import is_instance
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> is_instance(3, int)
+    True
+    >>> is_instance(3, (chain, int))
+    True
+    >>> is_instance(3, ())
+    False
+    >>> is_instance(SubChain(), "itertools.chain")
+    True
+    >>> is_instance(chain(), "itertools.chain", subtypes=False)
+    True
+    >>> is_instance(SubChain(), "itertools.chain", subtypes=False)
+    False
+
+.. code:: python
+    >>> from itertools import chain
+    >>> from basicco.type_checking import assert_is_instance
+    >>> class SubChain(chain):
+    ...     pass
+    ...
+    >>> assert_is_instance(3, int)
+    3
+    >>> assert_is_instance(3, (chain, int))
+    3
+    >>> assert_is_instance(3, ())
+    Traceback (most recent call last):
+    ValueError: no types were provided to perform assertion
+    >>> assert_is_instance(3, "itertools.chain")
+    Traceback (most recent call last):
+    TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
+    >>> assert_is_instance(chain(), "itertools.chain", subtypes=False)
+    <itertools.chain object at ...>
+    >>> assert_is_instance(SubChain(), "itertools.chain", subtypes=False)
+    Traceback (most recent call last):
+    TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
 
 unique_iterator
 ^^^^^^^^^^^^^^^

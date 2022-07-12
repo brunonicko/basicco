@@ -6,12 +6,12 @@ import itertools
 
 import six
 from six import moves
-from tippo import TYPE_CHECKING
+from tippo import TYPE_CHECKING, TypeVar
 
 from .import_path import DEFAULT_BUILTIN_PATHS, import_path
 
 if TYPE_CHECKING:
-    from tippo import Any, Iterable, Type
+    from tippo import Any, Callable, Iterable, Type
 
 __all__ = [
     "TEXT_TYPES",
@@ -28,11 +28,12 @@ __all__ = [
 ]
 
 
+_T = TypeVar("_T")
 TEXT_TYPES = tuple({str, six.text_type})  # type: tuple[Type, ...]
 
 
 def format_types(types):
-    # type: (Type | str | None | Iterable[Type | str | None]) -> tuple[Type | str, ...]
+    # type: (Type| str | None | Iterable[Type| str | None]) -> tuple[Type | str, ...]
     """
     Format types into a tuple.
 
@@ -46,18 +47,14 @@ def format_types(types):
     elif isinstance(types, moves.collections_abc.Iterable):  # type: ignore
         return tuple(itertools.chain.from_iterable(format_types(t) for t in types))
     else:
-        raise TypeError(type(types).__name__)
+        error = "{!r} object is not a valid type".format(type(types).__name__)
+        raise TypeError(error)
 
 
 def type_names(types):
     # type: (Type | str | None | Iterable[Type | str | None]) -> tuple[str, ...]
     """
     Get type names without importing from paths. Can be used for user-feedback purposes.
-
-    .. code:: python
-        >>> from basicco.type_checking import type_names
-        >>> type_names((int, "itertools.chain"))
-        ('int', 'chain')
 
     :param types: Types.
     :return: Type names.
@@ -76,13 +73,6 @@ def import_types(
     # type: (...) -> tuple[Type, ...]
     """
     Import types from lazy import paths.
-
-    .. code:: python
-        >>> from basicco.type_checking import import_types, type_names
-        >>> type_names(import_types("itertools|chain"))
-        ('chain',)
-        >>> type_names(import_types(("itertools|chain", "itertools|compress")))
-        ('chain', 'compress')
 
     :param types: Types.
     :param builtin_paths: Builtin module paths in fallback order.
@@ -118,26 +108,7 @@ def is_instance(
 ):
     # type: (...) -> bool
     """
-    Get whether object is an instance of any of the provided types.
-
-    .. code:: python
-        >>> from itertools import chain
-        >>> from basicco.type_checking import is_instance
-        >>> class SubChain(chain):
-        ...     pass
-        ...
-        >>> is_instance(3, int)
-        True
-        >>> is_instance(3, (chain, int))
-        True
-        >>> is_instance(3, ())
-        False
-        >>> is_instance(SubChain(), "itertools|chain")
-        True
-        >>> is_instance(chain(), "itertools|chain", subtypes=False)
-        True
-        >>> is_instance(SubChain(), "itertools|chain", subtypes=False)
-        False
+    Get whether object is an instance of the provided types.
 
     :param obj: Object.
     :param types: Types.
@@ -162,26 +133,7 @@ def is_subclass(
 ):
     # type: (...) -> bool
     """
-    Get whether class is a subclass of any of the provided types.
-
-    .. code:: python
-        >>> from itertools import chain
-        >>> from basicco.type_checking import is_subclass
-        >>> class SubChain(chain):
-        ...     pass
-        ...
-        >>> is_subclass(int, int)
-        True
-        >>> is_subclass(int, (chain, int))
-        True
-        >>> is_subclass(int, ())
-        False
-        >>> is_subclass(SubChain, "itertools|chain")
-        True
-        >>> is_subclass(chain, "itertools|chain", subtypes=False)
-        True
-        >>> is_subclass(SubChain, "itertools|chain", subtypes=False)
-        False
+    Get whether class is a subclass of the provided types.
 
     :param cls: Class.
     :param types: Types.
@@ -217,34 +169,15 @@ def is_iterable(value, include_strings=False):
 
 
 def assert_is_instance(
-    obj,  # type: Any
-    types,  # type: Type | str | None | Iterable[Type | str | None]
+    obj,  # type: _T
+    types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
     generic=True,  # type: bool
 ):
-    # type: (...) -> None
+    # type: (...) -> _T
     """
-    Assert object is an instance of any of the provided types.
-
-    .. code:: python
-        >>> from itertools import chain
-        >>> from basicco.type_checking import assert_is_instance
-        >>> class SubChain(chain):
-        ...     pass
-        ...
-        >>> assert_is_instance(3, int)
-        >>> assert_is_instance(3, (chain, int))
-        >>> assert_is_instance(3, ())
-        Traceback (most recent call last):
-        ValueError: no types were provided to perform assertion
-        >>> assert_is_instance(3, "itertools|chain")
-        Traceback (most recent call last):
-        TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
-        >>> assert_is_instance(chain(), "itertools|chain", subtypes=False)
-        >>> assert_is_instance(SubChain(), "itertools|chain", subtypes=False)
-        Traceback (most recent call last):
-        TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
+    Assert object is an instance of the provided types.
 
     :param obj: Object.
     :param types: Types.
@@ -267,43 +200,25 @@ def assert_is_instance(
             raise ValueError(error)
         error = "got {!r} object, expected instance of {}{}".format(
             type(obj).__name__,
-            ", ".join("{!r}".format(name) for name in type_names(types)),
+            ", ".join(repr(n) for n in type_names(types)),
             " or any of {} subclasses".format("their" if len(types) > 1 else "its")
             if subtypes
             else " (instances of subclasses are not accepted)",
         )
         raise TypeError(error)
+    return obj
 
 
 def assert_is_subclass(
-    cls,  # type: Type
-    types,  # type: Type | str | None | Iterable[Type | str | None]
+    cls,  # type: Type[_T]
+    types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
     generic=True,  # type: bool
 ):
-    # type: (...) -> None
+    # type: (...) -> Type[_T]
     """
-    Assert a class is a subclass of any of the provided types.
-
-    .. code:: python
-        >>> from itertools import chain
-        >>> from basicco.type_checking import assert_is_subclass
-        >>> class SubChain(chain):
-        ...     pass
-        ...
-        >>> assert_is_subclass(int, int)
-        >>> assert_is_subclass(int, (chain, int))
-        >>> assert_is_subclass(int, ())
-        Traceback (most recent call last):
-        ValueError: no types were provided to perform assertion
-        >>> assert_is_subclass(int, "itertools|chain")
-        Traceback (most recent call last):
-        TypeError: got 'int', expected class 'chain' or any of its subclasses
-        >>> assert_is_subclass(chain, "itertools|chain", subtypes=False)
-        >>> assert_is_subclass(SubChain, "itertools|chain", subtypes=False)
-        Traceback (most recent call last):
-        TypeError: got 'SubChain', expected class 'chain' (subclasses are not accepted)
+    Assert a class is a subclass of the provided types.
 
     :param cls: Class.
     :param types: Types.
@@ -318,7 +233,7 @@ def assert_is_subclass(
         error = "got instance of {!r}, expected {}{}{}".format(
             type(cls).__name__,
             "one of " if len(types) > 1 else "class ",
-            ", ".join("{!r}".format(name) for name in type_names(types)),
+            ", ".join(repr(n) for n in type_names(types)),
             " or any of {} subclasses".format("their" if len(types) > 1 else "its")
             if subtypes
             else " (subclasses are not accepted)",
@@ -340,26 +255,20 @@ def assert_is_subclass(
         error = "got {!r}, expected {}{}{}".format(
             cls.__name__,
             "one of " if len(types) > 1 else "class ",
-            ", ".join("{!r}".format(name) for name in type_names(types)),
+            ", ".join(repr(n) for n in type_names(types)),
             " or any of {} subclasses".format("their" if len(types) > 1 else "its")
             if subtypes
             else " (subclasses are not accepted)",
         )
         raise TypeError(error)
 
+    return cls
+
 
 def assert_is_callable(value):
-    # type: (Any) -> None
+    # type: (Callable[..., _T]) -> Callable[..., _T]
     """
     Assert a value is callable.
-
-    .. code:: python
-        >>> from basicco.type_checking import assert_is_subclass
-        >>> assert_is_callable(int)
-        >>> assert_is_callable(lambda: None)
-        >>> assert_is_callable(3)
-        Traceback (most recent call last):
-        TypeError: got non-callable 'int' object, expected a callable
 
     :param value: Value.
     :raises TypeError: Value is not a callable.
@@ -367,10 +276,11 @@ def assert_is_callable(value):
     if not callable(value):
         error = "got non-callable {!r} object, expected a callable".format(type(value).__name__)
         raise TypeError(error)
+    return value
 
 
 def assert_is_iterable(value, include_strings=False):
-    # type: (Any, bool) -> None
+    # type: (Iterable[_T], bool) -> Iterable[_T]
     """
     Assert a value is iterable.
     By default, strings are not considered iterables.
@@ -382,3 +292,4 @@ def assert_is_iterable(value, include_strings=False):
     if not is_iterable(value, include_strings=include_strings):
         error = "got non-iterable {!r} object, expected an iterable".format(type(value).__name__)
         raise TypeError(error)
+    return value
