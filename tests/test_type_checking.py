@@ -3,9 +3,11 @@ from __future__ import absolute_import, division, print_function
 import abc
 import itertools
 
-import pytest
+import tippo
+import pytest  # noqa
 
 from basicco.type_checking import (
+    TypeCheckError,
     assert_is_callable,
     assert_is_instance,
     assert_is_subclass,
@@ -131,7 +133,7 @@ def test_is_iterable():
 def test_assert_is_instance():
     assert_is_instance(None, None)
     assert_is_instance(None, (None,))
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(0, None)
         assert_is_instance(0, (None,))
 
@@ -139,7 +141,7 @@ def test_assert_is_instance():
     assert_is_instance(Cls(), cls_path, subtypes=False)
     assert_is_instance(SubCls(), cls_path)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), cls_path, subtypes=False)
 
     assert_is_instance(SubCls(), subcls_path, subtypes=False)
@@ -148,24 +150,24 @@ def test_assert_is_instance():
     assert_is_instance(Cls(), (cls_path, Cls, int), subtypes=False)
     assert_is_instance(SubCls(), (cls_path, Cls, int))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (cls_path, Cls, int), subtypes=False)
 
     assert_is_instance(SubCls(), (subcls_path, SubCls, int), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(Cls(), (int, float))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(Cls(), (int, float), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float), subtypes=False)
 
     with pytest.raises(ValueError):
@@ -178,7 +180,7 @@ def test_assert_is_instance():
 def test_assert_is_subclass():
     assert_is_subclass(type(None), None)
     assert_is_subclass(type(None), (None,))
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(int, None)
         assert_is_subclass(int, (None,))
 
@@ -186,7 +188,7 @@ def test_assert_is_subclass():
     assert_is_subclass(Cls, cls_path, subtypes=False)
     assert_is_subclass(SubCls, cls_path)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(SubCls, cls_path, subtypes=False)
 
     assert_is_subclass(SubCls, subcls_path, subtypes=False)
@@ -195,25 +197,25 @@ def test_assert_is_subclass():
     assert_is_subclass(Cls, (cls_path, Cls, int), subtypes=False)
     assert_is_subclass(SubCls, (cls_path, Cls, int))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(SubCls, (cls_path, Cls, int), subtypes=False)
 
     assert_is_subclass(SubCls, (subcls_path, SubCls, int), subtypes=False)
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(Cls, (int, float))
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(Cls, (int, float))  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(Cls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(Cls, (int, float), subtypes=False)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float))
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float))  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float), subtypes=False)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float), subtypes=False)  # type: ignore
 
     with pytest.raises(ValueError):
         assert_is_subclass(Cls, ())
@@ -225,18 +227,18 @@ def test_assert_is_subclass():
 def test_assert_is_callable():
     assert_is_callable(int)
 
-    with pytest.raises(TypeError):
-        assert_is_callable(3)
+    with pytest.raises(TypeCheckError):
+        assert_is_callable(3)  # type: ignore
 
 
 def test_assert_is_iterable():
-    with pytest.raises(TypeError):
-        assert_is_iterable(3)
+    with pytest.raises(TypeCheckError):
+        assert_is_iterable(3)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_iterable(False)
+    with pytest.raises(TypeCheckError):
+        assert_is_iterable(False)  # type: ignore
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_iterable("foo")
 
     assert_is_iterable("foo", include_strings=True)
@@ -244,6 +246,14 @@ def test_assert_is_iterable():
     assert_is_iterable([])
     assert_is_iterable({})
     assert_is_iterable(set())
+
+
+def test_typing_type():
+    assert is_instance(3.0, float) == isinstance(3.0, float)
+    assert is_instance(float, tippo.Type[float]) == is_subclass(float, float)
+
+    assert is_subclass(float, tippo.Type[tippo.Type[float]]) == is_subclass(float, type(float))
+    assert is_subclass(float, tippo.Type[int]) == is_subclass(float, type)
 
 
 if __name__ == "__main__":
