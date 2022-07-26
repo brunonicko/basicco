@@ -64,9 +64,9 @@ def _check_type(obj, typ, type_depth, *args):
     return _check(obj, value_type, type_depth, *args)
 
 
-def _check_tuple(obj, typed_tuple, type_depth, *args):
-    if type_depth:
-        return _check(obj, tuple, type_depth, *args)
+def _check_tuple(obj, typed_tuple, type_depth, instance, *args):
+    if type_depth or not instance:
+        return _check(obj, tuple, type_depth, instance, *args)
 
     if not isinstance(obj, tuple):
         return False
@@ -79,17 +79,17 @@ def _check_tuple(obj, typed_tuple, type_depth, *args):
         if len(tuple_args) == 1:
             return True
         typ = tuple_args[0]
-        return all(_check(v, typ, type_depth, *args) for v in obj)
+        return all(_check(v, typ, type_depth, instance, *args) for v in obj)
 
     if len(obj) != len(tuple_args):
         return False
 
-    return all(_check(v, t, type_depth, *args) for v, t in zip(obj, tuple_args))
+    return all(_check(v, t, type_depth, instance, *args) for v, t in zip(obj, tuple_args))
 
 
 def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
     origin = get_origin(mapping)
-    if type_depth:
+    if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
     if not isinstance(obj, origin):
@@ -112,7 +112,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
 
 def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     origin = get_origin(iterable)
-    if type_depth:
+    if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
     if not isinstance(obj, origin):
