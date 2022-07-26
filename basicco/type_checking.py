@@ -416,9 +416,7 @@ def assert_is_instance(
         error = "got {!r} object, expected instance of {}{}".format(
             type(obj).__name__,
             ", ".join(repr(n) for n in type_names(types)),
-            " or any of {} subclasses".format("their" if len(types) > 1 else "its")
-            if subtypes
-            else " (instances of subclasses are not accepted)",
+            "" if subtypes else " (subclasses are not accepted)",
         )
         raise TypeCheckError(error)
     return obj
@@ -451,9 +449,7 @@ def assert_is_subclass(
             type(cls).__name__,
             "one of " if len(types) > 1 else "class ",
             ", ".join(repr(n) for n in type_names(types)),
-            " or any of {} subclasses".format("their" if len(types) > 1 else "its")
-            if subtypes
-            else " (subclasses are not accepted)",
+            "" if subtypes else " (subclasses are not accepted)",
         )
         raise TypeCheckError(error)
 
@@ -474,9 +470,7 @@ def assert_is_subclass(
             cls.__name__,
             "one of " if len(types) > 1 else "class ",
             ", ".join(repr(n) for n in type_names(types)),
-            " or any of {} subclasses".format("their" if len(types) > 1 else "its")
-            if subtypes
-            else " (subclasses are not accepted)",
+            "" if subtypes else " (subclasses are not accepted)",
         )
         raise TypeCheckError(error)
 
