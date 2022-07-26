@@ -174,43 +174,32 @@ def _check(
 ):
     # type: (...) -> bool
 
-    # Object is not a class, and we are checking for subclass.
-    if not instance and not isinstance(obj, type):
-        return False
+    # Import lazy path.
+    if isinstance(typ, six.string_types):
+        typ = import_path(
+            typ,
+            extra_paths=extra_paths,
+            builtin_paths=builtin_paths,
+            generic=generic,
+        )
 
+    # Convert None to NoneType.
     if typ is None:
-
-        # Convert None to NoneType.
         typ = type(None)
 
-    else:
+    # Not a type, must be a supported typing form, otherwise it's invalid.
+    if not isinstance(typ, type) and _is_typing_form(typ):
+        return _check_typing(
+            obj,
+            typ,
+            type_depth,
+            instance,
+            subtypes,
+            extra_paths,
+            builtin_paths,
+            generic,
+        )
 
-        if isinstance(typ, six.string_types):
-
-            # Lazy path to type.
-            typ = import_path(
-                typ,
-                extra_paths=extra_paths,
-                builtin_paths=builtin_paths,
-                generic=generic,
-            )
-
-        if not isinstance(typ, type):
-
-            # Not a type, must be a supported typing form, otherwise it's invalid.
-            if _is_typing_form(typ):
-                return _check_typing(
-                    obj,
-                    typ,
-                    type_depth,
-                    instance,
-                    subtypes,
-                    extra_paths,
-                    builtin_paths,
-                    generic,
-                )
-
-    # At this point we should have a valid type.
     if not isinstance(typ, type):
         error = "{!r} object is not a valid type".format(type(typ).__name__)
         raise TypeError(error)
