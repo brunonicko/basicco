@@ -327,12 +327,12 @@ Asserting an instance's type:
     ValueError: no types were provided to perform assertion
     >>> assert_is_instance(3, "itertools.chain")
     Traceback (most recent call last):
-    TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
+    basicco.type_checking.TypeCheckError: got 'int' object, expected instance of 'chain'
     >>> assert_is_instance(chain(), "itertools.chain", subtypes=False)
     <itertools.chain object at ...>
     >>> assert_is_instance(SubChain(), "itertools.chain", subtypes=False)
     Traceback (most recent call last):
-    TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
+    basicco.type_checking.TypeCheckError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
 
 unique_iterator
 ^^^^^^^^^^^^^^^

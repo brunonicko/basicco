@@ -416,7 +416,7 @@ def assert_is_instance(
         error = "got {!r} object, expected instance of {}{}".format(
             type(obj).__name__,
             ", ".join(repr(n) for n in type_names(types)),
-            "" if subtypes else " (subclasses are not accepted)",
+            "" if subtypes else " (instances of subclasses are not accepted)",
         )
         raise TypeCheckError(error)
     return obj
