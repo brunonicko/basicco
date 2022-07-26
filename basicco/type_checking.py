@@ -1,4 +1,4 @@
-"""Runtime type checking with support for import paths."""
+"""Runtime type checking with support for import paths and type hints."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -42,6 +42,18 @@ def _is_typing_form(typ):
     return hasattr(typ, "__module__") and typ.__module__ in ("typing", "typing_extensions")
 
 
+def _check_typed_dict(obj, typed_dict, *args):
+    pass  # TODO
+
+
+def _check_tuple(obj, typed_tuple, *args):
+    pass  # TODO
+
+
+def _check_callable(obj, typed_callable, *args):
+    pass  # TODO
+
+
 def _check_union(obj, union, *args):
     union_args = get_args(union)
     if not union_args:
@@ -55,7 +67,7 @@ def _check_union(obj, union, *args):
     return False
 
 
-def _check_type(obj, typ, *args):
+def _check_type(obj, typ, type_depth, *args):
     type_args = get_args(typ)
     if not type_args:
         error = "missing arguments to Type"
@@ -69,8 +81,9 @@ def _check_type(obj, typ, *args):
         return False
 
     value_type = type_args[0]
+    type_depth += 1
 
-    return _check(obj, value_type, False, *args[1:])
+    return _check(obj, value_type, type_depth, *args)
 
 
 def _check_mapping(obj, mapping, *args):
@@ -152,6 +165,7 @@ def _check_typing(obj, typ, *args):
 def _check(
     obj,  # type: Any
     typ,  # type: Type | str | None
+    type_depth,  # type: int
     instance,  # type: bool
     subtypes,  # type: bool
     extra_paths,  # type: Iterable[str]
@@ -159,6 +173,11 @@ def _check(
     generic,  # type: bool
 ):
     # type: (...) -> bool
+
+    # Object is not a class, and we are checking for subclass.
+    if not instance and not isinstance(obj, type):
+        return False
+
     if typ is None:
 
         # Convert None to NoneType.
@@ -169,31 +188,62 @@ def _check(
         if isinstance(typ, six.string_types):
 
             # Lazy path to type.
-            typ = import_path(typ, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
+            typ = import_path(
+                typ,
+                extra_paths=extra_paths,
+                builtin_paths=builtin_paths,
+                generic=generic,
+            )
 
         if not isinstance(typ, type):
 
-            # Not a type, must be a typing form.
+            # Not a type, must be a supported typing form, otherwise it's invalid.
             if _is_typing_form(typ):
-                return _check_typing(obj, typ, subtypes, instance, extra_paths, builtin_paths, generic)
+                return _check_typing(
+                    obj,
+                    typ,
+                    type_depth,
+                    instance,
+                    subtypes,
+                    extra_paths,
+                    builtin_paths,
+                    generic,
+                )
 
-            # Invalid.
-            error = "{!r} object is not a valid type".format(type(typ).__name__)
-            raise TypeError(error)
+    # At this point we should have a valid type.
+    if not isinstance(typ, type):
+        error = "{!r} object is not a valid type".format(type(typ).__name__)
+        raise TypeError(error)
 
-    # Perform simple value check.
+    # Resolve type depth.
+    for i in range(type_depth - 1 if instance else type_depth):
+        typ = type(typ)
+
+    # Everything is an instance and subclass of object.
+    if typ is object:
+        return True
+
+    # Switch to a subclass comparison when type depth is greater than 0.
+    if type_depth > 0:
+        if not isinstance(obj, type):
+            return False
+        instance = False
+
+    # Instance checks.
     if instance:
         if subtypes:
             return isinstance(obj, typ)
         else:
             return type(obj) is typ
+
+    # Subclass checks.
+    elif not isinstance(obj, type):
+        error = "{!r} object is not a class".format(type(obj).__name__)
+        raise TypeError(error)
+    elif subtypes:
+        return issubclass(obj, typ)
     else:
-        if not isinstance(obj, type):
-            return False
-        if subtypes:
-            return issubclass(obj, typ)
-        else:
-            return obj is typ
+        return obj is typ
 
 
 def format_types(types):
@@ -295,7 +345,7 @@ def is_instance(
     :return: True if it is an instance.
     """
     imported_types = import_types(types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
-    return any(_check(obj, t, True, subtypes, extra_paths, builtin_paths, generic) for t in imported_types)
+    return any(_check(obj, t, 0, True, subtypes, extra_paths, builtin_paths, generic) for t in imported_types)
 
 
 def is_subclass(
@@ -323,7 +373,7 @@ def is_subclass(
         error = "is_subclass() arg 1 must be a class"
         raise TypeError(error)
     imported_types = import_types(types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
-    return any(_check(cls, t, False, subtypes, extra_paths, builtin_paths, generic) for t in imported_types)
+    return any(_check(cls, t, 0, False, subtypes, extra_paths, builtin_paths, generic) for t in imported_types)
 
 
 def is_iterable(value, include_strings=False):
