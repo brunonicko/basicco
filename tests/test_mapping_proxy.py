@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-import pytest
-from pytest import main
+import pytest  # noqa
 
 from basicco.mapping_proxy import MappingProxyType
 
@@ -25,4 +24,4 @@ def test_wrap_dict():
 
 
 if __name__ == "__main__":
-    main()
+    pytest.main()

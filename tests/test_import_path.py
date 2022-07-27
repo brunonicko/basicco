@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function
 
+import collections
 import itertools
 import math
 
-import pytest
+import pytest  # noqa
 import six.moves
+import tippo
 
 from basicco.import_path import get_path, import_path, extract_generic_paths
 
@@ -34,6 +36,17 @@ def test_get_path():
 
     assert get_path(MyClass) == __name__ + ".MyClass"
     assert get_path(MyClass.MyNestedClass) == __name__ + ".MyClass.MyNestedClass"
+
+    assert get_path(tippo.Mapping[str, int]) == "typing.Mapping[str, int]"
+
+    if hasattr(collections, "abc"):
+        col_mapping = six.moves.collections_abc.Mapping  # type: ignore
+        try:
+            typed_col_mapping = col_mapping[str, int]
+        except TypeError:
+            pass
+        else:
+            assert get_path(typed_col_mapping) == "collections.abc.Mapping[str, int]"
 
     class LocalClass(object):
         pass

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-import pytest
+import pytest  # noqa
 import six
 
 from basicco.explicit_hash import ExplicitHashMeta

@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 
-import pytest
+import pytest  # noqa
 import six
 
-from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta
+from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta  # noqa
 
 
 def test_final_class():

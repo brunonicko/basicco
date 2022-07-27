@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-import pytest
+import pytest  # noqa
 
 from basicco.custom_repr import mapping_repr, iterable_repr
 

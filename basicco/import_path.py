@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 import types
 import six
 from six import moves
+import tippo
 from tippo import TYPE_CHECKING
 
 from .qualname import qualname
@@ -39,7 +40,7 @@ def _import_builtin(path, builtin_paths):
     return _NOTHING
 
 
-def _get_generic(obj, generic_paths, builtin_paths):
+def _get_generic_path(obj, generic_paths, builtin_paths):
     # type: (Any, tuple[str, ...], Iterable[str]) -> Any
     generics = tuple(import_path(gp, builtin_paths=builtin_paths) for gp in generic_paths)
     if generics:
@@ -59,16 +60,25 @@ def _get_alias_origin(obj):
         return None, None
 
 
-def import_path(path, builtin_paths=DEFAULT_BUILTIN_PATHS, generic=True):
-    # type: (str, Iterable[str], bool) -> Any
+def import_path(
+    path,  # type: str
+    extra_paths=(),  # type: Iterable[str]
+    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    generic=True,
+):
+    # type: (...) -> Any
     """
     Import from a dot path.
 
     :param path: Dot path.
+    :param extra_paths: Extra module paths in fallback order.
     :param builtin_paths: Builtin module paths in fallback order.
     :param generic: Whether to import generic.
     :return: Imported module/object.
     """
+
+    # Add extra paths to builtin paths.
+    builtin_paths = tuple(extra_paths) + tuple(builtin_paths)
 
     # Special value.
     if path in _SPECIAL_VALUES:
@@ -96,7 +106,7 @@ def import_path(path, builtin_paths=DEFAULT_BUILTIN_PATHS, generic=True):
     if module is _NOTHING:
         builtin_obj = _import_builtin(path, builtin_paths)
         if builtin_obj is not _NOTHING:
-            return _get_generic(builtin_obj, generic_paths, builtin_paths)
+            return _get_generic_path(builtin_obj, generic_paths, builtin_paths)
         error = "could not import module for {!r}".format(path)
         raise ImportError(error)
 
@@ -118,10 +128,10 @@ def import_path(path, builtin_paths=DEFAULT_BUILTIN_PATHS, generic=True):
         except AttributeError:
             builtin_obj = _import_builtin(path, builtin_paths)
             if builtin_obj is not _NOTHING:
-                return _get_generic(builtin_obj, generic_paths, builtin_paths)
+                return _get_generic_path(builtin_obj, generic_paths, builtin_paths)
             raise
 
-    return _get_generic(obj, generic_paths, builtin_paths)
+    return _get_generic_path(obj, generic_paths, builtin_paths)
 
 
 def extract_generic_paths(path):
@@ -181,6 +191,7 @@ def extract_generic_paths(path):
 
 def get_path(
     obj,  # type: Any
+    extra_paths=(),  # type: Iterable[str]
     builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
     generic=True,  # type: bool
     check=True,  # type: bool
@@ -190,11 +201,15 @@ def get_path(
     Get dot path to an object or module.
 
     :param obj: Object or module.
+    :param extra_paths: Extra module paths in fallback order.
     :param builtin_paths: Builtin module paths in fallback order.
     :param generic: Whether to include path to generic as well.
     :param check: Whether to check path for consistency.
     :return: Dot path.
     """
+
+    # Add extra paths to builtin paths.
+    builtin_paths = tuple(extra_paths) + tuple(builtin_paths)
 
     # Module.
     if isinstance(obj, types.ModuleType):
@@ -216,6 +231,11 @@ def get_path(
                 "]",
             )
         )
+
+        # Fix for typing/collections_abc origin.
+        if generic_origin.__module__ == "collections.abc" and hasattr(obj, "__module__") and hasattr(obj, "__name__"):
+            if obj.__module__ in ("typing", "typing_extensions") and hasattr(tippo, obj.__name__):
+                generic_origin = getattr(tippo, obj.__name__)
 
     # Get qualified name and module.
     try:
