@@ -132,7 +132,7 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
 
 
 def _check_typing(obj, typ, *args):
-    type_name = getattr(typ, "__name__")
+    type_name = typ.__origin__.__name__
 
     # Any.
     if type_name == "Any":
