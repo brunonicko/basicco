@@ -283,6 +283,23 @@ def test_typing_type():
     assert is_instance(set, tippo.Type[tippo.Iterable[int]])
     assert is_instance(set, tippo.Type[tippo.Set[int]])
 
+    assert is_instance(3, tippo.Any)
+    assert is_instance(True, tippo.Literal[True, False])
+    assert is_instance(3, tippo.Union[int, str])
+    assert is_instance(int, tippo.Type[int])
+    assert is_instance((3, "3"), tippo.Tuple[int, str])
+    assert is_instance((3, 4, 5), tippo.Tuple[int, ...])
+    assert is_instance({"3": 3}, tippo.Mapping[str, int])
+    assert is_instance([1, 2, 3], tippo.Iterable[int])
+
+    assert not is_instance(None, tippo.Literal[True, False])
+    assert not is_instance(3.4, tippo.Union[int, str])
+    assert not is_instance(float, tippo.Type[int])
+    assert not is_instance(("3", 3), tippo.Tuple[int, str])
+    assert not is_instance(("3", "4", "5"), tippo.Tuple[int, ...])
+    assert not is_instance({3: "3"}, tippo.Mapping[str, int])
+    assert not is_instance([1, 2, 3], tippo.Iterable[str])
+
 
 if __name__ == "__main__":
     pytest.main()

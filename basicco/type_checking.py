@@ -5,12 +5,9 @@ from __future__ import absolute_import, division, print_function
 import itertools
 
 import six
-from tippo import TYPE_CHECKING, TypeVar, Mapping, Iterable, get_args, get_origin, cast
+from tippo import Any, Callable, Type, TypeVar, Mapping, Iterable, get_args, get_origin, cast
 
 from .import_path import DEFAULT_BUILTIN_PATHS, import_path
-
-if TYPE_CHECKING:
-    from tippo import Any, Callable, Type
 
 __all__ = [
     "TEXT_TYPES",
@@ -132,26 +129,26 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
 
 
 def _check_typing(obj, typ, *args):
-    type_name = typ.__origin__.__name__
+    type_name = getattr(typ, "__name__", getattr(typ, "__origin__", getattr(typ, "__class__")).__name__)
 
     # Any.
-    if type_name == "Any":
+    if typ is Any:
         return True
 
     # Literal.
-    if type_name == "Literal":
+    if type_name.endswith("Literal"):
         return _check_literal(obj, typ, *args)
 
     # Union.
-    if type_name == "Union":
+    if type_name.endswith("Union"):
         return _check_union(obj, typ, *args)
 
     # Type.
-    if type_name == "Type":
+    if type_name.endswith("Type"):
         return _check_type(obj, typ, *args)
 
     # Tuple.
-    if type_name == "Tuple":
+    if type_name.endswith("Tuple"):
         return _check_tuple(obj, typ, *args)
 
     # Mapping.
