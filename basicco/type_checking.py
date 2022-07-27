@@ -2,9 +2,12 @@
 
 from __future__ import absolute_import, division, print_function
 
+import inspect
 import itertools
 
 import six
+from six import moves
+import tippo
 from tippo import Any, Callable, Type, TypeVar, Mapping, Iterable, get_args, get_origin, cast
 
 from .import_path import DEFAULT_BUILTIN_PATHS, import_path
@@ -34,8 +37,23 @@ class TypeCheckError(Exception):
     """Raised when failed to assert type check."""
 
 
+def _get_typing_name(typ):
+    name = getattr(typ, "__name__", None) or getattr(typ, "_name", None) or getattr(typ, "__forward_arg__", None)
+    if name is None:
+        origin = get_origin(typ)
+        name = getattr(origin, "_name", None)
+        if name is None and not inspect.isclass(typ):
+            name = typ.__class__.__name__.strip("_")
+    return name
+
+
 def _is_typing_form(typ):
-    return hasattr(typ, "__module__") and typ.__module__ in ("typing", "typing_extensions")
+    if not hasattr(typ, "__module__"):
+        return False
+    if typ.__module__ in ("typing", "typing_extensions"):
+        return True
+    typing_name = _get_typing_name(typ)
+    return hasattr(tippo, typing_name)
 
 
 def _check_literal(obj, literal, type_depth, *args):
@@ -129,26 +147,26 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
 
 
 def _check_typing(obj, typ, *args):
-    type_name = getattr(typ, "__name__", getattr(typ, "__origin__", getattr(typ, "__class__")).__name__)
+    typ_name = _get_typing_name(typ)
 
     # Any.
-    if typ is Any:
+    if typ_name == "Any":
         return True
 
     # Literal.
-    if type_name.endswith("Literal"):
+    if typ_name == "Literal":
         return _check_literal(obj, typ, *args)
 
     # Union.
-    if type_name.endswith("Union"):
+    if typ_name == "Union":
         return _check_union(obj, typ, *args)
 
     # Type.
-    if type_name.endswith("Type"):
+    if typ_name == "Type":
         return _check_type(obj, typ, *args)
 
     # Tuple.
-    if type_name.endswith("Tuple"):
+    if typ_name == "Tuple":
         return _check_tuple(obj, typ, *args)
 
     # Mapping.
