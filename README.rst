@@ -287,10 +287,11 @@ This will respect the MRO (supports multiple inheritance).
 
 type_checking
 ^^^^^^^^^^^^^
-Runtime type checking with support for import paths.
+Runtime type checking with support for import paths and type hints.
 
 .. code:: python
 
+    >>> from typing import Mapping
     >>> from itertools import chain
     >>> from basicco.type_checking import is_instance
     >>> class SubChain(chain):
@@ -308,6 +309,8 @@ Runtime type checking with support for import paths.
     True
     >>> is_instance(SubChain(), "itertools.chain", subtypes=False)
     False
+    >>> is_instance({"a": 1, "b": 2}, Mapping[str, int])
+    True
 
 Asserting an instance's type:
 

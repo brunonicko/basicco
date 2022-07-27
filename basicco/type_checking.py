@@ -265,7 +265,7 @@ def format_types(types):
         return (type(None),)
     elif isinstance(types, type) or isinstance(types, six.string_types) or _is_typing_form(types):
         return (types,)  # type: ignore
-    elif isinstance(types, moves.collections_abc.Iterable):  # type: ignore
+    elif isinstance(types, Iterable):  # type: ignore
         return tuple(itertools.chain.from_iterable(format_types(t) for t in types))
     else:
         error = "{!r} object is not a valid type".format(type(types).__name__)
@@ -423,7 +423,7 @@ def is_iterable(value, include_strings=False):
     :param include_strings: Whether to consider strings as iterables.
     :return: True if iterable.
     """
-    return isinstance(value, moves.collections_abc.Iterable) and (  # type: ignore
+    return isinstance(value, Iterable) and (  # type: ignore
         (not isinstance(value, six.string_types) or include_strings)
     )
 

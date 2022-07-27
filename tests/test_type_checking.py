@@ -255,6 +255,34 @@ def test_typing_type():
     assert is_subclass(float, tippo.Type[tippo.Type[float]]) == is_subclass(float, type(float))
     assert is_subclass(float, tippo.Type[int]) == is_subclass(float, type)
 
+    assert is_instance({"a": 1}, tippo.Mapping[str, int])
+    assert is_instance({"a": 1}, tippo.Dict[str, int])
+    assert is_instance(["a"], tippo.Iterable[str])
+    assert is_instance(["a"], tippo.List[str])
+    assert is_instance({"a"}, tippo.Iterable[str])
+    assert is_instance({"a"}, tippo.Set[str])
+
+    assert not is_instance({"a": 1}, tippo.Mapping[float, str])
+    assert not is_instance({"a": 1}, tippo.Dict[float, str])
+    assert not is_instance(["a"], tippo.Iterable[int])
+    assert not is_instance(["a"], tippo.List[int])
+    assert not is_instance({"a"}, tippo.Iterable[int])
+    assert not is_instance({"a"}, tippo.Set[int])
+
+    assert is_instance(dict, tippo.Type[tippo.Mapping])
+    assert is_instance(dict, tippo.Type[tippo.Dict])
+    assert is_instance(list, tippo.Type[tippo.Iterable])
+    assert is_instance(list, tippo.Type[tippo.List])
+    assert is_instance(set, tippo.Type[tippo.Iterable])
+    assert is_instance(set, tippo.Type[tippo.Set])
+
+    assert is_instance(dict, tippo.Type[tippo.Mapping[int, str]])
+    assert is_instance(dict, tippo.Type[tippo.Dict[int, str]])
+    assert is_instance(list, tippo.Type[tippo.Iterable[int]])
+    assert is_instance(list, tippo.Type[tippo.List[int]])
+    assert is_instance(set, tippo.Type[tippo.Iterable[int]])
+    assert is_instance(set, tippo.Type[tippo.Set[int]])
+
 
 if __name__ == "__main__":
     pytest.main()
