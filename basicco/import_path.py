@@ -3,17 +3,18 @@
 from __future__ import absolute_import, division, print_function
 
 import types
+
 import six
 from six import moves
-import tippo
+import typing_inspect  # type: ignore
 from tippo import TYPE_CHECKING
 
 from .qualname import qualname
 
 if TYPE_CHECKING:
-    from tippo import Any, Iterable, Type
+    from tippo import Any, Iterable, Optional
 
-__all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_path"]
+__all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_name", "get_path"]
 
 
 DEFAULT_BUILTIN_PATHS = (moves.builtins.__name__, "tippo")
@@ -50,14 +51,6 @@ def _get_generic_path(obj, generic_paths, builtin_paths):
             return obj[generics]
     else:
         return obj
-
-
-def _get_alias_origin(obj):
-    # type: (Any) -> tuple[Type | None, tuple | None]
-    if getattr(obj, "__origin__", None) is not None and getattr(obj, "__args__", None) is not None:
-        return obj.__origin__, obj.__args__
-    else:
-        return None, None
 
 
 def import_path(
@@ -189,6 +182,81 @@ def extract_generic_paths(path):
     return path, tuple(extracted_generic_paths)
 
 
+def get_name(obj):
+    # type: (Any) -> Optional[str]
+    """
+    Get name.
+
+    :param obj: Type/typing form.
+    :return: Name or None.
+    :raises TypeError: Could not get name for typing argument.
+    """
+    name = None
+
+    # Forward references.
+    if hasattr(obj, "__forward_arg__"):
+        name = obj.__forward_arg__
+
+    # Special name.
+    if name is None:
+        try:
+            if obj in _SPECIAL_PATHS:
+                name = _SPECIAL_PATHS[obj]
+        except TypeError:  # ignore non-hashable
+            pass
+
+    # Python 2.7.
+    if not hasattr(obj, "__forward_arg__") and type(obj).__module__ in ("typing", "typing_extensions", "tippo"):
+        if type(obj).__name__.strip("_") == "Literal":
+            return "Literal"
+        if type(obj).__name__.strip("_") == "Final":
+            return "Final"
+        if type(obj).__name__.strip("_") == "ClassVar":
+            return "ClassVar"
+
+    # Try a couple of ways to get the name.
+    if name is None:
+
+        # Get origin name.
+        origin = typing_inspect.get_origin(obj)
+        if origin is not None:
+            try:
+                origin_qualified_name = qualname(origin, fallback=None)
+            except TypeError:
+                origin_qualified_name = None
+            origin_name = (
+                origin_qualified_name
+                or getattr(origin, "__name__", None)
+                or getattr(origin, "_name", None)
+                or getattr(origin, "__forward_arg__", None)
+            )
+        else:
+            origin_name = None
+
+        # Get the name.
+        try:
+            qualified_name = qualname(obj, fallback=None)
+        except TypeError:
+            qualified_name = None
+        name = (
+            qualified_name
+            or getattr(obj, "__name__", None)
+            or getattr(obj, "_name", None)
+            or getattr(obj, "__forward_arg__", None)
+        )
+
+        # Choose the origin name if longer (for qualified generic names).
+        if origin_name is not None:
+            if name is not None and len(origin_name) > len(name):
+                name = origin_name
+
+            # Get the name from the origin.
+            elif name is None:
+                name = origin_name
+
+    return name
+
+
 def get_path(
     obj,  # type: Any
     extra_paths=(),  # type: Iterable[str]
@@ -221,23 +289,19 @@ def get_path(
 
     # Get generic suffix.
     generic_suffix = ""
-    generic_origin, generic_args = _get_alias_origin(obj)
+    generic_origin, generic_args = typing_inspect.get_origin(obj), typing_inspect.get_args(obj, evaluate=True)
     if generic_origin is not None:
         assert generic_args is not None
-        generic_suffix = "".join(
-            (
-                "[",
-                ", ".join(get_path(ga, builtin_paths=builtin_paths, generic=generic) for ga in generic_args),
-                "]",
+        if generic_args:
+            generic_suffix = "".join(
+                (
+                    "[",
+                    ", ".join(get_path(ga, builtin_paths=builtin_paths, generic=generic) for ga in generic_args),
+                    "]",
+                )
             )
-        )
 
-        # Fix for typing/collections_abc origin.
-        if generic_origin.__module__ == "collections.abc" and hasattr(obj, "__module__") and hasattr(obj, "__name__"):
-            if obj.__module__ in ("typing", "typing_extensions") and hasattr(tippo, obj.__name__):
-                generic_origin = getattr(tippo, obj.__name__)
-
-    # Get qualified name and module.
+    # Get name and module.
     try:
         if generic_origin is not None:
             module = generic_origin.__module__
@@ -249,28 +313,21 @@ def get_path(
         six.raise_from(exc, None)
         raise exc
     else:
-        if generic_origin is not None:
-            short_name = generic_origin.__name__
-            qualified_name = qualname(generic_origin, short_name)
-        else:
-            short_name = obj.__name__
-            qualified_name = qualname(obj, short_name)
-        if qualified_name.count(".") < 1:
-            qualified_name = short_name
+        name = get_name(obj)
     if not module:
         error = "can't get module for {}".format(obj)
         raise AttributeError(error)
     if module in builtin_paths:
         module = ""
-    if not qualified_name:
-        error = "can't get qualified name for {}".format(obj)
+    if not name:
+        error = "can't get name for {}".format(obj)
         raise AttributeError(error)
-    if "<locals>" in qualified_name:
-        error = "local name {!r} is not importable".format(qualified_name)
+    if "<locals>" in name:
+        error = "local name {!r} is not importable".format(name)
         raise ImportError(error)
 
     # Assemble path and check for consistency.
-    path = ".".join(p for p in (module, qualified_name) if p)
+    path = ".".join(p for p in (module, name) if p)
     if generic and generic_suffix:
         path += generic_suffix
     elif not generic and generic_origin is not None:

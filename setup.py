@@ -1,12 +1,17 @@
+import os
 import setuptools  # type: ignore
 
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+with open("requirements.txt", "r") as fh:
+    install_requires = [line.strip(os.linesep) for line in fh.readlines()]
+
+
 setuptools.setup(
     name="basicco",
-    version="4.3.0",
+    version="5.0.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description="Collection of lower-level utilities that enhance code compatibility and validation.",
@@ -15,7 +20,7 @@ setuptools.setup(
     url="https://github.com/brunonicko/basicco",
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
     package_data={"basicco": ["py.typed"]},
-    install_requires=["six", "tippo"],
+    install_requires=install_requires,
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
@@ -27,9 +32,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
-    python_requires=(
-        ">= 2.7, "
-        "!= 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*, != 3.5.*, != 3.6.*"
-    ),
+    python_requires=">= 2.7, " "!= 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*, != 3.5.*, != 3.6.*",
     tests_require=["pytest"],
 )

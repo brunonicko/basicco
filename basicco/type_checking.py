@@ -2,13 +2,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import inspect
 import itertools
 
 import six
-from six import moves
 import tippo
-from tippo import Any, Callable, Type, TypeVar, Mapping, Iterable, get_args, get_origin, cast
+import typing_inspect
+from tippo import Any, Callable, Type, TypeVar, Mapping, Iterable, get_args, get_origin, get_name, cast
 
 from .import_path import DEFAULT_BUILTIN_PATHS, import_path
 
@@ -37,23 +36,13 @@ class TypeCheckError(Exception):
     """Raised when failed to assert type check."""
 
 
-def _get_typing_name(typ):
-    name = getattr(typ, "__name__", None) or getattr(typ, "_name", None) or getattr(typ, "__forward_arg__", None)
-    if name is None:
-        origin = get_origin(typ)
-        name = getattr(origin, "_name", None)
-        if name is None and not inspect.isclass(typ):
-            name = typ.__class__.__name__.strip("_")
-    return name
-
-
-def _is_typing_form(typ):
-    if not hasattr(typ, "__module__"):
-        return False
-    if typ.__module__ in ("typing", "typing_extensions"):
-        return True
-    typing_name = _get_typing_name(typ)
-    return hasattr(tippo, typing_name)
+def _typing_name(typ):
+    if not hasattr(typ, "__module__") or typ.__module__ not in ("typing", "typing_extensions", "tippo"):
+        return None
+    typing_name = get_name(typ, force_typing_name=True)
+    if hasattr(tippo, typing_name) or hasattr(typ, "__forward_arg__"):
+        return typing_name
+    return None
 
 
 def _check_literal(obj, literal, type_depth, *args):
@@ -147,26 +136,27 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
 
 
 def _check_typing(obj, typ, *args):
-    typ_name = _get_typing_name(typ)
+    typing_name = _typing_name(typ)
+    assert typing_name is not None
 
     # Any.
-    if typ_name == "Any":
+    if typing_name == "Any":
         return True
 
     # Literal.
-    if typ_name == "Literal":
+    if typing_name == "Literal":
         return _check_literal(obj, typ, *args)
 
     # Union.
-    if typ_name == "Union":
+    if typing_name == "Union":
         return _check_union(obj, typ, *args)
 
     # Type.
-    if typ_name == "Type":
+    if typing_name == "Type":
         return _check_type(obj, typ, *args)
 
     # Tuple.
-    if typ_name == "Tuple":
+    if typing_name == "Tuple":
         return _check_tuple(obj, typ, *args)
 
     # Mapping.
@@ -219,18 +209,20 @@ def _check(
         typ = type(None)
 
     # Typing check.
-    if typing and not isinstance(typ, type) and _is_typing_form(typ):
-        return _check_typing(
-            obj,
-            typ,
-            type_depth,
-            instance,
-            typing,
-            subtypes,
-            extra_paths,
-            builtin_paths,
-            generic,
-        )
+    if typing:
+        typing_name = _typing_name(typ)
+        if typing_name is not None:
+            return _check_typing(
+                obj,
+                typ,
+                type_depth,
+                instance,
+                typing,
+                subtypes,
+                extra_paths,
+                builtin_paths,
+                generic,
+            )
 
     # Invalid type.
     if not isinstance(typ, type) and not hasattr(typ, "__subclasscheck__"):
@@ -278,7 +270,7 @@ def format_types(types):
     """
     if types is None:
         return (type(None),)
-    elif isinstance(types, type) or isinstance(types, six.string_types) or _is_typing_form(types):
+    elif isinstance(types, type) or isinstance(types, six.string_types) or _typing_name(types) is not None:
         return (types,)  # type: ignore
     elif isinstance(types, Iterable):  # type: ignore
         return tuple(itertools.chain.from_iterable(format_types(t) for t in types))
@@ -301,7 +293,7 @@ def type_names(types):
             type_names_.append(typ.split(".")[-1])
         elif isinstance(typ, type):
             type_names_.append(typ.__name__)
-        elif _is_typing_form(typ):
+        elif _typing_name(typ) is not None:
             type_names_.append(repr(typ))
         else:
             type_names_.append(type(typ).__name__)
