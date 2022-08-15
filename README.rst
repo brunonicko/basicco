@@ -312,31 +312,6 @@ Runtime type checking with support for import paths and type hints.
     >>> is_instance({"a": 1, "b": 2}, Mapping[str, int])
     True
 
-Asserting an instance's type:
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.type_checking import assert_is_instance
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> assert_is_instance(3, int)
-    3
-    >>> assert_is_instance(3, (chain, int))
-    3
-    >>> assert_is_instance(3, ())
-    Traceback (most recent call last):
-    ValueError: no types were provided to perform assertion
-    >>> assert_is_instance(3, "itertools.chain")
-    Traceback (most recent call last):
-    basicco.type_checking.TypeCheckError: got 'int' object, expected instance of 'chain'
-    >>> assert_is_instance(chain(), "itertools.chain", subtypes=False)
-    <itertools.chain object at ...>
-    >>> assert_is_instance(SubChain(), "itertools.chain", subtypes=False)
-    Traceback (most recent call last):
-    basicco.type_checking.TypeCheckError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
-
 unique_iterator
 ^^^^^^^^^^^^^^^
 Iterator that yields unique values.
