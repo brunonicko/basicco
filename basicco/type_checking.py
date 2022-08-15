@@ -5,11 +5,10 @@ from __future__ import absolute_import, division, print_function
 import itertools
 
 import six
-import tippo
-import typing_inspect
-from tippo import Any, Callable, Type, TypeVar, Mapping, Iterable, get_args, get_origin, get_name, cast
+import typing_inspect  # type: ignore
+from tippo import Any, Callable, Type, TypeVar, Mapping, ForwardRef, Iterable, get_typing, get_args, get_origin, cast
 
-from .import_path import DEFAULT_BUILTIN_PATHS, import_path
+from .import_path import DEFAULT_BUILTIN_PATHS, import_path, get_name
 
 __all__ = [
     "TEXT_TYPES",
@@ -34,15 +33,6 @@ _T = TypeVar("_T")
 
 class TypeCheckError(Exception):
     """Raised when failed to assert type check."""
-
-
-def _typing_name(typ):
-    if not hasattr(typ, "__module__") or typ.__module__ not in ("typing", "typing_extensions", "tippo"):
-        return None
-    typing_name = get_name(typ, force_typing_name=True)
-    if hasattr(tippo, typing_name) or hasattr(typ, "__forward_arg__"):
-        return typing_name
-    return None
 
 
 def _check_literal(obj, literal, type_depth, *args):
@@ -135,33 +125,80 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     return True
 
 
-def _check_typing(obj, typ, *args):
-    typing_name = _typing_name(typ)
-    assert typing_name is not None
+def _check_forward_ref(
+    obj,
+    forward_ref,
+    type_depth,
+    instance,
+    typing,
+    subtypes,
+    extra_paths,
+    builtin_paths,
+    generic,
+):
+    typ = import_path(
+        forward_ref.__forward_arg__,
+        extra_paths=extra_paths,
+        builtin_paths=builtin_paths,
+        generic=generic,
+    )
+    return _check(
+        obj,
+        typ,
+        type_depth,
+        instance,
+        typing,
+        subtypes,
+        extra_paths,
+        builtin_paths,
+        generic,
+    )
+
+
+def _check_typing(
+    obj,
+    typ,
+    type_depth,
+    instance,
+    typing,
+    subtypes,
+    extra_paths,
+    builtin_paths,
+    generic,
+):
+    args = (
+        type_depth,
+        instance,
+        typing,
+        subtypes,
+        extra_paths,
+        builtin_paths,
+        generic,
+    )
 
     # Any.
-    if typing_name == "Any":
+    if typ is Any:
         return True
 
     # Literal.
-    if typing_name == "Literal":
+    if typing_inspect.is_literal_type(typ):
         return _check_literal(obj, typ, *args)
 
     # Union.
-    if typing_name == "Union":
+    if typing_inspect.is_union_type(typ):
         return _check_union(obj, typ, *args)
 
     # Type.
-    if typing_name == "Type":
+    if get_typing(get_origin(typ)) is Type:
         return _check_type(obj, typ, *args)
 
     # Tuple.
-    if typing_name == "Tuple":
+    if typing_inspect.is_tuple_type(typ):
         return _check_tuple(obj, typ, *args)
 
     # Mapping.
     try:
-        type_is_mapping = issubclass(get_origin(typ), Mapping)
+        type_is_mapping = issubclass(get_typing(get_origin(typ)), Mapping)
     except TypeError:
         pass
     else:
@@ -170,30 +207,32 @@ def _check_typing(obj, typ, *args):
 
     # Iterable.
     try:
-        type_is_iterable = issubclass(get_origin(typ), Iterable)
+        type_is_iterable = issubclass(get_typing(get_origin(typ)), Iterable)
     except TypeError:
         pass
     else:
         if type_is_iterable:
             return _check_iterable(obj, typ, *args)
 
-    # Unknown type.
-    error = "can't check type against {!r}".format(typ)
-    raise TypeError(error)
+    # Forward reference.
+    if isinstance(typ, ForwardRef):
+        return _check_forward_ref(obj, typ, *args)
+
+    # Not typing.
+    return _check(obj, typ, args[0], args[1], False, *args[3:])
 
 
 def _check(
-    obj,  # type: Any
-    typ,  # type: Type | str | None
-    type_depth,  # type: int
-    instance,  # type: bool
-    typing,  # type: bool
-    subtypes,  # type: bool
-    extra_paths,  # type: Iterable[str]
-    builtin_paths,  # type: Iterable[str]
-    generic,  # type: bool
+    obj,
+    typ,
+    type_depth,
+    instance,
+    typing,
+    subtypes,
+    extra_paths,
+    builtin_paths,
+    generic,
 ):
-    # type: (...) -> bool
 
     # Import lazy path.
     if isinstance(typ, six.string_types):
@@ -210,7 +249,7 @@ def _check(
 
     # Typing check.
     if typing:
-        typing_name = _typing_name(typ)
+        typing_name = get_name(typ)
         if typing_name is not None:
             return _check_typing(
                 obj,
@@ -270,7 +309,7 @@ def format_types(types):
     """
     if types is None:
         return (type(None),)
-    elif isinstance(types, type) or isinstance(types, six.string_types) or _typing_name(types) is not None:
+    elif isinstance(types, type) or isinstance(types, six.string_types) or get_name(types) is not None:
         return (types,)  # type: ignore
     elif isinstance(types, Iterable):  # type: ignore
         return tuple(itertools.chain.from_iterable(format_types(t) for t in types))
@@ -293,7 +332,7 @@ def type_names(types):
             type_names_.append(typ.split(".")[-1])
         elif isinstance(typ, type):
             type_names_.append(typ.__name__)
-        elif _typing_name(typ) is not None:
+        elif get_name(typ) is not None:
             type_names_.append(repr(typ))
         else:
             type_names_.append(type(typ).__name__)

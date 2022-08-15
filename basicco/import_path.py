@@ -4,12 +4,13 @@ from __future__ import absolute_import, division, print_function
 
 import types
 
+import typing
 import six
 from six import moves
-import typing_inspect  # type: ignore
+import tippo
 from tippo import TYPE_CHECKING
 
-from .qualname import qualname
+from .qualname import QualnameError, qualname
 
 if TYPE_CHECKING:
     from tippo import Any, Iterable, Optional
@@ -70,12 +71,24 @@ def import_path(
     :return: Imported module/object.
     """
 
-    # Add extra paths to builtin paths.
-    builtin_paths = tuple(extra_paths) + tuple(builtin_paths)
-
     # Special value.
     if path in _SPECIAL_VALUES:
         return _SPECIAL_VALUES[path]
+
+    # Strings.
+    if path.startswith("'") and path.endswith("'") or path.startswith('"') and path.endswith('"'):
+        return str(path[1:-1])
+
+    # Integers.
+    if path.isdigit():
+        return int(path)
+
+    # Floats.
+    if path.replace(".", "").isdigit():
+        return float(path)
+
+    # Add extra paths to builtin paths.
+    builtin_paths = tuple(extra_paths) + tuple(builtin_paths)
 
     # Check and split dot path.
     if not path:
@@ -182,79 +195,22 @@ def extract_generic_paths(path):
     return path, tuple(extracted_generic_paths)
 
 
+def _get_qualname(obj):
+    try:
+        return qualname(obj)
+    except (QualnameError, TypeError):
+        return None
+
+
 def get_name(obj):
     # type: (Any) -> Optional[str]
     """
-    Get name.
+    Get importable name.
 
-    :param obj: Type/typing form.
+    :param obj: Object.
     :return: Name or None.
-    :raises TypeError: Could not get name for typing argument.
     """
-    name = None
-
-    # Forward references.
-    if hasattr(obj, "__forward_arg__"):
-        name = obj.__forward_arg__
-
-    # Special name.
-    if name is None:
-        try:
-            if obj in _SPECIAL_PATHS:
-                name = _SPECIAL_PATHS[obj]
-        except TypeError:  # ignore non-hashable
-            pass
-
-    # Python 2.7.
-    if not hasattr(obj, "__forward_arg__") and type(obj).__module__ in ("typing", "typing_extensions", "tippo"):
-        if type(obj).__name__.strip("_") == "Literal":
-            return "Literal"
-        if type(obj).__name__.strip("_") == "Final":
-            return "Final"
-        if type(obj).__name__.strip("_") == "ClassVar":
-            return "ClassVar"
-
-    # Try a couple of ways to get the name.
-    if name is None:
-
-        # Get origin name.
-        origin = typing_inspect.get_origin(obj)
-        if origin is not None:
-            try:
-                origin_qualified_name = qualname(origin, fallback=None)
-            except TypeError:
-                origin_qualified_name = None
-            origin_name = (
-                origin_qualified_name
-                or getattr(origin, "__name__", None)
-                or getattr(origin, "_name", None)
-                or getattr(origin, "__forward_arg__", None)
-            )
-        else:
-            origin_name = None
-
-        # Get the name.
-        try:
-            qualified_name = qualname(obj, fallback=None)
-        except TypeError:
-            qualified_name = None
-        name = (
-            qualified_name
-            or getattr(obj, "__name__", None)
-            or getattr(obj, "_name", None)
-            or getattr(obj, "__forward_arg__", None)
-        )
-
-        # Choose the origin name if longer (for qualified generic names).
-        if origin_name is not None:
-            if name is not None and len(origin_name) > len(name):
-                name = origin_name
-
-            # Get the name from the origin.
-            elif name is None:
-                name = origin_name
-
-    return name
+    return tippo.get_name(obj, qualname_getter=_get_qualname)
 
 
 def get_path(
@@ -287,16 +243,35 @@ def get_path(
     if obj in _SPECIAL_PATHS:
         return _SPECIAL_PATHS[obj]
 
-    # Get generic suffix.
+    # Forward references.
+    if isinstance(obj, tippo.ForwardRef):
+        return repr(obj.__forward_arg__)
+
+    # Strings, integers, floats.
+    # noinspection PyTypeChecker
+    if isinstance(obj, six.string_types + (int, float)):
+        return repr(obj)
+
+    # Get generic origin and args.
     generic_suffix = ""
-    generic_origin, generic_args = typing_inspect.get_origin(obj), typing_inspect.get_args(obj, evaluate=True)
-    if generic_origin is not None:
-        assert generic_args is not None
+    generic_origin, generic_args = tippo.get_origin(obj), tippo.get_args(obj)
+    if generic and generic_origin is not None:
+
+        # Remap from collections.abc to typing.
+        if (
+            getattr(obj, "__module__", None) == "typing"
+            and getattr(generic_origin, "__module__", None) == "collections.abc"
+        ):
+            generic_origin_name = get_name(generic_origin)
+            if generic_origin_name is not None and hasattr(typing, generic_origin_name):
+                generic_origin = getattr(typing, generic_origin_name)
+
+        # Add generic arguments to the path.
         if generic_args:
             generic_suffix = "".join(
                 (
                     "[",
-                    ", ".join(get_path(ga, builtin_paths=builtin_paths, generic=generic) for ga in generic_args),
+                    ", ".join(get_path(ga, builtin_paths=builtin_paths, check=check) for ga in generic_args),
                     "]",
                 )
             )
@@ -314,6 +289,7 @@ def get_path(
         raise exc
     else:
         name = get_name(obj)
+
     if not module:
         error = "can't get module for {}".format(obj)
         raise AttributeError(error)
@@ -326,18 +302,20 @@ def get_path(
         error = "local name {!r} is not importable".format(name)
         raise ImportError(error)
 
-    # Assemble path and check for consistency.
+    # Assemble path.
     path = ".".join(p for p in (module, name) if p)
     if generic and generic_suffix:
         path += generic_suffix
     elif not generic and generic_origin is not None:
         obj = generic_origin
-    try:
-        imported_obj = import_path(path, builtin_paths=builtin_paths)
-        if imported_obj != obj:
-            raise ImportError()
-    except (ImportError, AttributeError):
-        if check:
+
+    # Check for consistency.
+    if check:
+        try:
+            imported_obj = import_path(path, builtin_paths=builtin_paths)
+            if imported_obj != obj:
+                raise ImportError()
+        except (ImportError, AttributeError):
             error = "import path {!r} is not consistent for {}".format(path, obj)
             exc = ImportError(error)
             six.raise_from(exc, None)

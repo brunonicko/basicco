@@ -29,8 +29,14 @@ class SubCls(Cls):
     pass
 
 
+class Parent(object):
+    class Child(object):
+        pass
+
+
 cls_path = __name__ + "." + Cls.__name__
 subcls_path = __name__ + "." + SubCls.__name__
+nested_cls_path = __name__ + "." + Parent.__name__ + "." + Parent.Child.__name__
 
 
 def test_format_types():
@@ -299,6 +305,8 @@ def test_typing_type():
     assert not is_instance(("3", "4", "5"), tippo.Tuple[int, ...])
     assert not is_instance({3: "3"}, tippo.Mapping[str, int])
     assert not is_instance([1, 2, 3], tippo.Iterable[str])
+
+    assert is_instance(Parent.Child(), tippo.Optional[nested_cls_path])
 
 
 if __name__ == "__main__":
