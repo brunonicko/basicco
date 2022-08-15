@@ -18,6 +18,12 @@ class Member(object):
             )
         return isinstance(previous_member, Member)
 
+    @staticmethod
+    def replacer(_base, _member_name, member):
+        if isinstance(member, Member):
+            return str(member)
+        return member
+
 
 _foo_member = Member()
 _bar_member = Member()
@@ -70,6 +76,19 @@ def test_override_member_filter():
     with pytest.raises(TypeError) as exc_info:
         scrape_class(BaseC, Member.filter, Member.override_filter)
     assert str(exc_info.value) == "'BaseC.bar' is not of type 'Member'"
+
+
+def test_member_replacer():
+    assert scrape_class(object, Member.filter) == {}
+    assert scrape_class(BaseA, Member.filter, member_replacer=Member.replacer) == {"foo": str(_foo_member)}
+    assert scrape_class(BaseB, Member.filter, member_replacer=Member.replacer) == {
+        "foo": str(_foo_member),
+        "bar": str(_bar_member),
+    }
+    assert scrape_class(BaseC, Member.filter, member_replacer=Member.replacer) == {
+        "foo": str(_foo_override_member),
+        "foobar": str(_foobar_member),
+    }
 
 
 if __name__ == "__main__":

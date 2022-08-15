@@ -8,7 +8,7 @@ import six
 from tippo import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from tippo import Any, Dict, Type, Optional
+    from tippo import Any, Dict, Type
 
 __all__ = [
     "BASE_OBJECT_MEMBER_NAMES",
@@ -16,6 +16,7 @@ __all__ = [
     "ALL_MEMBERS_FILTER",
     "MemberFilterProtocol",
     "OverrideFilterProtocol",
+    "MemberReplacerProtocol",
     "scrape_class",
 ]
 
@@ -37,14 +38,21 @@ class OverrideFilterProtocol(Protocol):
         pass
 
 
-def scrape_class(cls, member_filter=DEFAULT_MEMBER_FILTER, override_filter=None):
-    # type: (Type, MemberFilterProtocol, Optional[OverrideFilterProtocol]) -> Dict[str, Any]
+class MemberReplacerProtocol(Protocol):
+    def __call__(self, base, member_name, member):
+        # type: (Type, str, Any) -> Any
+        pass
+
+
+def scrape_class(cls, member_filter=DEFAULT_MEMBER_FILTER, override_filter=None, member_replacer=None):
+    # type: (Type, MemberFilterProtocol, OverrideFilterProtocol | None, MemberReplacerProtocol | None) -> Dict[str, Any]
     """
     Scrape class for specific members.
 
     :param cls: Class.
     :param member_filter: Member filter function.
     :param override_filter: Member override filter function.
+    :param member_replacer: Member replacer function.
     :return: Dictionary with filtered members mapped by name.
     """
     if override_filter is None:
@@ -57,6 +65,8 @@ def scrape_class(cls, member_filter=DEFAULT_MEMBER_FILTER, override_filter=None)
             if (override and override_filter(base, member_name, member, members[member_name])) or (
                 not override and member_filter(base, member_name, member)
             ):
+                if member_replacer is not None:
+                    member = member_replacer(base, member_name, member)
                 members[member_name] = member
             elif override:
                 del members[member_name]
