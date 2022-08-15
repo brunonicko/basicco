@@ -287,10 +287,11 @@ This will respect the MRO (supports multiple inheritance).
 
 type_checking
 ^^^^^^^^^^^^^
-Runtime type checking with support for import paths.
+Runtime type checking with support for import paths and type hints.
 
 .. code:: python
 
+    >>> from typing import Mapping
     >>> from itertools import chain
     >>> from basicco.type_checking import is_instance
     >>> class SubChain(chain):
@@ -308,31 +309,8 @@ Runtime type checking with support for import paths.
     True
     >>> is_instance(SubChain(), "itertools.chain", subtypes=False)
     False
-
-Asserting an instance's type:
-
-.. code:: python
-
-    >>> from itertools import chain
-    >>> from basicco.type_checking import assert_is_instance
-    >>> class SubChain(chain):
-    ...     pass
-    ...
-    >>> assert_is_instance(3, int)
-    3
-    >>> assert_is_instance(3, (chain, int))
-    3
-    >>> assert_is_instance(3, ())
-    Traceback (most recent call last):
-    ValueError: no types were provided to perform assertion
-    >>> assert_is_instance(3, "itertools.chain")
-    Traceback (most recent call last):
-    TypeError: got 'int' object, expected instance of 'chain' or any of its subclasses
-    >>> assert_is_instance(chain(), "itertools.chain", subtypes=False)
-    <itertools.chain object at ...>
-    >>> assert_is_instance(SubChain(), "itertools.chain", subtypes=False)
-    Traceback (most recent call last):
-    TypeError: got 'SubChain' object, expected instance of 'chain' (instances of subclasses are not accepted)
+    >>> is_instance({"a": 1, "b": 2}, Mapping[str, int])
+    True
 
 unique_iterator
 ^^^^^^^^^^^^^^^

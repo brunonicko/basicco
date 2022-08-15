@@ -6,7 +6,7 @@ PY_VERSION = sys.version_info[:2]
 
 def require_python(*python):
     if PY_VERSION < python:
-        error = "can't run {!r} task in python {}".format(func.__name__, PY_VERSION)
+        error = "can't run task in python {}".format(PY_VERSION)
         raise RuntimeError(error)
 
 

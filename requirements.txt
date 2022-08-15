@@ -1,2 +1,3 @@
-tippo>=1,<2
+tippo>=2.4,<3
+typing_inspect
 six

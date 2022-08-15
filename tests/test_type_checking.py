@@ -3,9 +3,11 @@ from __future__ import absolute_import, division, print_function
 import abc
 import itertools
 
-import pytest
+import tippo
+import pytest  # noqa
 
 from basicco.type_checking import (
+    TypeCheckError,
     assert_is_callable,
     assert_is_instance,
     assert_is_subclass,
@@ -27,8 +29,14 @@ class SubCls(Cls):
     pass
 
 
+class Parent(object):
+    class Child(object):
+        pass
+
+
 cls_path = __name__ + "." + Cls.__name__
 subcls_path = __name__ + "." + SubCls.__name__
+nested_cls_path = __name__ + "." + Parent.__name__ + "." + Parent.Child.__name__
 
 
 def test_format_types():
@@ -131,7 +139,7 @@ def test_is_iterable():
 def test_assert_is_instance():
     assert_is_instance(None, None)
     assert_is_instance(None, (None,))
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(0, None)
         assert_is_instance(0, (None,))
 
@@ -139,7 +147,7 @@ def test_assert_is_instance():
     assert_is_instance(Cls(), cls_path, subtypes=False)
     assert_is_instance(SubCls(), cls_path)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), cls_path, subtypes=False)
 
     assert_is_instance(SubCls(), subcls_path, subtypes=False)
@@ -148,24 +156,24 @@ def test_assert_is_instance():
     assert_is_instance(Cls(), (cls_path, Cls, int), subtypes=False)
     assert_is_instance(SubCls(), (cls_path, Cls, int))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (cls_path, Cls, int), subtypes=False)
 
     assert_is_instance(SubCls(), (subcls_path, SubCls, int), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(Cls(), (int, float))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(Cls(), (int, float), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float), subtypes=False)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_instance(SubCls(), (int, float), subtypes=False)
 
     with pytest.raises(ValueError):
@@ -178,7 +186,7 @@ def test_assert_is_instance():
 def test_assert_is_subclass():
     assert_is_subclass(type(None), None)
     assert_is_subclass(type(None), (None,))
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(int, None)
         assert_is_subclass(int, (None,))
 
@@ -186,7 +194,7 @@ def test_assert_is_subclass():
     assert_is_subclass(Cls, cls_path, subtypes=False)
     assert_is_subclass(SubCls, cls_path)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(SubCls, cls_path, subtypes=False)
 
     assert_is_subclass(SubCls, subcls_path, subtypes=False)
@@ -195,25 +203,25 @@ def test_assert_is_subclass():
     assert_is_subclass(Cls, (cls_path, Cls, int), subtypes=False)
     assert_is_subclass(SubCls, (cls_path, Cls, int))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_subclass(SubCls, (cls_path, Cls, int), subtypes=False)
 
     assert_is_subclass(SubCls, (subcls_path, SubCls, int), subtypes=False)
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(Cls, (int, float))
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(Cls, (int, float))  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(Cls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(Cls, (int, float), subtypes=False)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float))
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float))  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float), subtypes=False)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_subclass(SubCls, (int, float), subtypes=False)
+    with pytest.raises(TypeCheckError):
+        assert_is_subclass(SubCls, (int, float), subtypes=False)  # type: ignore
 
     with pytest.raises(ValueError):
         assert_is_subclass(Cls, ())
@@ -225,18 +233,18 @@ def test_assert_is_subclass():
 def test_assert_is_callable():
     assert_is_callable(int)
 
-    with pytest.raises(TypeError):
-        assert_is_callable(3)
+    with pytest.raises(TypeCheckError):
+        assert_is_callable(3)  # type: ignore
 
 
 def test_assert_is_iterable():
-    with pytest.raises(TypeError):
-        assert_is_iterable(3)
+    with pytest.raises(TypeCheckError):
+        assert_is_iterable(3)  # type: ignore
 
-    with pytest.raises(TypeError):
-        assert_is_iterable(False)
+    with pytest.raises(TypeCheckError):
+        assert_is_iterable(False)  # type: ignore
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeCheckError):
         assert_is_iterable("foo")
 
     assert_is_iterable("foo", include_strings=True)
@@ -244,6 +252,61 @@ def test_assert_is_iterable():
     assert_is_iterable([])
     assert_is_iterable({})
     assert_is_iterable(set())
+
+
+def test_typing_type():
+    assert is_instance(3.0, float) == isinstance(3.0, float)
+    assert is_instance(float, tippo.Type[float]) == is_subclass(float, float)
+
+    assert is_subclass(float, tippo.Type[tippo.Type[float]]) == is_subclass(float, type(float))
+    assert is_subclass(float, tippo.Type[int]) == is_subclass(float, type)
+
+    assert is_instance({"a": 1}, tippo.Mapping[str, int])
+    assert is_instance({"a": 1}, tippo.Dict[str, int])
+    assert is_instance(["a"], tippo.Iterable[str])
+    assert is_instance(["a"], tippo.List[str])
+    assert is_instance({"a"}, tippo.Iterable[str])
+    assert is_instance({"a"}, tippo.Set[str])
+
+    assert not is_instance({"a": 1}, tippo.Mapping[float, str])
+    assert not is_instance({"a": 1}, tippo.Dict[float, str])
+    assert not is_instance(["a"], tippo.Iterable[int])
+    assert not is_instance(["a"], tippo.List[int])
+    assert not is_instance({"a"}, tippo.Iterable[int])
+    assert not is_instance({"a"}, tippo.Set[int])
+
+    assert is_instance(dict, tippo.Type[tippo.Mapping])
+    assert is_instance(dict, tippo.Type[tippo.Dict])
+    assert is_instance(list, tippo.Type[tippo.Iterable])
+    assert is_instance(list, tippo.Type[tippo.List])
+    assert is_instance(set, tippo.Type[tippo.Iterable])
+    assert is_instance(set, tippo.Type[tippo.Set])
+
+    assert is_instance(dict, tippo.Type[tippo.Mapping[int, str]])
+    assert is_instance(dict, tippo.Type[tippo.Dict[int, str]])
+    assert is_instance(list, tippo.Type[tippo.Iterable[int]])
+    assert is_instance(list, tippo.Type[tippo.List[int]])
+    assert is_instance(set, tippo.Type[tippo.Iterable[int]])
+    assert is_instance(set, tippo.Type[tippo.Set[int]])
+
+    assert is_instance(3, tippo.Any)
+    assert is_instance(True, tippo.Literal[True, False])
+    assert is_instance(3, tippo.Union[int, str])
+    assert is_instance(int, tippo.Type[int])
+    assert is_instance((3, "3"), tippo.Tuple[int, str])
+    assert is_instance((3, 4, 5), tippo.Tuple[int, ...])
+    assert is_instance({"3": 3}, tippo.Mapping[str, int])
+    assert is_instance([1, 2, 3], tippo.Iterable[int])
+
+    assert not is_instance(None, tippo.Literal[True, False])
+    assert not is_instance(3.4, tippo.Union[int, str])
+    assert not is_instance(float, tippo.Type[int])
+    assert not is_instance(("3", 3), tippo.Tuple[int, str])
+    assert not is_instance(("3", "4", "5"), tippo.Tuple[int, ...])
+    assert not is_instance({3: "3"}, tippo.Mapping[str, int])
+    assert not is_instance([1, 2, 3], tippo.Iterable[str])
+
+    assert is_instance(Parent.Child(), tippo.Optional[nested_cls_path])
 
 
 if __name__ == "__main__":
