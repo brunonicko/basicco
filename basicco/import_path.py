@@ -57,7 +57,7 @@ def _get_generic_path(obj, generic_paths, builtin_paths):
 def import_path(
     path,  # type: str
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,
 ):
     # type: (...) -> Any
@@ -70,6 +70,10 @@ def import_path(
     :param generic: Whether to import generic.
     :return: Imported module/object.
     """
+
+    # Default builtin paths.
+    if builtin_paths is None:
+        builtin_paths = DEFAULT_BUILTIN_PATHS
 
     # Special value.
     if path in _SPECIAL_VALUES:
@@ -216,7 +220,7 @@ def get_name(obj):
 def get_path(
     obj,  # type: Any
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
     check=True,  # type: bool
 ):
@@ -231,6 +235,10 @@ def get_path(
     :param check: Whether to check path for consistency.
     :return: Dot path.
     """
+
+    # Default builtin paths.
+    if builtin_paths is None:
+        builtin_paths = DEFAULT_BUILTIN_PATHS
 
     # Add extra paths to builtin paths.
     builtin_paths = tuple(extra_paths) + tuple(builtin_paths)
