@@ -4,7 +4,10 @@ from __future__ import absolute_import, division, print_function
 
 import uuid
 
+import six
 from tippo import TypeVar, Generic
+
+from .generic_meta import GenericMeta
 
 __all__ = ["ContextVar", "Token"]
 
@@ -20,7 +23,7 @@ except ImportError:
     _local = local()
     MISSING = object()
 
-    class Token(Generic[_T]):  # type: ignore
+    class Token(six.with_metaclass(GenericMeta, Generic[_T])):  # type: ignore
         __slots__ = ("__var", "__old_value")
 
         MISSING = MISSING
@@ -40,7 +43,7 @@ except ImportError:
             # type: () -> _T
             return self.__old_value
 
-    class ContextVar(Generic[_T]):  # type: ignore
+    class ContextVar(six.with_metaclass(GenericMeta, Generic[_T])):  # type: ignore
         __slots__ = ("__uuid", "__name", "__default")
 
         def __init__(self, name, default=MISSING):
