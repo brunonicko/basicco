@@ -8,7 +8,7 @@ import six
 import typing_inspect  # type: ignore
 from tippo import Any, Callable, Type, TypeVar, Mapping, ForwardRef, Iterable, get_typing, get_args, get_origin, cast
 
-from .import_path import DEFAULT_BUILTIN_PATHS, import_path, get_name
+from .import_path import import_path, get_name
 
 __all__ = [
     "TEXT_TYPES",
@@ -342,7 +342,7 @@ def type_names(types):
 def import_types(
     types,  # type: Type | str | None | Iterable[Type | str | None]
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
 ):
     # type: (...) -> tuple[Type, ...]
@@ -382,7 +382,7 @@ def is_instance(
     types,  # type: Type | str | None | Iterable[Type | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -421,7 +421,7 @@ def is_subclass(
     types,  # type: Type | str | None | Iterable[Type | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -479,7 +479,7 @@ def assert_is_instance(
     types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -524,7 +524,7 @@ def assert_is_subclass(
     types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=DEFAULT_BUILTIN_PATHS,  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):

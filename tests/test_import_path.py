@@ -54,6 +54,11 @@ def test_get_path():
     with pytest.raises(ImportError):
         get_path(LocalClass)
 
+    objs = (tippo.Mapping[str, int], MyClass, "MyClass", "Mapping[str, int]")
+    for obj in objs:
+        path = get_path(obj)
+        assert import_path(path) == obj
+
 
 def test_extract_generic_paths():
     assert extract_generic_paths("Tuple[int, str]") == ("Tuple", ("int", "str"))
