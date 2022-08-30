@@ -49,21 +49,6 @@ Retrieve the caller's module name.
     >>> do_something()
     'I was called by __main__'
 
-context_vars
-^^^^^^^^^^^^
-Rough implementation of `ContextVar` for Python 2.7 that works with threads.
-
-.. code:: python
-
-    >>> from basicco.context_vars import ContextVar
-    >>> my_var = ContextVar("my_var", default="bar")
-    >>> token = my_var.set("foo")
-    >>> my_var.get()
-    'foo'
-    >>> my_var.reset(token)
-    >>> my_var.get()
-    'bar'
-
 custom_repr
 ^^^^^^^^^^^
 Custom representation functions.
