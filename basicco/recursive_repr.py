@@ -3,11 +3,10 @@
 from __future__ import absolute_import, division, print_function
 
 import functools
+import threading
 
 import six
 from tippo import TYPE_CHECKING, Counter, TypeVar, overload
-
-from .context_vars import ContextVar
 
 if TYPE_CHECKING:
     from tippo import Callable, Literal
@@ -17,7 +16,7 @@ __all__ = ["recursive_repr"]
 
 _T = TypeVar("_T")
 
-_reprs = ContextVar("_reprs")  # type: ContextVar[Counter[int]]
+_reprs = threading.local()
 
 
 @overload
@@ -67,12 +66,13 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
             self_id = id(self)
 
             # Get reprs counter for current context and increment it for self.
-            reprs_token = None
+            had_reprs = False
             try:
-                reprs = _reprs.get()
-            except LookupError:
-                reprs = Counter()
-                reprs_token = _reprs.set(reprs)
+                reprs = _reprs.reprs
+            except AttributeError:
+                reprs = _reprs.reprs = Counter()
+            else:
+                had_reprs = True
             reprs[self_id] += 1
 
             # Return representation.
@@ -86,10 +86,10 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
                 # Decrement repr counter and clean up if needed.
                 reprs[self_id] -= 1
                 if not reprs[self_id]:
-                    del reprs[self_id]
+                    del _reprs.reprs[self_id]
 
-                if reprs_token is not None:
-                    _reprs.reset(reprs_token)
+                if not had_reprs:
+                    del _reprs.reprs
 
         return decorated
 
