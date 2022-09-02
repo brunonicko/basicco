@@ -7,8 +7,10 @@ import functools
 
 from tippo import TYPE_CHECKING, TypeVar, final
 
+from .get_mro import get_mro
+
 if TYPE_CHECKING:
-    from tippo import Type, Set, Callable, final
+    from tippo import Type, Callable, final
 
 __all__ = ["final", "is_final", "FinalizedMeta"]
 
@@ -84,8 +86,9 @@ class FinalizedMeta(type):
 
         # Iterate over MRO of the class.
         final_cls = None  # type: Type | None
-        final_member_names = set()  # type: Set[str]
-        for base in reversed(inspect.getmro(cls)[:-1]):
+        final_member_names = set()  # type: set[str]
+        mro = get_mro(cls)
+        for base in reversed(mro[:-1]):
 
             # Prevent subclassing final classes.
             if getattr(base, _FINAL_CLASS_TAG, False) is True:
