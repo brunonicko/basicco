@@ -96,6 +96,45 @@ Run a value through a callable factory (or None).
     >>> fabricate_value("str", 3)  # use an import path
     '3'
 
+generic_meta
+^^^^^^^^^^^^
+Replacement metaclass for `typing.GenericMeta` that fixes bugs for Python 2.7.
+For newer Python versions that don't use a metaclass for generics, this will simply be `type`.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from typing import Generic, TypeVar
+    >>> from basicco.generic_meta import GenericMeta
+    >>> T = TypeVar("T")
+    >>> class MyGeneric(six.with_metaclass(GenericMeta, Generic[T])):
+    ...     pass
+    ...
+    >>> MyGeneric[int]
+    __main__.MyGeneric[int]
+
+get_mro
+^^^^^^^
+Get consistent MRO amongst different python versions. This works even with generic classes in Python 2.7.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from typing import Generic, TypeVar
+    >>> from basicco.get_mro import get_mro
+    >>> T = TypeVar("T")
+    >>> class MyGeneric(Generic[T]):
+    ...     pass
+    ...
+    >>> class SubClass(MyGeneric[T]):
+    ...     pass
+    ...
+    >>> class Mixed(MyGeneric[T], SubClass[T]):
+    ...     pass
+    ...
+    >>> [c.__name__ for c in get_mro(Mixed)]
+    ["object", "Generic", "MyGeneric", "SubClass", "Mixed"]
+
 import_path
 ^^^^^^^^^^^
 Generate importable dot paths and import from them.
@@ -270,6 +309,23 @@ This will respect the MRO (supports multiple inheritance).
     >>> sorted(scrape_class(SubAsset, field_filter))
     ['name', 'sub_name', 'version']
 
+state
+^^^^^
+Get/update the state of an object, slotted or not (works even in Python 2.7).
+
+.. code:: python
+
+    >>> from basicco.state import get_state
+    >>> class Slotted(object):
+    ...     __slots__ = ("foo", "bar")
+    ...     def __init__(self, foo, bar):
+    ...         self.foo = foo
+    ...         self.bar = bar
+    ...
+    >>> slotted = Slotted("a", "b")
+    >>> sorted(get_state(slotted).items())
+    [('a', 1), ('b', 2)]
+
 type_checking
 ^^^^^^^^^^^^^
 Runtime type checking with support for import paths and type hints.
@@ -306,3 +362,7 @@ Iterator that yields unique values.
     >>> from basicco.unique_iterator import unique_iterator
     >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
     [1, 2, 3, 4, 5]
+
+weak_reference
+^^^^^^^^^^^^^^
+Weak Reference-like object that supports pickling.

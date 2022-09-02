@@ -3,14 +3,14 @@
 from __future__ import absolute_import, division, print_function
 
 import six
-from tippo import TYPE_CHECKING
+from tippo import Any, Callable, Iterable, Mapping, TypeVar
 
 from .import_path import import_path
 
-if TYPE_CHECKING:
-    from tippo import Any, Callable, Iterable, Mapping
+__all__ = ["fabricate_value", "format_factory"]
 
-__all__ = ["fabricate_value"]
+
+T = TypeVar("T")
 
 
 def fabricate_value(
@@ -42,3 +42,17 @@ def fabricate_value(
         error = "{!r} object is not a valid callable factory".format(type(factory).__name__)
         raise TypeError(error)
     return factory(value, *args or (), **kwargs or {})
+
+
+def format_factory(factory):
+    # type: (str | Callable[..., T] | None) -> str | Callable[..., T] | None
+    """
+    Format and check factory.
+
+    :param factory: Factory.
+    :return: Checked factory.
+    """
+    if factory is not None and not isinstance(factory, six.string_types) and not callable(factory):
+        error = "invalid factory type {!r}, expected None, a string, or a callable".format(type(factory).__name__)
+        raise TypeError(error)
+    return factory

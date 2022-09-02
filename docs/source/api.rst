@@ -7,12 +7,6 @@ caller_module (api)
 .. automodule:: basicco.caller_module
    :members:
 
-context_vars (api)
-------------------
-
-.. automodule:: basicco.context_vars
-   :members:
-
 custom_repr (api)
 -----------------
 
@@ -29,6 +23,18 @@ fabricate_value (api)
 ---------------------
 
 .. automodule:: basicco.fabricate_value
+   :members:
+
+generic_meta (api)
+------------------
+
+.. automodule:: basicco.generic_meta
+   :members:
+
+get_mro (api)
+-------------
+
+.. automodule:: basicco.get_mro
    :members:
 
 import_path (api)
@@ -79,6 +85,12 @@ scrape_class (api)
 .. automodule:: basicco.scrape_class
    :members:
 
+state (api)
+-----------
+
+.. automodule:: basicco.state
+   :members:
+
 type_checking (api)
 -------------------
 
@@ -89,4 +101,10 @@ unique_iterator (api)
 ---------------------
 
 .. automodule:: basicco.unique_iterator
+   :members:
+
+weak_reference (api)
+--------------------
+
+.. automodule:: basicco.weak_reference
    :members:

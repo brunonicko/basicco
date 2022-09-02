@@ -10,7 +10,7 @@ __all__ = ["get_mro"]
 def get_mro(cls):
     # type: (type) -> tuple[type, ...]
     """
-    Get consistent mro among different python versions.
+    Get consistent mro amongst different python versions.
     This works even with generic classes.
 
     :param cls: Class.
