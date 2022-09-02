@@ -129,11 +129,11 @@ Get consistent MRO amongst different python versions. This works even with gener
     >>> class SubClass(MyGeneric[T]):
     ...     pass
     ...
-    >>> class Mixed(MyGeneric[T], SubClass[T]):
+    >>> class Mixed(SubClass[T], MyGeneric[T]):
     ...     pass
     ...
     >>> [c.__name__ for c in get_mro(Mixed)]
-    ["object", "Generic", "MyGeneric", "SubClass", "Mixed"]
+    ['Mixed', 'SubClass', 'MyGeneric', 'Generic', 'object']
 
 import_path
 ^^^^^^^^^^^
@@ -324,7 +324,7 @@ Get/update the state of an object, slotted or not (works even in Python 2.7).
     ...
     >>> slotted = Slotted("a", "b")
     >>> sorted(get_state(slotted).items())
-    [('a', 1), ('b', 2)]
+    [('bar', 'b'), ('foo', 'a')]
 
 type_checking
 ^^^^^^^^^^^^^
