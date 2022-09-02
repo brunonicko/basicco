@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import pytest  # noqa
 import six
+from tippo import Generic, TypeVar
 
 from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta  # noqa
 
@@ -85,6 +86,32 @@ def test_descriptor():
 
     # Decorated descriptor object should be recognized as final.
     assert "method" in getattr(Class, _FINAL_METHODS)
+
+
+def test_generic():
+    T = TypeVar("T")  # type: ignore  # noqa
+
+    try:
+        from typing import GenericMeta  # type: ignore  # noqa
+    except ImportError:
+
+        class BaseMeta(FinalizedMeta):
+            pass
+
+    else:
+
+        class BaseMeta(FinalizedMeta, GenericMeta):
+            pass
+
+    class Base(six.with_metaclass(BaseMeta, Generic[T])):
+        @final
+        def method(self):
+            pass
+
+    class SubBase(Base[T]):
+        pass
+
+    assert SubBase
 
 
 if __name__ == "__main__":

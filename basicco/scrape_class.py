@@ -2,10 +2,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import inspect
-
 import six
 from tippo import TYPE_CHECKING, Protocol
+
+from .get_mro import get_mro
 
 if TYPE_CHECKING:
     from tippo import Any, Dict, Type
@@ -59,7 +59,7 @@ def scrape_class(cls, member_filter=DEFAULT_MEMBER_FILTER, override_filter=None,
         override_filter = lambda b, mn, m, pm: member_filter(b, mn, m)
 
     members = {}  # type: Dict[str, Any]
-    for base in reversed(inspect.getmro(cls)):
+    for base in reversed(get_mro(cls)):
         for member_name, member in six.iteritems(base.__dict__):
             override = member_name in members
             if (override and override_filter(base, member_name, member, members[member_name])) or (
