@@ -18,6 +18,13 @@ def get_mro(cls):
     :return: Tuple of classes.
     """
 
+    # Resolve generic class to its origin.
+    generic = cls
+    while hasattr(generic, "__origin__"):
+        generic = getattr(generic, "__origin__")
+        if generic is not None:
+            cls = generic
+
     # Newer python versions.
     if GenericMeta is type:
         return tuple(inspect.getmro(cls))

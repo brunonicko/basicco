@@ -1,4 +1,4 @@
-"""Python 2.7 compatible way of getting the qualified name. Inspired by wbolster/qualname."""
+"""Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`."""
 
 import ast
 import inspect
