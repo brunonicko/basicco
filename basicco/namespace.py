@@ -1,15 +1,10 @@
 """Namespace/Bunch-like object."""
 
-from __future__ import absolute_import, division, print_function
-
 import re
 import copy
 
 import six
-from tippo import TYPE_CHECKING, Iterable, Tuple, TypeVar
-
-if TYPE_CHECKING:
-    from tippo import Any, Mapping, Iterator
+from tippo import Any, Mapping, Iterator, Iterable, Tuple, TypeVar
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 
@@ -26,6 +21,7 @@ class Namespace(Iterable[Tuple[str, _VT]]):
     """Read-only namespace that wraps a mapping."""
 
     __slots__ = (_WRAPPED_SLOT,)
+    __hash__ = None  # type: ignore
 
     def __init__(self, wrapped=None):
         # type: (Mapping[str, _VT] | Namespace[_VT] | None) -> None
@@ -37,6 +33,9 @@ class Namespace(Iterable[Tuple[str, _VT]]):
         elif isinstance(wrapped, Namespace):
             wrapped = _read(wrapped)
         _init(self, wrapped)
+
+    def __getitem__(self, name):
+        return _read(self)[name]
 
     def __dir__(self):
         keys = {k for k in _read(self) if isinstance(k, str) and not hasattr(type(self), k) and _MEMBER_REGEX.match(k)}
@@ -74,7 +73,7 @@ class Namespace(Iterable[Tuple[str, _VT]]):
         return len(_read(self))
 
     def __iter__(self):
-        # type: () -> Iterator[Tuple[str, _VT]]
+        # type: () -> Iterator[tuple[str, _VT]]
         for key, value in _read(self).items():
             yield key, value
 
@@ -97,6 +96,12 @@ class MutableNamespace(Namespace[_VT]):
     """Mutable namespace that wraps a mapping."""
 
     __slots__ = ()
+
+    def __setitem__(self, name, value):
+        _read(self)[name] = value
+
+    def __delitem__(self, name):
+        del _read(self)[name]
 
     def __setattr__(self, name, value):
         # type: (str, _VT) -> None

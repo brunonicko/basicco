@@ -1,15 +1,10 @@
 """Python 2.7 compatible way of getting the qualified name. Inspired by wbolster/qualname."""
 
-from __future__ import absolute_import, division, print_function
-
 import ast
 import inspect
 
 import six
-from tippo import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from tippo import Callable
+from tippo import Callable
 
 __all__ = ["QualnameError", "qualname"]
 

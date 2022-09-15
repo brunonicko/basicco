@@ -1,5 +1,4 @@
-import pytest
-
+import pytest  # noqa
 from tippo import TypeVar, Generic
 
 from basicco.get_mro import get_mro

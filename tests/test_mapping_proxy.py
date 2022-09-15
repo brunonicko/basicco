@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import pytest  # noqa
 
 from basicco.mapping_proxy import MappingProxyType
@@ -11,10 +9,10 @@ def test_wrap_dict():
     assert proxy_dict["foo"] == "bar"
 
     with pytest.raises(TypeError):
-        proxy_dict["foo"] = "foo"
+        proxy_dict["foo"] = "foo"  # type: ignore
 
     with pytest.raises(TypeError):
-        del proxy_dict["foo"]
+        del proxy_dict["foo"]  # type: ignore
 
     internal_dict["foo"] = "foo"
     assert proxy_dict["foo"] == "foo"

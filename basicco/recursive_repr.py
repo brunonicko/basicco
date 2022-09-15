@@ -1,15 +1,10 @@
 """Decorator that prevents infinite recursion for `__repr__` methods."""
 
-from __future__ import absolute_import, division, print_function
-
 import functools
 import threading
 
 import six
-from tippo import TYPE_CHECKING, Counter, TypeVar, overload
-
-if TYPE_CHECKING:
-    from tippo import Callable, Literal
+from tippo import Callable, Literal, Counter, TypeVar, overload
 
 __all__ = ["recursive_repr"]
 

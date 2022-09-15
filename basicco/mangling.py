@@ -1,7 +1,5 @@
 """Name mangling utilities."""
 
-from __future__ import absolute_import, division, print_function
-
 import re
 
 __all__ = ["mangle", "unmangle", "extract"]

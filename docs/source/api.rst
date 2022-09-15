@@ -7,6 +7,12 @@ caller_module (api)
 .. automodule:: basicco.caller_module
    :members:
 
+context_vars (api)
+------------------
+
+.. automodule:: basicco.context_vars
+   :members:
+
 custom_repr (api)
 -----------------
 
@@ -23,12 +29,6 @@ fabricate_value (api)
 ---------------------
 
 .. automodule:: basicco.fabricate_value
-   :members:
-
-generic_meta (api)
-------------------
-
-.. automodule:: basicco.generic_meta
    :members:
 
 get_mro (api)
@@ -77,12 +77,6 @@ runtime_final (api)
 -------------------
 
 .. automodule:: basicco.runtime_final
-   :members:
-
-scrape_class (api)
-------------------
-
-.. automodule:: basicco.scrape_class
    :members:
 
 state (api)

@@ -49,6 +49,21 @@ Retrieve the caller's module name.
     >>> do_something()
     'I was called by __main__'
 
+context_vars
+^^^^^^^^^^^^
+Backport of `contextvars` for Python 2.7 based on `MagicStack/contextvars`.
+
+.. code:: python
+
+    >>> from basicco.context_vars import ContextVar
+    >>> my_var = ContextVar("my_var", default="bar")
+    >>> token = my_var.set("foo")
+    >>> my_var.get()
+    'foo'
+    >>> my_var.reset(token)
+    >>> my_var.get()
+    'bar'
+
 custom_repr
 ^^^^^^^^^^^
 Custom representation functions.
@@ -96,23 +111,6 @@ Run a value through a callable factory (or None).
     >>> fabricate_value("str", 3)  # use an import path
     '3'
 
-generic_meta
-^^^^^^^^^^^^
-Replacement metaclass for `typing.GenericMeta` that fixes bugs for Python 2.7.
-For newer Python versions that don't use a metaclass for generics, this will simply be `type`.
-
-.. code:: python
-
-    >>> from six import with_metaclass
-    >>> from typing import Generic, TypeVar
-    >>> from basicco.generic_meta import GenericMeta
-    >>> T = TypeVar("T")
-    >>> class MyGeneric(six.with_metaclass(GenericMeta, Generic[T])):
-    ...     pass
-    ...
-    >>> MyGeneric[int]
-    __main__.MyGeneric[int]
-
 get_mro
 ^^^^^^^
 Get consistent MRO amongst different python versions. This works even with generic classes in Python 2.7.
@@ -120,7 +118,7 @@ Get consistent MRO amongst different python versions. This works even with gener
 .. code:: python
 
     >>> from six import with_metaclass
-    >>> from typing import Generic, TypeVar
+    >>> from tippo import Generic, TypeVar
     >>> from basicco.get_mro import get_mro
     >>> T = TypeVar("T")
     >>> class MyGeneric(Generic[T]):
@@ -267,7 +265,7 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     ...     def method(self):
     ...         pass
     Traceback (most recent call last):
-    TypeError: can't override final member 'method'
+    TypeError: 'SubAsset' overrides final member 'method' defined by 'Asset'
 
 .. code:: python
 
@@ -284,30 +282,7 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     ...     def prop(self):
     ...         pass
     Traceback (most recent call last):
-    TypeError: can't override final member 'prop'
-
-scrape_class
-^^^^^^^^^^^^
-Scrape a class and get a dictionary with filtered named members.
-This will respect the MRO (supports multiple inheritance).
-
-.. code:: python
-
-    >>> from basicco.scrape_class import scrape_class
-    >>> class Field(object):
-    ...     pass
-    ...
-    >>> class Asset(object):
-    ...     name = Field()
-    ...     version = Field()
-    ...
-    >>> class SubAsset(Asset):
-    ...     sub_name = Field()
-    ...
-    >>> def field_filter(base, member_name, member):
-    ...     return isinstance(member, Field)
-    >>> sorted(scrape_class(SubAsset, field_filter))
-    ['name', 'sub_name', 'version']
+    TypeError: 'SubAsset' overrides final member 'prop' defined by 'Asset'
 
 state
 ^^^^^
@@ -332,7 +307,7 @@ Runtime type checking with support for import paths and type hints.
 
 .. code:: python
 
-    >>> from typing import Mapping
+    >>> from tippo import Mapping
     >>> from itertools import chain
     >>> from basicco.type_checking import is_instance
     >>> class SubChain(chain):

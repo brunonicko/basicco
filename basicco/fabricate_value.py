@@ -1,7 +1,5 @@
 """Value factoring with support for lazy dot paths."""
 
-from __future__ import absolute_import, division, print_function
-
 import six
 from tippo import Any, Callable, Iterable, Mapping, TypeVar
 
@@ -12,10 +10,12 @@ __all__ = ["fabricate_value", "format_factory"]
 
 T = TypeVar("T")
 
+MISSING = object()
+
 
 def fabricate_value(
     factory,  # type: str | Callable | None
-    value,  # type: Any
+    value=MISSING,  # type: Any
     args=None,  # type: Iterable | None
     kwargs=None,  # type: Mapping[str, Any] | None
     extra_paths=(),  # type: Iterable[str]
@@ -41,7 +41,10 @@ def fabricate_value(
     if not callable(factory):
         error = "{!r} object is not a valid callable factory".format(type(factory).__name__)
         raise TypeError(error)
-    return factory(value, *args or (), **kwargs or {})
+    if value is MISSING:
+        return factory(*args or (), **kwargs or {})
+    else:
+        return factory(value, *args or (), **kwargs or {})
 
 
 def format_factory(factory):

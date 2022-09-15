@@ -3,7 +3,7 @@
 import inspect
 import types
 
-from tippo import Any, Dict, Set, Mapping
+from tippo import Any, Mapping
 import six
 
 from .import_path import get_path, import_path
@@ -12,7 +12,7 @@ __all__ = ["get_state", "update_state", "reducer"]
 
 
 def get_state(obj):
-    # type: (Any) -> Dict[str, Any]
+    # type: (Any) -> dict[str, Any]
     """
     Get dictionary with an object's attribute values.
     Works with regular and slotted objects.
@@ -28,7 +28,7 @@ def get_state(obj):
         error = "{} object has no state".format(repr(type(obj).__name__))
         raise TypeError(error)
 
-    state = {}  # type: Dict[str, Any]
+    state = {}  # type: dict[str, Any]
     cls = type(obj)
     for base in inspect.getmro(cls):
         if base is object:
@@ -78,7 +78,7 @@ def update_state(obj, state_update):
         error = "{} object has no state".format(repr(type(obj).__name__))
         raise TypeError(error)
 
-    remaining = set(state_update)  # type: Set[str]
+    remaining = set(state_update)  # type: set[str]
     cls = type(obj)
     for base in inspect.getmro(cls):
         if base is object:
