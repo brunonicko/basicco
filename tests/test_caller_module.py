@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import pytest  # noqa
 
 from basicco import caller_module

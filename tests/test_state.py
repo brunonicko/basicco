@@ -1,7 +1,7 @@
 import sys
 import pickle
 
-import pytest
+import pytest  # noqa
 
 from basicco.state import get_state, update_state, reducer
 

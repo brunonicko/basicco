@@ -1,6 +1,4 @@
-from __future__ import absolute_import, division, print_function
-
-from pytest import main
+import pytest  # noqa
 
 from basicco.unique_iterator import unique_iterator
 
@@ -10,4 +8,4 @@ def test_unique_iterator():
 
 
 if __name__ == "__main__":
-    main()
+    pytest.main()

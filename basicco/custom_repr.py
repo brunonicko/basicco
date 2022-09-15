@@ -1,11 +1,6 @@
 """Custom representation functions."""
 
-from __future__ import absolute_import, division, print_function
-
-from tippo import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from tippo import Any, Callable, Hashable, Iterable, Mapping
+from tippo import Any, Callable, Hashable, Iterable, Mapping
 
 __all__ = ["mapping_repr", "iterable_repr"]
 

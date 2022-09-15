@@ -1,7 +1,5 @@
 """Metaclass that forces `__hash__` to be declared when `__eq__` is declared."""
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = ["ExplicitHashMeta"]
 
 

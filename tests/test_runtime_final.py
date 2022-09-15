@@ -1,8 +1,6 @@
-from __future__ import absolute_import, division, print_function
-
 import pytest  # noqa
 import six
-from tippo import Generic, TypeVar
+from tippo import Generic, GenericMeta, TypeVar
 
 from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta  # noqa
 
@@ -91,22 +89,19 @@ def test_descriptor():
 def test_generic():
     T = TypeVar("T")  # type: ignore  # noqa
 
-    try:
-        from typing import GenericMeta  # type: ignore  # noqa
-    except ImportError:
-
-        class BaseMeta(FinalizedMeta):
-            pass
-
-    else:
-
-        class BaseMeta(FinalizedMeta, GenericMeta):
-            pass
+    class BaseMeta(FinalizedMeta, GenericMeta):
+        pass
 
     class Base(six.with_metaclass(BaseMeta, Generic[T])):
         @final
         def method(self):
             pass
+
+    assert Base[int]
+    assert Base[T]
+
+    assert repr(Base[int])
+    assert repr(Base[T])
 
     class SubBase(Base[T]):
         pass

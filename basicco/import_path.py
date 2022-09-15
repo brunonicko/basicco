@@ -1,19 +1,13 @@
 """Import from/generate lazy dot paths."""
 
-from __future__ import absolute_import, division, print_function
-
 import types
 
-import typing
 import six
 from six import moves
 import tippo
-from tippo import TYPE_CHECKING
+from tippo import Any, Iterable, Optional
 
 from .qualname import QualnameError, qualname
-
-if TYPE_CHECKING:
-    from tippo import Any, Iterable, Optional
 
 __all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_name", "get_path"]
 
@@ -271,8 +265,8 @@ def get_path(
             and getattr(generic_origin, "__module__", None) == "collections.abc"
         ):
             generic_origin_name = get_name(generic_origin)
-            if generic_origin_name is not None and hasattr(typing, generic_origin_name):
-                generic_origin = getattr(typing, generic_origin_name)
+            if generic_origin_name is not None and hasattr(tippo, generic_origin_name):
+                generic_origin = getattr(tippo, generic_origin_name)
 
         # Add generic arguments to the path.
         if generic_args:

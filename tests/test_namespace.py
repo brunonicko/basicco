@@ -1,11 +1,10 @@
-from __future__ import absolute_import, division, print_function
-
 from pickle import loads, dumps
 
+import pytest  # noqa
 import six
-from pytest import main
 
-from basicco.namespace import _WRAPPED_SLOT, Namespace, MutableNamespace, NamespacedMeta
+from basicco.namespace import _WRAPPED_SLOT  # noqa
+from basicco.namespace import Namespace, MutableNamespace, NamespacedMeta
 
 
 def test_read_only_namespace():
@@ -17,6 +16,7 @@ def test_read_only_namespace():
 
     assert hasattr(ns, "update")
     assert ns.update == "foo"
+    assert ns["update"] == "foo"
 
 
 def test_pickle():
@@ -35,6 +35,7 @@ def test_namespace():
     ns.update = "bar"
     assert hasattr(ns, "update")
     assert ns.update == "bar"
+    assert ns["update"] == "bar"
 
     del ns.update
     assert not hasattr(ns, "update")
@@ -42,12 +43,14 @@ def test_namespace():
     ns.update = "foo"
     assert hasattr(ns, "update")
     assert ns.update == "foo"
+    assert ns["update"] == "foo"
 
     ns.update = "bar"
     assert hasattr(ns, "update")
     assert ns.update == "bar"
+    assert ns["update"] == "bar"
 
-    del ns.update
+    del ns["update"]
     assert not hasattr(ns, "update")
 
 
@@ -105,4 +108,4 @@ def test_private_namespace():
 
 
 if __name__ == "__main__":
-    main()
+    pytest.main()

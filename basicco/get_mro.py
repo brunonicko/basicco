@@ -1,14 +1,15 @@
 """Utility to get mro bases."""
 
+import collections
 import inspect
 
-import tippo
+from tippo import GenericMeta, Type
 
 __all__ = ["get_mro"]
 
 
 def get_mro(cls):
-    # type: (type) -> tuple[type, ...]
+    # type: (Type) -> tuple[Type, ...]
     """
     Get consistent mro amongst different python versions.
     This works even with generic classes.
@@ -16,13 +17,15 @@ def get_mro(cls):
     :param cls: Class.
     :return: Tuple of classes.
     """
-    if not hasattr(tippo, "GenericMeta"):
+
+    # Newer python versions.
+    if GenericMeta is type:
         return tuple(inspect.getmro(cls))
 
-    # Special logic to skip generic classes when GenericMeta is being used, old python.
-    mro = []
-    for base in inspect.getmro(cls):
-        generic = cls
+    # Special logic to skip generic classes when GenericMeta is being used, for old python.
+    mro = collections.deque()  # type: collections.deque[Type]
+    for base in reversed(inspect.getmro(cls)):
+        generic = base
         origin = None
         while hasattr(generic, "__origin__"):
             generic = getattr(generic, "__origin__")
@@ -30,5 +33,5 @@ def get_mro(cls):
                 origin = generic
         if origin in mro:
             continue
-        mro.append(base)
+        mro.appendleft(base)
     return tuple(mro)

@@ -1,16 +1,11 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
-from __future__ import absolute_import, division, print_function
-
 import inspect
 import functools
 
-from tippo import TYPE_CHECKING, TypeVar, final
+from tippo import Type, Callable, final, TypeVar, final
 
 from .get_mro import get_mro
-
-if TYPE_CHECKING:
-    from tippo import Type, Callable, final
 
 __all__ = ["final", "is_final", "FinalizedMeta"]
 
@@ -86,9 +81,11 @@ class FinalizedMeta(type):
 
         # Iterate over MRO of the class.
         final_cls = None  # type: Type | None
-        final_member_names = set()  # type: set[str]
+        final_member_names = {}  # type: dict[str, Type]
         mro = get_mro(cls)
-        for base in reversed(mro[:-1]):
+        for base in reversed(mro):
+            if base is object:
+                continue
 
             # Prevent subclassing final classes.
             if getattr(base, _FINAL_CLASS_TAG, False) is True:
@@ -102,12 +99,16 @@ class FinalizedMeta(type):
 
                 # Can't override final members.
                 if member_name in final_member_names:
-                    error = "can't override final member {!r}".format(member_name)
+                    error = "{!r} overrides final member {!r} defined by {!r}".format(
+                        base.__name__,
+                        member_name,
+                        final_member_names[member_name].__name__,
+                    )
                     raise TypeError(error)
 
                 # Keep track of final members.
                 if _is_final_member(member):
-                    final_member_names.add(member_name)
+                    final_member_names[member_name] = base
 
             # Store final methods.
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))

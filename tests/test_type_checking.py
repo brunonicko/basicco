@@ -1,10 +1,8 @@
-from __future__ import absolute_import, division, print_function
-
 import abc
 import itertools
 
-import tippo
 import pytest  # noqa
+import tippo
 
 from basicco.type_checking import (
     TypeCheckError,

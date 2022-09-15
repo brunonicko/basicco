@@ -4,10 +4,7 @@ import copy
 import threading
 import weakref
 
-import six
-from tippo import Generic, TypeVar, Dict, Any, Optional, Type, Union
-
-from .generic_meta import GenericMeta
+from tippo import Generic, TypeVar, Any, Type
 from .recursive_repr import recursive_repr
 
 __all__ = ["WeakReference", "UniqueHashWeakReference"]
@@ -17,7 +14,7 @@ _T = TypeVar("_T")
 
 _DEAD_REF = weakref.ref(type("Dead", (object,), {"__slots__": ("__weakref__",)})())
 
-_cache = {}  # type: Dict[Type["WeakReference"], weakref.WeakValueDictionary[int, "WeakReference"]]
+_cache = {}  # type: dict[Type["WeakReference"], weakref.WeakValueDictionary[int, "WeakReference"]]
 
 _lock = threading.RLock()
 
@@ -28,10 +25,8 @@ def _reduce_dead(cls):
     return self
 
 
-class WeakReference(six.with_metaclass(GenericMeta, Generic[_T])):
-    """
-    Weak Reference-like object that supports pickling.
-    """
+class WeakReference(Generic[_T]):
+    """Weak Reference-like object that supports pickling."""
 
     __slots__ = ("__weakref__", "__ref")
 
@@ -61,7 +56,7 @@ class WeakReference(six.with_metaclass(GenericMeta, Generic[_T])):
             return self
 
     def __init__(self, obj=None):
-        # type: (Union[_T, None]) -> None
+        # type: (_T | None) -> None
         """
         :param obj: Object to reference.
         """
@@ -120,7 +115,7 @@ class WeakReference(six.with_metaclass(GenericMeta, Generic[_T])):
         return self.__repr__()
 
     def __call__(self):
-        # type: () -> Optional[_T]
+        # type: () -> _T | None
         """
         Get strong reference to the object or None if no longer alive.
 

@@ -1,7 +1,5 @@
 """Retrieve the caller's module name."""
 
-from __future__ import absolute_import, division, print_function
-
 import inspect
 
 __all__ = ["caller_module"]

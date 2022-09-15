@@ -1,7 +1,5 @@
 """Runtime type checking with support for import paths and type hints."""
 
-from __future__ import absolute_import, division, print_function
-
 import itertools
 
 import six
@@ -574,7 +572,7 @@ def assert_is_subclass(
         )
         raise TypeCheckError(error)
 
-    return cast("Type[_T]", cls)
+    return cast(Type[_T], cls)
 
 
 def assert_is_callable(value):

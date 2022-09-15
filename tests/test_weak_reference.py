@@ -1,7 +1,7 @@
 import copy
 import pickle
 
-import pytest
+import pytest  # noqa
 
 from basicco.weak_reference import WeakReference, UniqueHashWeakReference
 
