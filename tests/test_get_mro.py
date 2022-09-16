@@ -20,6 +20,8 @@ def test_generic_mro():
         pass
 
     assert get_mro(SubSubBase) == (SubSubBase, SubBase, Base, Generic, object)
+    assert get_mro(SubSubBase[T]) == (SubSubBase, SubBase, Base, Generic, object)
+    assert get_mro(SubSubBase[int]) == (SubSubBase, SubBase, Base, Generic, object)
 
 
 if __name__ == "__main__":

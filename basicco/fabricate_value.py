@@ -32,11 +32,15 @@ def fabricate_value(
     :param extra_paths: Extra module paths in fallback order.
     :param builtin_paths: Builtin module paths in fallback order.
     :return: Output value.
+    :raises ValueError: Factory is None and no value was provided.
     :raises TypeError: Invalid factory type.
     """
     if isinstance(factory, six.string_types):
         factory = import_path(factory, extra_paths=extra_paths, builtin_paths=builtin_paths)
     if factory is None:
+        if value is MISSING:
+            error = "no value and no factory provided"
+            raise ValueError(error)
         return value
     if not callable(factory):
         error = "{!r} object is not a valid callable factory".format(type(factory).__name__)

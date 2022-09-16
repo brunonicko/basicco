@@ -1,4 +1,4 @@
-"""Backport of `contextvars` for Python 2.7 based on MagicStack/contextvars."""
+"""Backport of `contextvars` for Python 2.7. Based on `MagicStack/contextvars`."""
 
 __all__ = ["ContextVar", "Context", "Token", "copy_context"]
 
