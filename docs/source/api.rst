@@ -43,6 +43,12 @@ import_path (api)
 .. automodule:: basicco.import_path
    :members:
 
+init_subclass (api)
+-------------------
+
+.. automodule:: basicco.init_subclass
+   :members:
+
 mangling (api)
 --------------
 
@@ -77,6 +83,12 @@ runtime_final (api)
 -------------------
 
 .. automodule:: basicco.runtime_final
+   :members:
+
+set_name (api)
+--------------
+
+.. automodule:: basicco.set_name
    :members:
 
 state (api)

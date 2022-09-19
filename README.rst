@@ -152,6 +152,23 @@ Generate importable dot paths and import from them.
     >>> extract_generic_paths("Tuple[int, str]")
     ('Tuple', ('int', 'str'))
 
+init_subclass
+^^^^^^^^^^^^^
+Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
+
+.. code:: python
+
+    >>> from basicco.init_subclass import InitSubclass
+    >>> class Foo(InitSubclass):
+    ...     def __init_subclass__(cls, foo=None, **kwargs):
+    ...         cls.foo = foo
+    ...
+    >>> class Bar(Foo):
+    ...     __kwargs__ = {"foo": "bar"}
+    ...
+    >>> Bar.foo
+    'bar'
+
 mangling
 ^^^^^^^^
 Functions to mangle/unmangle/extract private names.
@@ -283,6 +300,26 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     ...         pass
     Traceback (most recent call last):
     TypeError: 'SubAsset' overrides final member 'prop' defined by 'Asset'
+
+set_name
+^^^^^^^^
+Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
+
+.. code:: python
+
+    >>> from basicco.set_name import SetName
+    >>> class Attribute(object):
+    ...     def __set_name__(self, owner, name):
+    ...         self.owner = owner
+    ...         self.name = name
+    ...
+    >>> class Collection(SetName):
+    ...     foo = Attribute()
+    ...
+    >>> Collection.foo.owner is Collection
+    True
+    >>> Collection.foo.name
+    'foo'
 
 state
 ^^^^^
