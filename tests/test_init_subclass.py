@@ -1,8 +1,13 @@
 import sys
 
 import pytest  # noqa
+import six
+from tippo import Generic, GenericMeta, TypeVar
 
 from basicco.init_subclass import InitSubclassMeta, InitSubclass
+
+
+T_co = TypeVar("T_co", covariant=True)
 
 
 def test_meta():
@@ -19,16 +24,19 @@ def test_init_subclass():
             assert bar == "{}2".format(cls.__name__)
             super(A, cls).__init_subclass__(**kwargs)  # noqa
 
+    assert A
     assert not hasattr(A, "__kwargs__")
 
     class B(A):
         __kwargs__ = {"foo": "B1", "bar": "B2"}
 
+    assert B
     assert not hasattr(B, "__kwargs__")
 
     class C(B):
         __kwargs__ = {"foo": "C1", "bar": "C2"}
 
+    assert C
     assert not hasattr(C, "__kwargs__")
 
 
@@ -80,19 +88,40 @@ class A(InitSubclass):
         assert bar == "{}2".format(cls.__name__)
         super(A, cls).__init_subclass__(**kwargs)
 
+assert A
 assert not hasattr(A, "__kwargs__")
 
 class B(A, foo="B1"):
     __kwargs__ = {"bar": "B2"}
 
+assert B
 assert not hasattr(B, "__kwargs__")
 
 class C(B, bar="C2"):
     __kwargs__ = {"foo": "C1"}
 
+assert C
 assert not hasattr(C, "__kwargs__")
 """
         exec(code, globals(), globals())
+
+
+def test_generics():
+    class MyMeta(InitSubclassMeta, GenericMeta):
+        pass
+
+    class Base(six.with_metaclass(MyMeta, InitSubclass)):
+        pass
+
+    class MyClass(Generic[T_co], Base):
+        pass
+
+    assert MyClass[int]
+
+    class MySubClass(MyClass[T_co]):
+        pass
+
+    assert MySubClass[int]
 
 
 if __name__ == "__main__":
