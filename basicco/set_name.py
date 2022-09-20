@@ -15,7 +15,7 @@ class SetNameMeta(type):
         # Set member names on older python versions.
         if sys.version_info[:3] < (3, 6):
             for member_name, member in six.iteritems(dct):
-                if hasattr(member, "__set_name__"):
+                if hasattr(member, "__set_name__") and not isinstance(member, type):
                     member.__set_name__(cls, member_name)
 
         return cls
