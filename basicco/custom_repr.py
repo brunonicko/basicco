@@ -8,7 +8,7 @@ __all__ = ["mapping_repr", "iterable_repr"]
 def mapping_repr(
     mapping,  # type: Mapping
     prefix="{",  # type: str
-    template="{key}{value}",  # type: str
+    template="{key}: {value}",  # type: str
     separator=", ",  # type: str
     suffix="}",  # type: str
     sorting=False,  # type: bool

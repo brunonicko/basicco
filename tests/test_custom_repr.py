@@ -4,9 +4,11 @@ from basicco.custom_repr import mapping_repr, iterable_repr
 
 
 def test_custom_mapping_repr():
+    mapping = {1: 4, "2": 3, 3: 2, "4": "1"}
+    assert mapping_repr(mapping) == repr(mapping)
     assert (
         mapping_repr(
-            {1: 4, "2": 3, 3: 2, "4": "1"},
+            mapping,
             prefix="Mapping<",
             template="{key}=={value}",
             separator="; ",
@@ -22,9 +24,11 @@ def test_custom_mapping_repr():
 
 
 def test_custom_iterable_repr():
+    iterable = ["a", 1, 2.0, "3.0", 4, None]
+    assert iterable_repr(iterable) == repr(iterable)
     assert (
         iterable_repr(
-            ["a", 1, 2.0, "3.0", 4, None],
+            iterable,
             prefix="Iterable -",
             template="> {value} <",
             separator="-",
