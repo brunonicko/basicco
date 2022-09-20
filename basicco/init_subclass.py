@@ -13,6 +13,13 @@ class InitSubclassMeta(type):
     @staticmethod
     def __new__(mcs, name, bases, dct, **kwargs):
 
+        # Keep a copy of the original kwargs -- they are sometimes used by generics.
+        original_kwargs = dict(kwargs)
+
+        # Wipe out kwargs if using older python.
+        if sys.version_info[:3] < (3, 6):
+            kwargs = dict()
+
         # Get compatibility kwargs (defined in the body of the class).
         dct_had_kwargs = "__kwargs__" in dct
         if dct_had_kwargs:
@@ -39,8 +46,8 @@ class InitSubclassMeta(type):
                 dct = dict(dct)
                 dct["__init_subclass__"] = classmethod(dct["__init_subclass__"])
 
-            # Build class.
-            cls = super(InitSubclassMeta, mcs).__new__(mcs, name, bases, dct)
+            # Build class and pass original kwargs (for generics).
+            cls = super(InitSubclassMeta, mcs).__new__(mcs, name, bases, dct, **original_kwargs)
 
             # Find '__init_subclass__' method.
             method = None
@@ -63,12 +70,12 @@ class InitSubclassMeta(type):
                     )
                     raise TypeError(error)
 
-                # Call it.
+                # Call it with compat kwargs only.
                 method.__func__(cls, **compat_kwargs)
 
             # Have kwargs but no method was found.
             elif kwargs:
-                error = "__init_subclass__() takes no keyword arguments"
+                error = "object.__init_subclass__() takes no keyword arguments"
                 raise TypeError(error)
 
         # We don't need to do anything for newer python versions, just pass the merged kwargs.
@@ -90,5 +97,7 @@ class InitSubclassMeta(type):
 class InitSubclass(six.with_metaclass(InitSubclassMeta, object)):
     __slots__ = ()
 
-    def __init_subclass__(cls):
-        pass
+    if sys.version_info[:3] < (3, 6):
+
+        def __init_subclass__(cls):
+            pass
