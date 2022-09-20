@@ -98,5 +98,6 @@ class InitSubclass(six.with_metaclass(InitSubclassMeta, object)):
     __slots__ = ()
 
     if sys.version_info[:3] < (3, 6):
+
         def __init_subclass__(cls):
             pass
