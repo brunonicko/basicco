@@ -18,12 +18,15 @@ def test_meta():
 
 def test_set_name():
     class A(SetName):
+        attribute_type_a = Attribute
         attribute_a = Attribute()
 
     class B(A):
+        attribute_type_b = Attribute
         attribute_b = Attribute()
 
     class C(B):
+        attribute_type_c = Attribute
         attribute_c = Attribute()
 
     assert C.attribute_a.name == "attribute_a"
@@ -39,12 +42,15 @@ def test_newer_python():
     if sys.version_info[:3] >= (3, 6):
         code = """
 class A(SetName):
+    attribute_type_a = Attribute
     attribute_a = Attribute()
 
 class B(A):
+    attribute_type_b = Attribute
     attribute_b = Attribute()
 
 class C(B):
+    attribute_type_c = Attribute
     attribute_c = Attribute()
 
 assert C.attribute_a.name == "attribute_a"
