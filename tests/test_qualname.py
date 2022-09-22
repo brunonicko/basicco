@@ -1,6 +1,6 @@
 import pytest  # noqa
 
-from basicco.qualname import qualname, QualnameError
+from basicco.qualname import QualnameError, qualname
 
 
 @pytest.mark.parametrize("force_ast", (True, False))

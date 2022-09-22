@@ -19,6 +19,12 @@ custom_repr (api)
 .. automodule:: basicco.custom_repr
    :members:
 
+dynamic_code (api)
+------------------
+
+.. automodule:: basicco.dynamic_code
+   :members:
+
 explicit_hash (api)
 -------------------
 

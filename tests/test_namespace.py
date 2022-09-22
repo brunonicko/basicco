@@ -1,10 +1,10 @@
-from pickle import loads, dumps
+from pickle import dumps, loads
 
 import pytest  # noqa
 import six
 
 from basicco.namespace import _WRAPPED_SLOT  # noqa
-from basicco.namespace import Namespace, MutableNamespace, NamespacedMeta
+from basicco.namespace import MutableNamespace, Namespace, NamespacedMeta
 
 
 def test_read_only_namespace():

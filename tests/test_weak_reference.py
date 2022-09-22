@@ -3,7 +3,7 @@ import pickle
 
 import pytest  # noqa
 
-from basicco.weak_reference import WeakReference, UniqueHashWeakReference
+from basicco.weak_reference import UniqueHashWeakReference, WeakReference
 
 
 class Cls(object):

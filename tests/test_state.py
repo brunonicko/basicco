@@ -1,9 +1,9 @@
-import sys
 import pickle
+import sys
 
 import pytest  # noqa
 
-from basicco.state import get_state, update_state, reducer
+from basicco.state import get_state, reducer, update_state
 
 
 class _Class(object):

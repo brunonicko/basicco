@@ -4,8 +4,7 @@ import pytest  # noqa
 import six
 from tippo import Generic, GenericMeta, TypeVar
 
-from basicco.init_subclass import InitSubclassMeta, InitSubclass
-
+from basicco.init_subclass import InitSubclass, InitSubclassMeta
 
 T_co = TypeVar("T_co", covariant=True)
 

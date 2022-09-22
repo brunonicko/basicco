@@ -6,7 +6,7 @@ import pytest  # noqa
 import six.moves
 import tippo
 
-from basicco.import_path import get_path, import_path, extract_generic_paths
+from basicco.import_path import extract_generic_paths, get_path, import_path
 
 
 class MyClass(object):

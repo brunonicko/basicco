@@ -12,13 +12,22 @@ try:
     globals()["copy_context"] = contextvars.copy_context
 
 except ImportError:
+    import enum
     import threading
 
-    import six
-    import enum
     import pyrsistent
+    import six
     from pyrsistent.typing import PMap
-    from tippo import Any, Callable, GenericMeta, Generic, Mapping, TypeVar, Iterator, overload
+    from tippo import (
+        Any,
+        Callable,
+        Generic,
+        GenericMeta,
+        Iterator,
+        Mapping,
+        TypeVar,
+        overload,
+    )
 
     class _NoDefaultType(enum.Enum):
         NO_DEFAULT = "NO_DEFAULT"

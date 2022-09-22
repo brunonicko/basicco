@@ -1,6 +1,6 @@
 import pytest  # noqa
 
-from basicco.custom_repr import mapping_repr, iterable_repr
+from basicco.custom_repr import iterable_repr, mapping_repr
 
 
 def test_custom_mapping_repr():

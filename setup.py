@@ -1,6 +1,6 @@
 import os
-import setuptools  # type: ignore
 
+import setuptools  # type: ignore
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -11,7 +11,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="7.1.3",
+    version="7.2.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description="Collection of lower-level utilities that enhance code compatibility and validation.",
