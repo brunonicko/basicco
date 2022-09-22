@@ -3,8 +3,8 @@
 import types
 
 import six
-from six import moves
 import tippo
+from six import moves
 from tippo import Any, Iterable, Optional
 
 from .qualname import QualnameError, qualname

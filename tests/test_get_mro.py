@@ -1,8 +1,7 @@
 import pytest  # noqa
-from tippo import TypeVar, Generic
+from tippo import Generic, TypeVar
 
 from basicco.get_mro import get_mro
-
 
 T = TypeVar("T")
 

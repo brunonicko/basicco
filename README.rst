@@ -82,6 +82,27 @@ Custom representation functions.
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
+dynamic_code
+^^^^^^^^^^^^
+Dynamic code generation utilities.
+
+.. code:: python
+
+    >>> from basicco.dynamic_code import make_function, generate_unique_filename
+    >>> class MyClass(object):
+    ...     pass
+    ...
+    >>> # Prepare the script and necessary data.
+    >>> name = "__init__"
+    >>> script = "def __init__(self):"
+    >>> script += "    self.foo = 'bar'"
+    >>> filename = generate_unique_filename(name, MyClass.__module__, MyClass.__name__)
+    >>> # Make function and attach it as a method.
+    >>> MyClass.__init__ = make_function(name, script)
+    >>> obj = MyClass()
+    >>> obj.foo
+    'bar'
+
 explicit_hash
 ^^^^^^^^^^^^^
 Metaclass that forces `__hash__` to be declared when `__eq__` is declared.

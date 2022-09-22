@@ -2,7 +2,12 @@ import pytest  # noqa
 import six
 from tippo import Generic, GenericMeta, TypeVar
 
-from basicco.runtime_final import _FINAL_CLASS_TAG, _FINAL_METHODS, final, FinalizedMeta  # noqa
+from basicco.runtime_final import (  # noqa
+    _FINAL_CLASS_TAG,
+    _FINAL_METHODS,
+    FinalizedMeta,
+    final,
+)
 
 
 def test_final_class():

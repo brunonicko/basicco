@@ -3,8 +3,7 @@ import sys
 
 import pytest  # noqa
 
-from basicco.context_vars import ContextVar, Context, Token, copy_context
-
+from basicco.context_vars import Context, ContextVar, Token, copy_context
 
 _var = ContextVar("_var")  # type: ContextVar[str]
 _default_var = ContextVar("_default_var", default="default")  # type: ContextVar[str]

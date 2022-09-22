@@ -1,9 +1,9 @@
 """Custom `final` decorator that enables runtime checking for classes and methods."""
 
-import inspect
 import functools
+import inspect
 
-from tippo import Type, Callable, final, TypeVar, final
+from tippo import Callable, Type, TypeVar, final
 
 from .get_mro import get_mro
 

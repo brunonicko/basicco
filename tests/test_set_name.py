@@ -2,7 +2,7 @@ import sys
 
 import pytest  # noqa
 
-from basicco.set_name import SetNameMeta, SetName
+from basicco.set_name import SetName, SetNameMeta
 
 
 class Attribute(object):

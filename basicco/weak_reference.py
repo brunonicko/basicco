@@ -4,7 +4,8 @@ import copy
 import threading
 import weakref
 
-from tippo import Generic, TypeVar, Any, Type
+from tippo import Any, Generic, Type, TypeVar
+
 from .recursive_repr import recursive_repr
 
 __all__ = ["WeakReference", "UniqueHashWeakReference"]

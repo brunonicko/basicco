@@ -4,9 +4,21 @@ import itertools
 
 import six
 import typing_inspect  # type: ignore
-from tippo import Any, Callable, Type, TypeVar, Mapping, ForwardRef, Iterable, get_typing, get_args, get_origin, cast
+from tippo import (
+    Any,
+    Callable,
+    ForwardRef,
+    Iterable,
+    Mapping,
+    Type,
+    TypeVar,
+    cast,
+    get_args,
+    get_origin,
+    get_typing,
+)
 
-from .import_path import import_path, get_name
+from .import_path import get_name, import_path
 
 __all__ = [
     "TEXT_TYPES",

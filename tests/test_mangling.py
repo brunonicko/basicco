@@ -1,6 +1,6 @@
 import pytest  # noqa
 
-from basicco.mangling import mangle, unmangle, extract
+from basicco.mangling import extract, mangle, unmangle
 
 
 def test_mangle():

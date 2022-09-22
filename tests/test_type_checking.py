@@ -8,14 +8,14 @@ from basicco.type_checking import (
     TypeCheckError,
     assert_is_callable,
     assert_is_instance,
-    assert_is_subclass,
     assert_is_iterable,
-    is_iterable,
+    assert_is_subclass,
     format_types,
-    type_names,
     import_types,
     is_instance,
+    is_iterable,
     is_subclass,
+    type_names,
 )
 
 

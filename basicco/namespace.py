@@ -1,10 +1,10 @@
 """Namespace/Bunch-like object."""
 
-import re
 import copy
+import re
 
 import six
-from tippo import Any, Mapping, Iterator, Iterable, Tuple, TypeVar
+from tippo import Any, Iterable, Iterator, Mapping, Tuple, TypeVar
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
 

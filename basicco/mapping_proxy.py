@@ -7,7 +7,7 @@ try:
     from types import MappingProxyType
 
 except ImportError:
-    from tippo import Mapping, Iterator, TypeVar  # type: ignore
+    from tippo import Iterator, Mapping, TypeVar  # type: ignore
 
     KT = TypeVar("KT")
     VT = TypeVar("VT")

@@ -3,8 +3,8 @@
 import inspect
 import types
 
-from tippo import Any, Mapping
 import six
+from tippo import Any, Mapping
 
 from .import_path import get_path, import_path
 

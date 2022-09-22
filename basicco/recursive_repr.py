@@ -4,7 +4,7 @@ import functools
 import threading
 
 import six
-from tippo import Callable, Literal, Counter, TypeVar, overload
+from tippo import Callable, Counter, Literal, TypeVar, overload
 
 __all__ = ["recursive_repr"]
 
