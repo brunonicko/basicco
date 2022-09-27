@@ -2,8 +2,8 @@
 
    <p align="center">
      <picture>
-        <img src="./docs/source/_static/basicco.svg" width="90%" alt="Basicco" />
         <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
+        <img src="./docs/source/_static/basicco.svg" width="90%" alt="Basicco" />
      </picture>
    </p>
    <p align="center">
