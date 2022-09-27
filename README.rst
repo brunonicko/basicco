@@ -82,6 +82,22 @@ Custom representation functions.
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
+dirable
+^^^^^^^
+Backport of the base implementation of `__dir__` for Python 2.7.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.dirable import Dirable
+    >>> class Class(Dirable):
+    ...     def __dir__(self):
+    ...         return super(Class, self).__dir__()
+    ...
+    >>> obj = Class()
+    >>> dir(obj)
+    [...]
+
 dynamic_code
 ^^^^^^^^^^^^
 Dynamic code generation utilities.
@@ -109,9 +125,9 @@ Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
 
 .. code:: python
 
-    >>> import six
+    >>> from six import with_metaclass
     >>> from basicco.explicit_hash import ExplicitHashMeta
-    >>> class Asset(six.with_metaclass(ExplicitHashMeta, object)):
+    >>> class Asset(with_metaclass(ExplicitHashMeta, object)):
     ...     def __eq__(self, other):
     ...         pass
     ...
@@ -198,7 +214,7 @@ Prevents changing public class attributes.
 
     >>> from six import with_metaclass
     >>> from basicco.locked_class import LockedClassMeta
-    >>> class Foo(six.with_metaclass(LockedClassMeta, object)):
+    >>> class Foo(with_metaclass(LockedClassMeta, object)):
     ...     pass
     ...
     >>> Foo.bar = "bar"
@@ -294,7 +310,7 @@ Also provides a `ReducibleMeta` metaclass that allows for pickling instances of 
 qualname
 ^^^^^^^^
 Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
-Also provides a `QualnamedMeta` metaclass with a `__fullname__` class property for Python 2.7.
+Also provides a `QualnamedMeta` metaclass with a `__qualname__` class property for Python 2.7.
 
 recursive_repr
 ^^^^^^^^^^^^^^
@@ -322,10 +338,10 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> import six
+    >>> from six import with_metaclass
     >>> from basicco.runtime_final import FinalizedMeta, final
     >>> @final
-    ... class Asset(six.with_metaclass(FinalizedMeta, object)):
+    ... class Asset(with_metaclass(FinalizedMeta, object)):
     ...     pass
     ...
     >>> class SubAsset(Asset):
@@ -336,9 +352,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> import six
+    >>> from six import with_metaclass
     >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
+    >>> class Asset(with_metaclass(FinalizedMeta, object)):
     ...     @final
     ...     def method(self):
     ...         pass
@@ -351,9 +367,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> import six
+    >>> from six import with_metaclass
     >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
+    >>> class Asset(with_metaclass(FinalizedMeta, object)):
     ...     @property
     ...     @final
     ...     def prop(self):

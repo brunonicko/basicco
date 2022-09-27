@@ -50,6 +50,32 @@ def test_get_slotted_state():
     assert get_state(SubClass()) == {"a": 1, "b": 2, "c": 3}
 
 
+def test_get_protected_slotted_state():
+    class Class(object):
+        __slots__ = ("__a", "__b")
+
+        def __init__(self):
+            self.__a = 1
+            self.__b = 2
+
+    class SubClass(Class):
+        __slots__ = ("__a", "__b", "__c")
+
+        def __init__(self):
+            super(SubClass, self).__init__()
+            self.__a = 3
+            self.__b = 4
+            self.__c = 5
+
+    assert get_state(SubClass()) == {
+        "_Class__a": 1,
+        "_Class__b": 2,
+        "_SubClass__a": 3,
+        "_SubClass__b": 4,
+        "_SubClass__c": 5,
+    }
+
+
 def test_get_class_state():
     class Class(object):
         a = 1

@@ -148,8 +148,11 @@ class NamespacedMeta(type):
             namespace = MutableNamespace()  # type: MutableNamespace[Any]
             type.__setattr__(cls, namespace_attr, namespace)
             return namespace
-        else:
-            return cls.__getattribute__(name)
+        try:
+            return super(NamespacedMeta, cls).__getattr__(name)  # type: ignore  # noqa
+        except AttributeError:
+            pass
+        return cls.__getattribute__(name)
 
 
 type.__delattr__(NamespacedMeta, mangle("__namespace", NamespacedMeta.__name__))

@@ -8,6 +8,7 @@ import six
 from tippo import Any, Mapping
 
 from .import_path import get_path, import_path
+from .mangling import mangle
 
 __all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 
@@ -26,7 +27,7 @@ def get_state(obj):
         return dict(obj.__dict__)
 
     if not hasattr(type(obj), "__slots__"):
-        error = "{} object has no state".format(repr(type(obj).__name__))
+        error = "{!r} object has no state".format(type(obj).__name__)
         raise TypeError(error)
 
     state = {}  # type: dict[str, Any]
@@ -41,9 +42,8 @@ def get_state(obj):
             if slot == "__weakref__":
                 continue
 
-            # Privatize slot if needed.
-            if slot.startswith("__") and not slot.endswith("__"):
-                slot = "_{}{}".format(cls.__name__.lstrip("_"), slot)
+            # Mangle slot if needed.
+            slot = mangle(slot, base.__name__)
 
             # Skip if already has a value.
             if slot in state:
@@ -76,7 +76,7 @@ def update_state(obj, state_update):
             obj.__dict__.update(state_update)
         return
     if not hasattr(type(obj), "__slots__"):
-        error = "{} object has no state".format(repr(type(obj).__name__))
+        error = "{!r} object has no state".format(type(obj).__name__)
         raise TypeError(error)
 
     remaining = set(state_update)  # type: set[str]
@@ -109,9 +109,7 @@ def update_state(obj, state_update):
             return
 
     if remaining:
-        error = "could not find slot(s) {} in {}".format(
-            ", ".join(repr(s) for s in sorted(remaining)), repr(cls.__name__)
-        )
+        error = "could not find slot(s) {} in {!r}".format(", ".join(repr(s) for s in sorted(remaining)), cls.__name__)
         raise AttributeError(error)
 
 

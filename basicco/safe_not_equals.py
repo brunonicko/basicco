@@ -13,7 +13,7 @@ __all__ = ["SafeNotEqualsMeta", "SafeNotEquals"]
 class SafeNotEqualsMeta(type):
     """Metaclass that backports the default Python 3 behavior of `__ne__` behavior for Python 2.7."""
 
-    if True or sys.version_info[:1] < (3,):
+    if sys.version_info[:1] < (3,):
         @staticmethod
         def __new__(mcs, name, bases, dct, **kwargs):
             cls = super(SafeNotEqualsMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
@@ -29,8 +29,7 @@ class SafeNotEqualsMeta(type):
                     module=module,
                 )
                 func = functools.wraps(object.__ne__)(func)
-
-                type.__setattr__(cls, "__ne__", func)
+                type.__setattr__(cls, func_name, func)
             return cls
 
 

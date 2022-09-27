@@ -35,16 +35,48 @@ def test_class():
 
 
 def test_metaclass():
-    assert QX.__fullname__ == "QX"
-    assert QX.QY.__fullname__ == "QX.QY"
-    assert QX.QY.QZ.__fullname__ == "QX.QY.QZ"
+    assert QX.__qualname__ == "QX"
+    assert QX.QY.__qualname__ == "QX.QY"
+    assert QX.QY.QZ.__qualname__ == "QX.QY.QZ"
 
-    assert QA.__fullname__ == "QA"
-    assert QA.QY.__fullname__ == "QA.QY"
-    assert QA.QY.QC.__fullname__ == "QA.QY.QC"
+    assert QA.__qualname__ == "QA"
+    assert QA.QY.__qualname__ == "QA.QY"
+    assert QA.QY.QC.__qualname__ == "QA.QY.QC"
 
     assert repr(QX.QY.QZ) == "<class '{}.QX.QY.QZ'>".format(__name__)
     assert repr(QA.QY.QC) == "<class '{}.QA.QY.QC'>".format(__name__)
+
+    QX.QY.QZ.__qualname__ = "QX.QY.QZ.CUSTOM"
+    QX.QY.__qualname__ = "QX.QY.CUSTOM"
+    QX.__qualname__ = "QX.CUSTOM"
+
+    QA.QY.QC.__qualname__ = "QA.QY.QC.CUSTOM"
+    QA.QY.__qualname__ = "QA.QY.CUSTOM"
+    QA.__qualname__ = "QA.CUSTOM"
+
+    assert QX.__qualname__ == "QX.CUSTOM"
+    assert QX.QY.__qualname__ == "QX.QY.CUSTOM"
+    assert QX.QY.QZ.__qualname__ == "QX.QY.QZ.CUSTOM"
+
+    assert QA.__qualname__ == "QA.CUSTOM"
+    assert QA.QY.__qualname__ == "QA.QY.CUSTOM"
+    assert QA.QY.QC.__qualname__ == "QA.QY.QC.CUSTOM"
+
+    QX.QY.QZ.__qualname__ = "QX.QY.QZ"
+    QX.QY.__qualname__ = "QX.QY"
+    QX.__qualname__ = "QX"
+
+    QA.QY.QC.__qualname__ = "QA.QY.QC"
+    QA.QY.__qualname__ = "QA.QY"
+    QA.__qualname__ = "QA"
+
+    assert QX.__qualname__ == "QX"
+    assert QX.QY.__qualname__ == "QX.QY"
+    assert QX.QY.QZ.__qualname__ == "QX.QY.QZ"
+
+    assert QA.__qualname__ == "QA"
+    assert QA.QY.__qualname__ == "QA.QY"
+    assert QA.QY.QC.__qualname__ == "QA.QY.QC"
 
 
 class X(object):

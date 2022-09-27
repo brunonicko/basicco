@@ -19,6 +19,12 @@ custom_repr (api)
 .. automodule:: basicco.custom_repr
    :members:
 
+dirable (api)
+-------------
+
+.. automodule:: basicco.dirable
+   :members:
+
 dynamic_code (api)
 ------------------
 
