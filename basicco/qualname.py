@@ -207,7 +207,8 @@ class QualnamedMeta(type):
                 return super(QualnamedMeta, cls).__getattr__(name)  # type: ignore  # noqa
             except AttributeError:
                 pass
-            return cls.__getattribute__(name)
+            error = "class {!r} has no attribute {!r}".format(cls.__name__, name)
+            raise AttributeError(error)
 
         @property
         def __qualname__(cls):

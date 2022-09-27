@@ -49,6 +49,12 @@ get_mro (api)
 .. automodule:: basicco.get_mro
    :members:
 
+implicit_hash (api)
+-------------------
+
+.. automodule:: basicco.implicit_hash
+   :members:
+
 import_path (api)
 -----------------
 

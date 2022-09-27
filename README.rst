@@ -170,6 +170,22 @@ Get consistent MRO amongst different python versions. This works even with gener
     >>> [c.__name__ for c in get_mro(Mixed)]
     ['Mixed', 'SubClass', 'MyGeneric', 'Generic', 'object']
 
+implicit_hash
+^^^^^^^^^^^^^
+Metaclass that forces `__hash__` to None when `__eq__` is declared.
+This is a backport of the behavior in Python 3.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.implicit_hash import ImplicitHashMeta
+    >>> class Asset(with_metaclass(ImplicitHashMeta, object)):
+    ...     def __eq__(self, other):
+    ...         pass
+    ...
+    >>> Asset.__hash__ is None
+    True
+
 import_path
 ^^^^^^^^^^^
 Generate importable dot paths and import from them.
@@ -333,15 +349,15 @@ runtime_final
 ^^^^^^^^^^^^^
 Runtime-checked version of the `typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
 
-Can be used on methods, properties, classmethods, staticmethods, and classes that have `FinalizedMeta` as a metaclass.
+Can be used on methods, properties, classmethods, staticmethods, and classes that have `RuntimeFinalMeta` as a metaclass.
 It is also recognized by static type checkers and prevents subclassing and/or member overriding during runtime:
 
 .. code:: python
 
     >>> from six import with_metaclass
-    >>> from basicco.runtime_final import FinalizedMeta, final
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
     >>> @final
-    ... class Asset(with_metaclass(FinalizedMeta, object)):
+    ... class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     pass
     ...
     >>> class SubAsset(Asset):
@@ -353,8 +369,8 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 .. code:: python
 
     >>> from six import with_metaclass
-    >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(with_metaclass(FinalizedMeta, object)):
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
+    >>> class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     @final
     ...     def method(self):
     ...         pass
@@ -368,8 +384,8 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 .. code:: python
 
     >>> from six import with_metaclass
-    >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(with_metaclass(FinalizedMeta, object)):
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
+    >>> class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     @property
     ...     @final
     ...     def prop(self):

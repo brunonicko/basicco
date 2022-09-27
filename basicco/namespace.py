@@ -153,7 +153,8 @@ class NamespacedMeta(type):
             return super(NamespacedMeta, cls).__getattr__(name)  # type: ignore  # noqa
         except AttributeError:
             pass
-        return cls.__getattribute__(name)
+        error = "class {!r} has no attribute {!r}".format(cls.__name__, name)
+        raise AttributeError(error)
 
 
 type.__delattr__(NamespacedMeta, mangle("__namespace", NamespacedMeta.__name__))
