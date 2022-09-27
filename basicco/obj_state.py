@@ -136,14 +136,15 @@ def reducer(self):
 class ReducibleMeta(type):
     """Metaclass that allows slotted classes to be pickled in Python 2.7"""
 
-    @staticmethod
-    def __new__(mcs, name, bases, dct, **kwargs):
-        cls = super(ReducibleMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
-        if sys.version_info[0:2] < (3, 4):
+    if sys.version_info[0:2] < (3, 4):
+
+        @staticmethod
+        def __new__(mcs, name, bases, dct, **kwargs):
+            cls = super(ReducibleMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             old_reducer = getattr(cls, "__reduce__", None)
             if old_reducer is None or old_reducer is object.__reduce__:
                 type.__setattr__(cls, "__reduce__", reducer)
-        return cls
+            return cls
 
 
 class Reducible(six.with_metaclass(ReducibleMeta, object)):
