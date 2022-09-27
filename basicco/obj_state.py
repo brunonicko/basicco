@@ -2,13 +2,14 @@
 
 import inspect
 import types
+import sys
 
 import six
 from tippo import Any, Mapping
 
 from .import_path import get_path, import_path
 
-__all__ = ["get_state", "update_state", "reducer"]
+__all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 
 
 def get_state(obj):
@@ -114,8 +115,11 @@ def update_state(obj, state_update):
         raise AttributeError(error)
 
 
-def _reducer(path, state):
-    cls = import_path(path)
+def _reducer(cls_or_path, state):
+    if isinstance(cls_or_path, six.string_types):
+        cls = import_path(cls_or_path)
+    else:
+        cls = cls_or_path
     self = cls.__new__(cls)
     update_state(self, state)
     return self
@@ -123,4 +127,27 @@ def _reducer(path, state):
 
 def reducer(self):
     """Reducer method that supports qualified name and slots for Python 2.7."""
-    return _reducer, (get_path(type(self)), get_state(self))
+    cls = type(self)
+    try:
+        cls_or_path = get_path(cls)
+    except ImportError:
+        cls_or_path = cls
+    return _reducer, (cls_or_path, get_state(self))
+
+
+class ReducibleMeta(type):
+    """Metaclass that allows slotted classes to be pickled in Python 2.7"""
+
+    @staticmethod
+    def __new__(mcs, name, bases, dct, **kwargs):
+        cls = super(ReducibleMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+        if sys.version_info[0:2] < (3, 4):
+            old_reducer = getattr(cls, "__reduce__", None)
+            if old_reducer is None or old_reducer is object.__reduce__:
+                type.__setattr__(cls, "__reduce__", reducer)
+        return cls
+
+
+class Reducible(six.with_metaclass(ReducibleMeta, object)):
+    """Class that allows slotted classes to be pickled in Python 2.7"""
+    __slots__ = ()

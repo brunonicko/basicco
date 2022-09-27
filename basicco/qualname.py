@@ -2,11 +2,12 @@
 
 import ast
 import inspect
+import sys
 
 import six
 from tippo import Callable
 
-__all__ = ["QualnameError", "qualname"]
+__all__ = ["QualnameError", "qualname", "QualnamedMeta", "Qualnamed"]
 
 
 _cache = {}  # type: dict[str, dict[int, str]]
@@ -172,6 +173,47 @@ def qualname(obj, fallback=None, force_ast=False):
         raise QualnameError(error)
     else:
         return fallback
+
+
+class QualnamedMeta(type):
+    """Metaclass that implements `__fullname__` class property for back-porting qualified name."""
+
+    if sys.version_info[:2] < (3, 4):
+
+        def __repr__(cls):
+            # type: () -> str
+            """
+            Get representation using the class' full name if possible.
+
+            :return: Class representation.
+            """
+            return "<class '{}.{}'>".format(cls.__module__, cls.__fullname__)
+
+    @property
+    def __fullname__(cls):
+        # type: () -> str
+        """Qualified name."""
+        if sys.version_info[:2] < (3, 4):
+            return qualname(cls, fallback=cls.__name__)
+        else:
+            return cls.__qualname__
+
+
+class Qualnamed(six.with_metaclass(QualnamedMeta, object)):
+    """Class that implements `__fullname__` class property for back-porting qualified name."""
+
+    __slots__ = ()
+
+    if sys.version_info[:2] < (3, 4):
+
+        def __repr__(self):
+            # type: () -> str
+            """
+            Get representation using the class' full name if possible.
+
+            :return: Representation.
+            """
+            return "<{}.{} at {}>".format(type(self).__module__, type(self).__fullname__, hex(id(self)))
 
 
 class _Visitor(ast.NodeVisitor):

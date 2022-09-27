@@ -1,6 +1,8 @@
 """Metaclass that forces `__hash__` to be declared when `__eq__` is declared."""
 
-__all__ = ["ExplicitHashMeta"]
+import six
+
+__all__ = ["ExplicitHashMeta", "ExplicitHash"]
 
 
 class ExplicitHashMeta(type):
@@ -12,3 +14,8 @@ class ExplicitHashMeta(type):
             error = "declared '__eq__' in {!r} but didn't declare '__hash__'".format(name)
             raise TypeError(error)
         return super(ExplicitHashMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+
+
+class ExplicitHash(six.with_metaclass(ExplicitHashMeta, object)):
+    """Class that forces `__hash__` to be declared when `__eq__` is declared."""
+    __slots__ = ()

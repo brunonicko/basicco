@@ -1,14 +1,14 @@
 """Custom representation functions."""
 
-from tippo import Any, Callable, Hashable, Iterable, Mapping
+from tippo import Any, Callable, Iterable, Mapping
 
 __all__ = ["mapping_repr", "iterable_repr"]
 
 
 def mapping_repr(
-    mapping,  # type: Mapping
+    mapping,  # type: Mapping | Iterable[tuple[Any, Any]]
     prefix="{",  # type: str
-    template="{key}: {value}",  # type: str
+    template="{key}: {value}",  # type: str | Callable[..., str]
     separator=", ",  # type: str
     suffix="}",  # type: str
     sorting=False,  # type: bool
@@ -19,11 +19,11 @@ def mapping_repr(
 ):
     # type: (...) -> str
     """
-    Get custom representation of a mapping.
+    Get custom representation of a mapping/items.
 
     :param mapping: Mapping.
     :param prefix: Prefix.
-    :param template: Item format template ({key} and {value}).
+    :param template: Item format template or callable (supports {key}, {value}, {i}).
     :param separator: Separator.
     :param suffix: Suffix.
     :param sorting: Whether to sort keys.
@@ -33,22 +33,31 @@ def mapping_repr(
     :param value_repr: Value representation function.
     :return: Custom representation.
     """
-    parts = []
-    iterable = mapping.items()  # type: Iterable[tuple[Hashable, Any]]
+    if isinstance(mapping, Mapping):
+        iterable = mapping.items()  # type: Iterable[tuple[Any, Any]]
+    else:
+        iterable = mapping
+
     if sort_key is None:
         sort_key = lambda item: item[0]
     if sorting:
         iterable = sorted(iterable, key=sort_key, reverse=reverse)
-    for key, value in iterable:
-        part = template.format(key=key_repr(key), value=value_repr(value))
+
+    if not callable(template):
+        template = lambda _template=template, **v: _template.format(**v)
+
+    parts = []  # type: list[str]
+    for i, (key, value) in enumerate(iterable):
+        part = template(key=key_repr(key), value=value_repr(value), i=i)
         parts.append(part)
+
     return prefix + separator.join(parts) + suffix
 
 
 def iterable_repr(
     iterable,  # type: Iterable
     prefix="[",  # type: str
-    template="{value}",  # type: str
+    template="{value}",  # type: str | Callable[..., str]
     separator=", ",  # type: str
     suffix="]",  # type: str
     sorting=False,  # type: bool
@@ -62,7 +71,7 @@ def iterable_repr(
 
     :param iterable: Iterable.
     :param prefix: Prefix.
-    :param template: Item format template ({key} and {value}).
+    :param template: Item format template or callable (supports {value}, {i}).
     :param separator: Separator.
     :param suffix: Suffix.
     :param sorting: Whether to sort the iterable or not.
@@ -71,10 +80,15 @@ def iterable_repr(
     :param value_repr: Value representation function.
     :return: Custom representation.
     """
-    parts = []
     if sorting:
         iterable = sorted(iterable, key=sort_key, reverse=reverse)
-    for value in iterable:
-        part = template.format(value=value_repr(value))
+
+    if not callable(template):
+        template = lambda _template=template, **v: _template.format(**v)
+
+    parts = []  # type: list[str]
+    for i, value in enumerate(iterable):
+        part = template(value=value_repr(value), i=i)
         parts.append(part)
+
     return prefix + separator.join(parts) + suffix

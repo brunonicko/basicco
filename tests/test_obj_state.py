@@ -2,8 +2,9 @@ import pickle
 import sys
 
 import pytest  # noqa
+import six
 
-from basicco.state import get_state, reducer, update_state
+from basicco.obj_state import get_state, reducer, update_state, ReducibleMeta, Reducible
 
 
 class _Class(object):
@@ -11,6 +12,10 @@ class _Class(object):
 
     if sys.version_info[0:2] < (3, 4):
         __reduce__ = reducer
+
+
+class _ReducibleClass(six.with_metaclass(ReducibleMeta, object)):
+    __slots__ = ("a", "b", "c", "d")
 
 
 def test_get_state():
@@ -80,6 +85,25 @@ def test_update_slotted_state():
 
 def test_reducer():
     obj = _Class()
+    obj.a = 1
+    obj.b = 2
+    obj.c = 3
+    obj.d = 4
+
+    pickled_obj = pickle.loads(pickle.dumps(obj))
+
+    assert pickled_obj.a == 1
+    assert pickled_obj.b == 2
+    assert pickled_obj.c == 3
+    assert pickled_obj.d == 4
+
+
+def test_reducible_class():
+    assert isinstance(Reducible, ReducibleMeta)
+
+
+def test_reducible_meta():
+    obj = _ReducibleClass()
     obj.a = 1
     obj.b = 2
     obj.c = 3

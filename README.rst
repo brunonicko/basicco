@@ -190,6 +190,21 @@ Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
     >>> Bar.foo
     'bar'
 
+locked_class
+^^^^^^^^^^^^^
+Prevents changing public class attributes.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.locked_class import LockedClassMeta
+    >>> class Foo(six.with_metaclass(LockedClassMeta, object)):
+    ...     pass
+    ...
+    >>> Foo.bar = "bar"
+    Traceback (most recent call last):
+    AttributeError: can't set read-only class attribute 'bar'
+
 mangling
 ^^^^^^^^
 Functions to mangle/unmangle/extract private names.
@@ -237,20 +252,49 @@ Wraps a dictionary/mapping and provides attribute-style access to it.
     >>> ns.bar
     'foo'
 
-Also provides a `NamespacedMeta` metaclass for adding a `__namespace__` private property that is unique to each class.
+Also provides a `NamespacedMeta` metaclass that adds a `__namespace` protected class attribute that is unique to each
+class.
 
 .. code:: python
 
     >>> from six import with_metaclass
     >>> from basicco.namespace import NamespacedMeta
     >>> class Asset(with_metaclass(NamespacedMeta, object)):
-    ...     pass
+    ...     @classmethod
+    ...     def set_class_value(cls, value):
+    ...         cls.__namespace.value = value
     ...
-    >>> Asset.__namespace__.foo = "bar"
+    ...     @classmethod
+    ...     def get_class_value(cls):
+    ...         return cls.__namespace.value
+    ...
+    >>> Asset.set_class_value("foobar")
+    >>> Asset.get_class_value()
+    'foobar'
+
+obj_state
+^^^^^^^^^
+Get/update the state of an object, slotted or not (works even in Python 2.7).
+
+.. code:: python
+
+    >>> from basicco.obj_state import get_state
+    >>> class Slotted(object):
+    ...     __slots__ = ("foo", "bar")
+    ...     def __init__(self, foo, bar):
+    ...         self.foo = foo
+    ...         self.bar = bar
+    ...
+    >>> slotted = Slotted("a", "b")
+    >>> sorted(get_state(slotted).items())
+    [('bar', 'b'), ('foo', 'a')]
+
+Also provides a `ReducibleMeta` metaclass that allows for pickling instances of slotted classes in Python 2.7.
 
 qualname
 ^^^^^^^^
 Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
+Also provides a `QualnamedMeta` metaclass with a `__fullname__` class property for Python 2.7.
 
 recursive_repr
 ^^^^^^^^^^^^^^
@@ -322,6 +366,39 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     Traceback (most recent call last):
     TypeError: 'SubAsset' overrides final member 'prop' defined by 'Asset'
 
+safe_not_equals
+^^^^^^^^^^^^^^^
+Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.safe_not_equals import SafeNotEqualsMeta
+    >>> class Class(with_metaclass(SafeNotEqualsMeta, object)):
+    ...     pass
+    ...
+    >>> obj_a = Class()
+    >>> obj_b = Class()
+    >>> assert (obj_a == obj_a) is not (obj_a != obj_a)
+    >>> assert (obj_b == obj_b) is not (obj_b != obj_b)
+    >>> assert (obj_a == obj_b) is not (obj_a != obj_b)
+
+safe_repr
+^^^^^^^^^
+Decorator that prevents `__repr__` methods from raising exceptions and return a default representation instead.
+
+.. code:: python
+
+    >>> from basicco.safe_repr import safe_repr
+    >>> class Class(object):
+    ...     @safe_repr
+    ...     def __repr__(self):
+    ...         raise RuntimeError("oh oh")
+    ...
+    >>> obj = Class()
+    >>> repr(obj)
+    "<__main__.Class object at ...; repr failed due to 'RuntimeError: oh oh'>"
+
 set_name
 ^^^^^^^^
 Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
@@ -341,23 +418,6 @@ Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
     True
     >>> Collection.foo.name
     'foo'
-
-state
-^^^^^
-Get/update the state of an object, slotted or not (works even in Python 2.7).
-
-.. code:: python
-
-    >>> from basicco.state import get_state
-    >>> class Slotted(object):
-    ...     __slots__ = ("foo", "bar")
-    ...     def __init__(self, foo, bar):
-    ...         self.foo = foo
-    ...         self.bar = bar
-    ...
-    >>> slotted = Slotted("a", "b")
-    >>> sorted(get_state(slotted).items())
-    [('bar', 'b'), ('foo', 'a')]
 
 type_checking
 ^^^^^^^^^^^^^

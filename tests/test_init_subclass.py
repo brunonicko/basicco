@@ -9,7 +9,7 @@ from basicco.init_subclass import InitSubclass, InitSubclassMeta
 T_co = TypeVar("T_co", covariant=True)
 
 
-def test_meta():
+def test_class():
     assert isinstance(InitSubclass, InitSubclassMeta)
 
 

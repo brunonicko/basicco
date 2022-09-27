@@ -55,6 +55,12 @@ init_subclass (api)
 .. automodule:: basicco.init_subclass
    :members:
 
+locked_class (api)
+------------------
+
+.. automodule:: basicco.locked_class
+   :members:
+
 mangling (api)
 --------------
 
@@ -71,6 +77,12 @@ namespace (api)
 ---------------
 
 .. automodule:: basicco.namespace
+   :members:
+
+obj_state (api)
+---------------
+
+.. automodule:: basicco.obj_state
    :members:
 
 qualname (api)
@@ -91,16 +103,22 @@ runtime_final (api)
 .. automodule:: basicco.runtime_final
    :members:
 
+safe_not_equals (api)
+---------------------
+
+.. automodule:: basicco.safe_not_equals
+   :members:
+
+safe_repr (api)
+---------------
+
+.. automodule:: basicco.safe_repr
+   :members:
+
 set_name (api)
 --------------
 
 .. automodule:: basicco.set_name
-   :members:
-
-state (api)
------------
-
-.. automodule:: basicco.state
    :members:
 
 type_checking (api)

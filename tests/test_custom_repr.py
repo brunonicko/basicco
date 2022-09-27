@@ -5,7 +5,6 @@ from basicco.custom_repr import iterable_repr, mapping_repr
 
 def test_custom_mapping_repr():
     mapping = {1: 4, "2": 3, 3: 2, "4": "1"}
-    assert mapping_repr(mapping) == repr(mapping)
     assert (
         mapping_repr(
             mapping,
@@ -22,6 +21,22 @@ def test_custom_mapping_repr():
         == "Mapping<'K1'==V4; 'K2'==V3; 'K3'==V2; 'K4'==V1>"
     )
 
+    items = ((1, 4), ("2", 3), (3, 2), ("4", "1"))
+    assert (
+        mapping_repr(
+            items,
+            prefix="Items:\n",
+            template="    [{i}] {key: <3}: {value}",
+            separator="\n",
+            suffix="",
+        )
+        == """Items:
+    [0] 1  : 4
+    [1] '2': 3
+    [2] 3  : 2
+    [3] '4': '1'"""
+    )
+
 
 def test_custom_iterable_repr():
     iterable = ["a", 1, 2.0, "3.0", 4, None]
@@ -30,7 +45,7 @@ def test_custom_iterable_repr():
         iterable_repr(
             iterable,
             prefix="Iterable -",
-            template="> {value} <",
+            template=lambda i, value: "> {i}:{value} <".format(i=i, value=value),
             separator="-",
             suffix="-",
             sorting=True,
@@ -38,7 +53,7 @@ def test_custom_iterable_repr():
             reverse=True,
             value_repr=lambda v: str("V" + str(v)),
         )
-        == "Iterable -> Va <-> VNone <-> V4 <-> V3.0 <-> V2.0 <-> V1 <-"
+        == "Iterable -> 0:Va <-> 1:VNone <-> 2:V4 <-> 3:V3.0 <-> 4:V2.0 <-> 5:V1 <-"
     )
 
 
