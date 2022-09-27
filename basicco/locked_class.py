@@ -6,6 +6,7 @@ import six
 from tippo import Any, Iterator, Type
 
 from .mangling import mangle
+from .type_checking import assert_is_instance
 
 __all__ = ["is_locked", "set_locked", "unlocked_context", "LockedClassMeta", "LockedClass"]
 
@@ -13,12 +14,21 @@ __all__ = ["is_locked", "set_locked", "unlocked_context", "LockedClassMeta", "Lo
 def is_locked(cls):
     # type: (Type) -> bool
     locked_attr = mangle("__locked", cls.__name__)
-    return getattr(cls, locked_attr)
+    try:
+        locked = getattr(cls, locked_attr)
+    except AttributeError:
+        pass
+    else:
+        return locked
+    assert_is_instance(cls, LockedClassMeta)
+    raise
 
 
 def set_locked(cls, locked):
     # type: (Type, bool) -> None
     locked_attr = mangle("__locked", cls.__name__)
+    if not hasattr(cls, locked_attr):
+        assert_is_instance(cls, LockedClassMeta)
     type.__setattr__(cls, locked_attr, locked)
 
 

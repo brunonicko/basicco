@@ -1,25 +1,40 @@
-Basicco
-=======
-.. image:: https://github.com/brunonicko/basicco/workflows/MyPy/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3AMyPy
+.. raw:: html
 
-.. image:: https://github.com/brunonicko/basicco/workflows/Lint/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3ALint
+   <p align="center">
+     <picture>
+        <img src="./docs/source/_static/basicco.svg" width="90%" alt="Basicco" />
+        <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
+     </picture>
+   </p>
+   <p align="center">
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3AMyPy">
+          <img src="https://github.com/brunonicko/basicco/workflows/MyPy/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://github.com/brunonicko/basicco/workflows/Tests/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3ATests
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3ALint">
+          <img src="https://github.com/brunonicko/basicco/workflows/Lint/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://readthedocs.org/projects/basicco/badge/?version=stable
-   :target: https://basicco.readthedocs.io/en/stable/
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3ATests">
+          <img src="https://github.com/brunonicko/basicco/workflows/Tests/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://img.shields.io/github/license/brunonicko/basicco?color=light-green
-   :target: https://github.com/brunonicko/basicco/blob/master/LICENSE
+      <a href="https://basicco.readthedocs.io/en/stable/">
+          <img src="https://readthedocs.org/projects/basicco/badge/?version=stable" alt="MyPy" />
+      </a>
 
-.. image:: https://static.pepy.tech/personalized-badge/basicco?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
-   :target: https://pepy.tech/project/basicco
+      <a href="https://github.com/brunonicko/basicco/blob/master/LICENSE">
+          <img src="https://img.shields.io/github/license/brunonicko/basicco?color=light-green" alt="MyPy" />
+      </a>
 
-.. image:: https://img.shields.io/pypi/pyversions/basicco?color=light-green&style=flat
-   :target: https://pypi.org/project/basicco/
+      <a href="https://pepy.tech/project/basicco">
+          <img src="https://static.pepy.tech/personalized-badge/basicco?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads" alt="MyPy" />
+      </a>
+
+      <a href="https://pypi.org/project/basicco/">
+          <img src="https://img.shields.io/pypi/pyversions/basicco?color=light-green&style=flat" alt="MyPy" />
+      </a>
+   </p>
 
 Motivation
 ----------

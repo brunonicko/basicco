@@ -1,8 +1,9 @@
-from ._bases import Base, BaseMeta, BetterBase, BetterBaseMeta
+from ._bases import Base, BaseMeta, BetterBase, BetterBaseMeta, final, unlocked_context, set_locked, is_locked
 
-__all__ = ["BaseMeta", "Base", "BetterBaseMeta", "BetterBase"]
+__all__ = ["BaseMeta", "Base", "BetterBaseMeta", "BetterBase", "final", "unlocked_context", "set_locked", "is_locked"]
 
 
+# Set module to this one.
 for cls in (BaseMeta, Base, BetterBaseMeta, BetterBase):
     type.__setattr__(cls, "__module__", __name__)
 
