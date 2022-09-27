@@ -1,4 +1,5 @@
 """Prevents changing public class attributes."""
+
 import contextlib
 
 import six

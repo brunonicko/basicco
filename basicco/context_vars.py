@@ -229,7 +229,18 @@ except ImportError:
 
     _state = threading.local()
 
+    type.__setattr__(_ContextVar, "__name__", "ContextVar")
+    type.__setattr__(_ContextVar, "__qualname__", "ContextVar")
     globals()["ContextVar"] = _ContextVar
+
+    type.__setattr__(_Context, "__name__", "Context")
+    type.__setattr__(_Context, "__qualname__", "Context")
     globals()["Context"] = _Context
+
+    type.__setattr__(_Token, "__name__", "Token")
+    type.__setattr__(_Token, "__qualname__", "Token")
     globals()["Token"] = _Token
+
+    object.__setattr__(_copy_context, "__name__", "copy_context")
+    object.__setattr__(_copy_context, "__qualname__", "copy_context")
     globals()["copy_context"] = _copy_context

@@ -12,7 +12,7 @@ except ImportError:
     KT = TypeVar("KT")
     VT = TypeVar("VT")
 
-    class MappingProxyType(Mapping[KT, VT]):  # type: ignore
+    class _MappingProxyType(Mapping[KT, VT]):  # type: ignore
         __slots__ = ("__mapping",)
 
         def __init__(self, mapping):
@@ -31,3 +31,7 @@ except ImportError:
             # type: () -> Iterator[KT]
             for key in self.__mapping:
                 yield key
+
+    type.__setattr__(_MappingProxyType, "__name__", "MappingProxyType")
+    type.__setattr__(_MappingProxyType, "__qualname__", "MappingProxyType")
+    globals()["MappingProxyType"] = _MappingProxyType
