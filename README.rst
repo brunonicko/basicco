@@ -3,7 +3,7 @@
    <p align="center">
      <picture>
         <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
-        <img src="./docs/source/_static/basicco.svg" width="90%" alt="Basicco" />
+        <img src="./docs/source/_static/basicco.svg" width="60%" alt="Basicco" />
      </picture>
    </p>
    <p align="center">
