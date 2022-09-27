@@ -1,7 +1,7 @@
 """Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7."""
 
-import sys
 import functools
+import sys
 
 import six
 
@@ -14,6 +14,7 @@ class SafeNotEqualsMeta(type):
     """Metaclass that backports the default Python 3 behavior of `__ne__` behavior for Python 2.7."""
 
     if sys.version_info[:1] < (3,):
+
         @staticmethod
         def __new__(mcs, name, bases, dct, **kwargs):
             cls = super(SafeNotEqualsMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
@@ -35,4 +36,5 @@ class SafeNotEqualsMeta(type):
 
 class SafeNotEquals(six.with_metaclass(SafeNotEqualsMeta, object)):
     """Class that backports the default Python 3 behavior of `__ne__` behavior for Python 2.7."""
+
     __slots__ = ()

@@ -1,7 +1,7 @@
 import pytest  # noqa
 import six
 
-from basicco.dirable import DirableMeta, Dirable
+from basicco.dirable import Dirable, DirableMeta
 
 
 def test_class():

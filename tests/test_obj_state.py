@@ -4,7 +4,7 @@ import sys
 import pytest  # noqa
 import six
 
-from basicco.obj_state import get_state, reducer, update_state, ReducibleMeta, Reducible
+from basicco.obj_state import Reducible, ReducibleMeta, get_state, reducer, update_state
 
 
 class _Class(object):

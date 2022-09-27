@@ -1,7 +1,13 @@
 import pytest  # noqa
 import six
 
-from basicco.locked_class import LockedClassMeta, LockedClass, is_locked, set_locked, unlocked_context
+from basicco.locked_class import (
+    LockedClass,
+    LockedClassMeta,
+    is_locked,
+    set_locked,
+    unlocked_context,
+)
 
 
 def test_class():

@@ -1,6 +1,6 @@
 import pytest
 
-from basicco.safe_not_equals import SafeNotEqualsMeta, SafeNotEquals
+from basicco.safe_not_equals import SafeNotEquals, SafeNotEqualsMeta
 
 
 def test_class():

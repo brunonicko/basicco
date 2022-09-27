@@ -139,6 +139,7 @@ class MutableNamespace(Namespace[_VT]):
 
 class NamespacedMeta(type):
     """Metaclass that provides a mutable `__namespace` as a protected class attribute."""
+
     __namespace = MutableNamespace()  # type: MutableNamespace[Any]
 
     def __getattr__(cls, name):
@@ -160,4 +161,5 @@ type.__delattr__(NamespacedMeta, mangle("__namespace", NamespacedMeta.__name__))
 
 class Namespaced(six.with_metaclass(NamespacedMeta, object)):
     """Class that provides a mutable `__namespace` as a protected class attribute."""
+
     __slots__ = ()

@@ -1,7 +1,7 @@
 import pytest  # noqa
 import six
 
-from basicco.explicit_hash import ExplicitHashMeta, ExplicitHash
+from basicco.explicit_hash import ExplicitHash, ExplicitHashMeta
 
 
 def test_class():

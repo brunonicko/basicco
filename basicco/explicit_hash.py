@@ -18,4 +18,5 @@ class ExplicitHashMeta(type):
 
 class ExplicitHash(six.with_metaclass(ExplicitHashMeta, object)):
     """Class that forces `__hash__` to be declared when `__eq__` is declared."""
+
     __slots__ = ()

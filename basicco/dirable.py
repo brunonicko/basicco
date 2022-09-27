@@ -1,9 +1,10 @@
 """Backport of the base implementation of `__dir__` for Python 2.7."""
 
-import six
 import inspect
 
-from .dynamic_code import make_function, generate_unique_filename
+import six
+
+from .dynamic_code import generate_unique_filename, make_function
 
 __all__ = ["DirableMeta", "Dirable"]
 
@@ -22,7 +23,7 @@ class DirableMeta(type):
                         "def __dir__(self):",
                         "    cls = type(self)",
                         "    members = set()",
-                        "    if hasattr(self, \"__dict__\"):",
+                        '    if hasattr(self, "__dict__"):',
                         "        members.update(self.__dict__)",
                         "    for base in inspect.getmro(cls):",
                         "        members.update(base.__dict__)",

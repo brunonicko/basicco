@@ -1,8 +1,8 @@
 """Utility functions for managing object state."""
 
 import inspect
-import types
 import sys
+import types
 
 import six
 from tippo import Any, Mapping
@@ -148,4 +148,5 @@ class ReducibleMeta(type):
 
 class Reducible(six.with_metaclass(ReducibleMeta, object)):
     """Class that allows slotted classes to be pickled in Python 2.7"""
+
     __slots__ = ()

@@ -2,7 +2,7 @@
 import contextlib
 
 import six
-from tippo import Any, Type, Iterator
+from tippo import Any, Iterator, Type
 
 from .mangling import mangle
 

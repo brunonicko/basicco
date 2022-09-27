@@ -4,7 +4,7 @@ import pytest  # noqa
 import six
 
 from basicco.namespace import _WRAPPED_SLOT  # noqa
-from basicco.namespace import MutableNamespace, Namespace, NamespacedMeta, Namespaced
+from basicco.namespace import MutableNamespace, Namespace, Namespaced, NamespacedMeta
 
 
 def test_read_only_namespace():
@@ -82,7 +82,6 @@ def test_class():
 
 def test_metaclass():
     class Class(six.with_metaclass(NamespacedMeta, object)):
-
         @classmethod
         def set_class_value(cls, value):
             cls.__namespace.value = value
@@ -97,7 +96,6 @@ def test_metaclass():
 
 def test_metaclass_uniqueness():
     class Class(six.with_metaclass(NamespacedMeta)):
-
         @classmethod
         def get_namespace(cls):
             return cls.__namespace
@@ -105,7 +103,6 @@ def test_metaclass_uniqueness():
     assert isinstance(Class.get_namespace(), MutableNamespace)
 
     class SubClassA(Class):
-
         @classmethod
         def get_namespace(cls):
             return cls.__namespace
@@ -113,7 +110,6 @@ def test_metaclass_uniqueness():
     assert isinstance(SubClassA.get_namespace(), MutableNamespace)
 
     class SubClassB(Class):
-
         @classmethod
         def get_namespace(cls):
             return cls.__namespace
@@ -121,7 +117,6 @@ def test_metaclass_uniqueness():
     assert isinstance(SubClassB.get_namespace(), MutableNamespace)
 
     class SubClassC(SubClassA, SubClassB):
-
         @classmethod
         def get_namespace(cls):
             return cls.__namespace

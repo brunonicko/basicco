@@ -13,7 +13,16 @@ except ImportError:
     import pyrsistent
     import six
     from pyrsistent.typing import PMap
-    from tippo import Any, Callable, Generic, GenericMeta, Iterator, Mapping, TypeVar, overload
+    from tippo import (
+        Any,
+        Callable,
+        Generic,
+        GenericMeta,
+        Iterator,
+        Mapping,
+        TypeVar,
+        overload,
+    )
 
     class _NoDefaultType(enum.Enum):
         NO_DEFAULT = "NO_DEFAULT"
