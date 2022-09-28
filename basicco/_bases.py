@@ -1,4 +1,5 @@
 import six
+from tippo import GenericMeta
 
 from .abstract_class import Abstract, AbstractMeta, abstract, is_abstract
 from .default_dir import DefaultDir, DefaultDirMeta
@@ -42,6 +43,7 @@ class CompatBaseMeta(
     SafeNotEqualsMeta,
     SetNameMeta,
     AbstractMeta,
+    GenericMeta,
 ):
     """Base metaclass for better compatibility amongst different Python versions."""
 

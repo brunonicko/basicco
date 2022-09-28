@@ -32,7 +32,7 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
     Python 3.3+.
 
     :param obj: Function or class.
-    :param fallback: Value to return if couldn't get qualified name. Will error if None.
+    :param fallback: Value to return if we couldn't get qualified name. Will error if None.
     :param force_ast: Force use AST parser to get qualified name from code.
     :param use_existing: Whether to use existing '__qualname__' attribute if available.
     :return: Qualified name (or None if not available).
