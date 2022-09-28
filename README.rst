@@ -70,7 +70,9 @@ This includes adding Python 2.7 workarounds for:
     See also `qualname`_.
   - `__ne__ behavior <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_: By default,
     `__ne__` should negate the result of `__eq__`.
-    See also `safe_not_equals`_.
+    See also `safe_not_equals`_
+  - `PEP 0560 <https://peps.python.org/pep-0560/>`_: Better handling of Generic classes.
+    See also `tippo <https://github.com/brunonicko/tippo#generic-fixes>`_.
 
 Base
 ^^^^

@@ -15,7 +15,7 @@ with open("README.rst", "r") as fh:
 
     assert line_nos["logo_start"] < line_nos["logo_end"]
 
-    long_description = ("Basicco\n" "=======\n") + "\n".join(long_description_lines[line_nos["logo_end"] + 1 :])
+    long_description = "Basicco\n=======\n" + "\n".join(long_description_lines[line_nos["logo_end"] + 1 :])
 
 
 with open("requirements.txt", "r") as fh:
@@ -24,7 +24,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="8.1.0",
+    version="8.2.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description="Collection of lower-level utilities that enhance code compatibility and validation.",

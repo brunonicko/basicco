@@ -156,7 +156,7 @@ class AbstractMeta(abc.ABCMeta):
 
     def __setattr__(cls, name, value):
         super(AbstractMeta, cls).__setattr__(name, value)
-        if is_abstract(cls.__dict__[name]):
+        if name in cls.__dict__ and is_abstract(cls.__dict__[name]):
             cls.__gather_abstract_members()
 
     def __delattr__(cls, name):
