@@ -8,6 +8,9 @@ from tippo import Callable, overload
 __all__ = ["default_alternative_repr", "safe_repr"]
 
 
+_in_repr = False
+
+
 def default_alternative_repr(obj):
     # type: (object) -> str
     message = [ln.strip(" ") for ln in traceback.format_exc().split("\n") if ln.strip(" ")][-1]
@@ -46,10 +49,19 @@ def safe_repr(maybe_func=None, alternative_repr=default_alternative_repr):
 
         @functools.wraps(func)
         def decorated(self, *args, **kwargs):
+            global _in_repr
+            before = _in_repr
+            if not before:
+                _in_repr = True
             try:
                 return func(self, *args, **kwargs)  # noqa
             except Exception:  # noqa
+                if before:
+                    raise
                 return alternative_repr(self, *args, **kwargs)  # noqa
+            finally:
+                if not before:
+                    _in_repr = False
 
         return decorated
 

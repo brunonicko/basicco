@@ -60,9 +60,9 @@ def _is_final_member(member):
 def is_final(obj):
     # type: (Callable) -> bool
     """
-    Tell whether a class/method is final.
+    Tell whether a class or member is final.
 
-    :param obj: Class or method.
+    :param obj: Class or member.
     :return: True if final.
     """
     if inspect.isclass(obj):
@@ -111,16 +111,23 @@ class RuntimeFinalMeta(type):
                 if _is_final_member(member):
                     final_member_names[member_name] = base
 
-            # Store final methods.
+            # Store final members.
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
 
     def __setattr__(cls, name, value):
         super(RuntimeFinalMeta, cls).__setattr__(name, value)
-        cls.__gather_final_members()
+        if is_final(value):
+            cls.__gather_final_members()
 
     def __delattr__(cls, name):
+        gather = False
+        for base in get_mro(cls):
+            if name in base.__dict__:
+                gather = is_final(base.__dict__[name])
+                break
         super(RuntimeFinalMeta, cls).__delattr__(name)
-        cls.__gather_final_members()
+        if gather:
+            cls.__gather_final_members()
 
 
 class RuntimeFinal(six.with_metaclass(RuntimeFinalMeta, object)):

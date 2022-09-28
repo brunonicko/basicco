@@ -92,6 +92,43 @@ Utilities
 Apart from the features integrated into the base classes, `basicco` provides a variety of general utilities.
 Those can be imported from the sub-modules described below.
 
+abstract_class
+^^^^^^^^^^^^^^
+Better `abstract classes <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_ support.
+
+Provides abstract decorators that can be used directly on methods but also on classes, properties, classmethods, and
+staticmethods (even in Python 2.7).
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.abstract_class import AbstractMeta, abstract
+    >>> class Asset(with_metaclass(AbstractMeta, object)):
+    ...     @abstract
+    ...     def method(self):
+    ...         pass
+    ...
+    ...     @property
+    ...     @abstract
+    ...     def prop(self):
+    ...         return None
+    ...
+    >>> Asset()
+    Traceback (most recent call last):
+    TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
+
+.. code:: python
+
+    >>> from basicco.abstract_class import AbstractMeta, abstract
+    >>> @abstract
+    ... class Asset(with_metaclass(AbstractMeta, object)):
+    ...     pass
+    ...
+    >>> Asset()
+    Traceback (most recent call last):
+    TypeError: can't instantiate abstract class 'Asset'
+
+
 caller_module
 ^^^^^^^^^^^^^
 Retrieve the caller's module name.
