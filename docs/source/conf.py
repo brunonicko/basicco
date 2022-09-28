@@ -57,7 +57,7 @@ pygments_style = "monokai"
 # HTML options.
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
-    "style_external_links": True,
+    "style_external_links": False,
     "style_nav_header_background": "#66AACC",
 }
 html_static_path = ["_static"]

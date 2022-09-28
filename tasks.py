@@ -42,6 +42,17 @@ def docs(c):
         shutil.rmtree(api_docs)
     os.mkdir(api_docs)
     c.run("sphinx-apidoc basicco --separate --module-first --no-toc --force --output-dir {}".format(api_docs))
+
+    for root, dirs, files in os.walk(api_docs, topdown=False):
+        for name in files:
+            file_path = os.path.join(root, name)
+            if file_path.endswith(".rst"):
+                with open(file_path, "rb") as open_file:
+                    content = open_file.read()
+                content = content.replace(b"\r\n", b"\n")
+                with open(file_path, "wb") as open_file:
+                    open_file.write(content)
+
     c.run("sphinx-build -M html ./docs/source ./docs/build")
 
 
