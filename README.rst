@@ -127,6 +127,30 @@ staticmethods (even in Python 2.7).
     Traceback (most recent call last):
     TypeError: can't instantiate abstract class 'Asset'
 
+basic_data
+^^^^^^^^^^
+Eases the task of creating simple data container classes that support equality comparisons, hashing, string
+representation, conversion to dictionary, etc.
+
+.. code:: python
+
+    >>> from math import sqrt
+    >>> from basicco.basic_data import ItemUsecase, BasicData
+    >>> class Vector(BasicData):
+    ...     def __init__(self, x, y):
+    ...         self.x = x
+    ...         self.y = y
+    ...     def to_items(self, usecase=None):
+    ...         items = [("x", self.x), ("y", self.y)]
+    ...         if usecase is ItemUsecase.REPR:
+    ...             items.append(("mag", self.mag))
+    ...         return items
+    ...     @property
+    ...     def mag(self):
+    ...         return sqrt(self.x**2 + self.y**2)
+    ...
+    >>> Vector(3.0, 4.0)
+    Vector(x=3.0, y=4.0, <mag=5.0>)
 
 caller_module
 ^^^^^^^^^^^^^
@@ -286,6 +310,20 @@ Get consistent MRO amongst different python versions. This works even with gener
     ...
     >>> [c.__name__ for c in get_mro(Mixed)]
     ['Mixed', 'SubClass', 'MyGeneric', 'Generic', 'object']
+
+hash_cache_wrapper
+^^^^^^^^^^^^^^^^^^
+An integer subclass that pickles/copies as None. This can be used to avoid serializing a cached hash value.
+
+.. code:: python
+
+    >>> from copy import copy
+    >>> from basicco.hash_cache_wrapper import HashCacheWrapper
+    >>> hash_cache = HashCacheWrapper(12345)
+    >>> print(hash_cache)
+    12345
+    >>> print(copy(hash_cache))
+    None
 
 implicit_hash
 ^^^^^^^^^^^^^
