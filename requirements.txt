@@ -2,4 +2,4 @@ tippo>=3.1,<4
 typing_inspect>=0,<1
 six>=1,<2
 enum34; python_version < "3.4"
-pyrsistent
+pyrsistent>=0,<1
