@@ -56,6 +56,8 @@ The goal with the `CompatBaseMeta` metaclass and the `CompatBase` class is to br
 Python 2.7 and Python 3.7+.
 
 This includes adding Python 2.7 workarounds for:
+  - `Abstract properties <https://docs.python.org/3/library/abc.html#abc.abstractproperty>`_: Better `abstractmethod`
+    decorator support for property-like descriptors. See also `abstract_class`_.
   - `PEP 487 <https://peps.python.org/pep-0487/>`_: Support for `__init_subclass__` and `__set_name__`.
     See also `init_subclass`_ and `set_name`_.
   - `object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_: Base `__dir__` method.
@@ -76,6 +78,7 @@ In addition to the compatibility solutions, the goal with the `BaseMeta` metacla
 useful low-level features that hopefully yield better code readability and validation.
 
 This includes:
+  - `__weakref__` slot: Added by default.
   - `locked_class`_: Public class attributes are read-only by default.
   - `explicit_hash`_: Overriding `__eq__` without overriding `__hash__` will raise an error.
   - `namespace`_: Adds a protected `__namespace` unique to each class.

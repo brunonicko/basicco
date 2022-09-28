@@ -86,4 +86,4 @@ class Base(
 ):
     """Base class that adds extra features to the basic `object`."""
 
-    __slots__ = ()
+    __slots__ = ("__weakref__",)

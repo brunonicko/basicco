@@ -11,6 +11,7 @@ def test_bases():
     assert basicco.BaseMeta
     assert basicco.Base
     assert basicco.Base()
+    assert "__weakref__" in basicco.Base.__slots__
 
 
 if __name__ == "__main__":
