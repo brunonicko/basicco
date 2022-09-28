@@ -13,6 +13,7 @@ Submodules
    :maxdepth: 4
 
    basicco.abstract_class
+   basicco.basic_data
    basicco.caller_module
    basicco.context_vars
    basicco.custom_repr
@@ -21,6 +22,7 @@ Submodules
    basicco.explicit_hash
    basicco.fabricate_value
    basicco.get_mro
+   basicco.hash_cache_wrapper
    basicco.implicit_hash
    basicco.import_path
    basicco.init_subclass
