@@ -2,10 +2,30 @@
 
 import collections
 import inspect
+import types
 
 from tippo import GenericMeta, Type
 
-__all__ = ["get_mro", "preview_mro"]
+__all__ = ["resolve_origin", "get_mro", "preview_mro"]
+
+
+def resolve_origin(cls):
+    # type: (Type | types.GenericAlias) -> Type
+    """
+    Resolve origin for generic alias.
+
+    :param cls: Class or generic alias.
+    :return: Original class.
+    """
+    if hasattr(cls, "__mro_entries__"):
+        return cls.__mro_entries__(())[0]
+    assert isinstance(cls, type)
+    generic = cls
+    while hasattr(generic, "__origin__"):
+        generic = getattr(generic, "__origin__")
+        if generic is not None:
+            cls = generic
+    return cls
 
 
 def get_mro(cls):
@@ -19,11 +39,7 @@ def get_mro(cls):
     """
 
     # Resolve generic class to its origin.
-    generic = cls
-    while hasattr(generic, "__origin__"):
-        generic = getattr(generic, "__origin__")
-        if generic is not None:
-            cls = generic
+    cls = resolve_origin(cls)
 
     # Newer python versions.
     if GenericMeta is type:
@@ -32,12 +48,7 @@ def get_mro(cls):
     # Special logic to skip generic classes when GenericMeta is being used, for old python.
     mro = collections.deque()  # type: collections.deque[Type]
     for base in reversed(inspect.getmro(cls)):
-        generic = base
-        origin = None
-        while hasattr(generic, "__origin__"):
-            generic = getattr(generic, "__origin__")
-            if generic is not None:
-                origin = generic
+        origin = resolve_origin(base)
         if origin in mro:
             continue
         mro.appendleft(base)

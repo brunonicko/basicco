@@ -2,8 +2,10 @@
 
    <p align="center">
      <picture>
-        <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
-        <img src="./docs/source/_static/basicco.svg" width="60%" alt="Basicco" />
+        <object data="./_static/basicco.svg" type="image/png">
+            <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
+            <img src="./docs/source/_static/basicco.svg" width="60%" alt="basicco" />
+        </object>
      </picture>
    </p>
    <p align="center">
@@ -38,7 +40,7 @@
 
 Overview
 --------
-`Basicco` is a Python package that provides low-level `Base Classes`_ and `Utilities`_ to enhance code compatibility,
+`basicco` is a Python package that provides low-level `Base Classes`_ and `Utilities`_ to enhance code compatibility,
 features and validation.
 
 Motivation
@@ -85,6 +87,8 @@ This includes:
 
 Utilities
 ---------
+Apart from the features integrated into the base classes, `basicco` provides a variety of general utilities.
+Those can be imported from the sub-modules described below.
 
 caller_module
 ^^^^^^^^^^^^^
@@ -101,7 +105,11 @@ Retrieve the caller's module name.
 
 context_vars
 ^^^^^^^^^^^^
-Backport of `contextvars` for Python 2.7 based on `MagicStack/contextvars`.
+Backport of the `contextvars` module for Python 2.7, based on
+`MagicStack/contextvars <https://github.com/MagicStack/contextvars>`_.
+
+When imported from Python 3, it redirects the contents to the native
+`contextvars <https://docs.python.org/3/library/contextvars.html>`_ module.
 
 .. code:: python
 
@@ -116,7 +124,7 @@ Backport of `contextvars` for Python 2.7 based on `MagicStack/contextvars`.
 
 custom_repr
 ^^^^^^^^^^^
-Custom representation functions.
+Custom representation functions for mappings, items, and iterables.
 
 .. code:: python
 
@@ -127,14 +135,24 @@ Custom representation functions.
 
 .. code:: python
 
+    >>> from basicco.custom_repr import mapping_repr
+    >>> items = [("a", 1), ("b", 2)]
+    >>> mapping_repr(items, prefix="[", suffix="]", template=lambda i, key, value: key + " -> " + value)
+    "['a' -> 1, 'b' -> 2]"
+
+.. code:: python
+
     >>> from basicco.custom_repr import iterable_repr
     >>> tup = ("a", "b", "c", 1, 2, 3)
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
 default_dir
-^^^^^^^
-Backport of the base implementation of `__dir__` for Python 2.7.
+^^^^^^^^^^^
+Backport of Python 3's implementation of
+`object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_ for Python 2.7.
+
+This allows for calling `super().__dir__()` from a subclass to leverage the default implementation.
 
 .. code:: python
 
@@ -150,7 +168,7 @@ Backport of the base implementation of `__dir__` for Python 2.7.
 
 dynamic_code
 ^^^^^^^^^^^^
-Dynamic code generation utilities.
+Generate debuggable code on the fly that supports line numbers on tracebacks.
 
 .. code:: python
 
@@ -158,20 +176,29 @@ Dynamic code generation utilities.
     >>> class MyClass(object):
     ...     pass
     ...
+    >>> bar = 'bar'
     >>> # Prepare the script and necessary data.
+    >>> script = "\n".join(
+    ...     (
+    ...         "def __init__(self):",
+    ...         "    self.foo = 'bar'",
+    ...     )
+    ... )
+    >>> # Gather information.
     >>> name = "__init__"
-    >>> script = "def __init__(self):"
-    >>> script += "    self.foo = 'bar'"
-    >>> filename = generate_unique_filename(name, MyClass.__module__, MyClass.__name__)
+    >>> owner_name = MyClass.__name__
+    >>> module = MyClass.__module__
+    >>> filename = generate_unique_filename(name, module, owner_name)
+    >>> globs = {"bar": bar}
     >>> # Make function and attach it as a method.
-    >>> MyClass.__init__ = make_function(name, script)
+    >>> MyClass.__init__ = make_function(name, script, globs, filename, module)
     >>> obj = MyClass()
     >>> obj.foo
     'bar'
 
 explicit_hash
 ^^^^^^^^^^^^^
-Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
+Metaclass that forces `__hash__` to be declared whenever `__eq__` is declared.
 
 .. code:: python
 
@@ -191,12 +218,14 @@ Run a value through a callable factory (or None).
 .. code:: python
 
     >>> from basicco.fabricate_value import fabricate_value
-    >>> fabricate_value(None, 3)
+    >>> fabricate_value(None, 3)  # no factory, value passthrough
     3
-    >>> fabricate_value(str, 3)
+    >>> fabricate_value(str, 3)  # callable factory
     '3'
     >>> fabricate_value("str", 3)  # use an import path
     '3'
+    >>> fabricate_value(int)  # no input value, just the factory itself
+    0
 
 get_mro
 ^^^^^^^
@@ -223,7 +252,7 @@ Get consistent MRO amongst different python versions. This works even with gener
 implicit_hash
 ^^^^^^^^^^^^^
 Metaclass that forces `__hash__` to None when `__eq__` is declared.
-This is a backport of the behavior in Python 3.
+This is a backport of the default behavior in Python 3.
 
 .. code:: python
 
@@ -258,6 +287,7 @@ Generate importable dot paths and import from them.
 init_subclass
 ^^^^^^^^^^^^^
 Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
+This works for both Python 2 (using `__kwargs__`) and 3 (using the new class parameters).
 
 .. code:: python
 
@@ -267,7 +297,7 @@ Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
     ...         cls.foo = foo
     ...
     >>> class Bar(Foo):
-    ...     __kwargs__ = {"foo": "bar"}
+    ...     __kwargs__ = {"foo": "bar"}  # you can specify cls kwargs on py2 like this
     ...
     >>> Bar.foo
     'bar'

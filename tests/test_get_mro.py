@@ -2,10 +2,21 @@ import pytest  # noqa
 import six
 from tippo import Generic, TypeVar
 
-from basicco.get_mro import get_mro, preview_mro
+from basicco.get_mro import resolve_origin, get_mro, preview_mro
 
 
-def test_generic_mro():
+def test_resolve_origin():
+    T = TypeVar("T")  # type: ignore  # noqa
+
+    class Base(Generic[T]):
+        pass
+
+    assert resolve_origin(Base) is Base
+    assert resolve_origin(Base[int]) is Base
+    assert resolve_origin(Base[T]) is Base
+
+
+def test_get_mro():
     T = TypeVar("T")  # type: ignore  # noqa
 
     class Base(Generic[T]):
