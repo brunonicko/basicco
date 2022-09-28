@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from invoke import task  # type: ignore  # noqa
 
 
@@ -33,7 +36,20 @@ def tests(c):
 
 @task
 def docs(c):
+    api_docs = "./docs/source/api"
+    if os.path.exists(api_docs):
+        assert os.path.isdir(api_docs), "not a directory: {!r}".format(api_docs)
+        shutil.rmtree(api_docs)
+    os.mkdir(api_docs)
+    c.run(
+        "sphinx-apidoc basicco "
+        "--separate "
+        "--module-first "
+        "--no-toc " 
+        "--output-dir {}".format(api_docs)
+    )
     c.run("sphinx-build -M html ./docs/source ./docs/build")
+    shutil.rmtree(api_docs)
 
 
 @task

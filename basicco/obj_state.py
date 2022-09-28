@@ -134,7 +134,7 @@ def reducer(self):
 
 
 class ReducibleMeta(type):
-    """Metaclass that allows slotted classes to be pickled in Python 2.7"""
+    """Metaclass that allows slotted classes to be pickled in Python 2.7."""
 
     if sys.version_info[0:2] < (3, 4):
 
@@ -148,6 +148,9 @@ class ReducibleMeta(type):
 
 
 class Reducible(six.with_metaclass(ReducibleMeta, object)):
-    """Class that allows slotted classes to be pickled in Python 2.7"""
+    """
+    Class that allows slotted classes to be pickled in Python 2.7.
+    See `PEP 307 <https://peps.python.org/pep-0307/>`_.
+    """
 
     __slots__ = ()

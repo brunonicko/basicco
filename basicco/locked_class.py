@@ -13,6 +13,12 @@ __all__ = ["is_locked", "set_locked", "unlocked_context", "LockedClassMeta", "Lo
 
 def is_locked(cls):
     # type: (Type) -> bool
+    """
+    Tell whether public attributes of a class are locked or not.
+
+    :param cls: Class.
+    :return: True if locked.
+    """
     locked_attr = mangle("__locked", cls.__name__)
     try:
         locked = getattr(cls, locked_attr)
@@ -25,7 +31,14 @@ def is_locked(cls):
 
 
 def set_locked(cls, locked):
-    # type: (Type, bool) -> None
+    # type: (Type[LockedClass] | LockedClassMeta, bool) -> None
+    """
+    Set class locked state.
+
+    :param cls: Class.
+    :param locked: Locked state.
+    :raise TypeCheckError: Invalid class type.
+    """
     locked_attr = mangle("__locked", cls.__name__)
     if not hasattr(cls, locked_attr):
         assert_is_instance(cls, LockedClassMeta)
@@ -34,7 +47,13 @@ def set_locked(cls, locked):
 
 @contextlib.contextmanager
 def unlocked_context(cls):
-    # type: (Type) -> Iterator
+    # type: (Type[LockedClass] | LockedClassMeta) -> Iterator
+    """
+    Unlocked class context manager.
+
+    :param cls: Class.
+    :raise TypeCheckError: Invalid class type.
+    """
     before = is_locked(cls)
     if before:
         set_locked(cls, False)

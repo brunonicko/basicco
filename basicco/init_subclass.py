@@ -1,4 +1,7 @@
-"""Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7."""
+"""
+Backport of the functionality of `__init_subclass__` from
+`PEP 487 <https://peps.python.org/pep-0487/>`_ to Python 2.7.
+"""
 
 import sys
 

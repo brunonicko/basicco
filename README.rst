@@ -1,12 +1,14 @@
 .. raw:: html
 
    <p align="center">
-     <picture>
-        <object data="./_static/basicco.svg" type="image/png">
-            <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
-            <img src="./docs/source/_static/basicco.svg" width="60%" alt="basicco" />
-        </object>
-     </picture>
+     <a href="https://github.com/brunonicko/basicco">
+         <picture>
+            <object data="./_static/basicco.svg" type="image/png">
+                <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
+                <img src="./docs/source/_static/basicco.svg" width="60%" alt="basicco" />
+            </object>
+         </picture>
+     </a>
    </p>
    <p align="center">
       <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3AMyPy">
@@ -405,7 +407,8 @@ Also provides a `ReducibleMeta` metaclass that allows for pickling instances of 
 
 qualname
 ^^^^^^^^
-Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
+Python 2.7 compatible way of getting the qualified name. Based on
+`wbolster/qualname <https://github.com/wbolster/qualname>`_.
 Also provides a `QualnamedMeta` metaclass with a `__qualname__` class property for Python 2.7.
 
 recursive_repr

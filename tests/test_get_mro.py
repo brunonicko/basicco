@@ -2,7 +2,7 @@ import pytest  # noqa
 import six
 from tippo import Generic, TypeVar
 
-from basicco.get_mro import resolve_origin, get_mro, preview_mro
+from basicco.get_mro import get_mro, preview_mro, resolve_origin
 
 
 def test_resolve_origin():

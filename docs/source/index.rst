@@ -1,12 +1,12 @@
-.. raw:: html
+Introduction
+============
 
-   <p align="center">
-     <a href="https://www.github.com/brunonicko/basicco">
-       <picture>
-          <img src="./_static/basicco.svg" width="60%" alt="Basicco" />
-       </picture>
-     </a>
-   </p>
+.. include:: ../../README.rst
+
+.. toctree::
+   :hidden:
+
+   self
 
 Documentation
 =============
@@ -14,7 +14,7 @@ Documentation
 .. toctree::
    :maxdepth: 3
 
-   api
+   api/basicco
 
 Indices and Tables
 ==================

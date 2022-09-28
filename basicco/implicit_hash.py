@@ -1,4 +1,8 @@
-"""Metaclass that forces `__hash__` to None when `__eq__` is declared."""
+"""
+Metaclass that forces `__hash__` to None when `__eq__` is declared.
+This is a backport of the default behavior in
+`Python 3 <https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_.
+"""
 
 import six
 

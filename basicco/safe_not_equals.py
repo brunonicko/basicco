@@ -1,4 +1,7 @@
-"""Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7."""
+"""
+Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7.
+`Read more <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_.
+"""
 
 import functools
 import sys

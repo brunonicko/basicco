@@ -1,4 +1,7 @@
-"""Backport of the base implementation of `__dir__` for Python 2.7."""
+"""
+Backport of Python 3's implementation of
+`object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_ for Python 2.7.
+"""
 
 import inspect
 
