@@ -9,6 +9,12 @@ def test_fabricate_value():
     assert fabricate_value("str", 3) == "3"
 
 
+def test_no_value_factory():
+    assert fabricate_value(int) == 0
+    assert fabricate_value(str) == ""
+    assert fabricate_value("str") == ""
+
+
 def test_format_factory():
     assert format_factory(None) is None
     assert format_factory(str) is str

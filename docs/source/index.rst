@@ -1,17 +1,22 @@
-Welcome to Basicco documentation!
-=================================
+Introduction
+============
+
+.. include:: ../../README.rst
+
+.. toctree::
+   :hidden:
+
+   self
+
+Documentation
+=============
 
 .. toctree::
    :maxdepth: 3
 
-   readme
+   api/basicco
 
-.. toctree::
-   :maxdepth: 3
-
-   api
-
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

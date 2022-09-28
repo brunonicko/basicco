@@ -6,7 +6,9 @@ import re
 import six
 from tippo import Any, Iterable, Iterator, Mapping, Tuple, TypeVar
 
-__all__ = ["Namespace", "MutableNamespace", "NamespacedMeta"]
+from .mangling import mangle
+
+__all__ = ["Namespace", "MutableNamespace", "NamespacedMeta", "Namespaced"]
 
 
 _VT = TypeVar("_VT")
@@ -136,15 +138,29 @@ class MutableNamespace(Namespace[_VT]):
 
 
 class NamespacedMeta(type):
-    """Metaclass that adds a private mutable `__namespace__` as a class property."""
+    """Metaclass that provides a mutable `__namespace` as a protected class attribute."""
 
-    @property
-    def __namespace__(cls):
-        # type: () -> MutableNamespace[Any]
-        """Class namespace."""
-        try:
-            return cls.__dict__["__namespace"]
-        except KeyError:
+    __namespace = MutableNamespace()  # type: MutableNamespace[Any]
+
+    def __getattr__(cls, name):
+        # type: (str) -> Any
+        namespace_attr = mangle("__namespace", cls.__name__)
+        if name == namespace_attr:
             namespace = MutableNamespace()  # type: MutableNamespace[Any]
-            type.__setattr__(cls, "__namespace", MutableNamespace())
+            type.__setattr__(cls, namespace_attr, namespace)
             return namespace
+        try:
+            return super(NamespacedMeta, cls).__getattr__(name)  # type: ignore  # noqa
+        except AttributeError:
+            pass
+        error = "class {!r} has no attribute {!r}".format(cls.__name__, name)
+        raise AttributeError(error)
+
+
+type.__delattr__(NamespacedMeta, mangle("__namespace", NamespacedMeta.__name__))
+
+
+class Namespaced(six.with_metaclass(NamespacedMeta, object)):
+    """Class that provides a mutable `__namespace` as a protected class attribute."""
+
+    __slots__ = ()

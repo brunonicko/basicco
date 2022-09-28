@@ -1,12 +1,20 @@
-"""Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`."""
+"""
+Python 2.7 compatible way of getting the qualified name.
+Based on `wbolster/qualname <https://github.com/wbolster/qualname>`_.
+For more information about the native Python 3 implementation, see
+`PEP 3155 <https://peps.python.org/pep-03155/>`_.
+"""
 
 import ast
 import inspect
+import sys
 
 import six
-from tippo import Callable
+from tippo import Any, Callable
 
-__all__ = ["QualnameError", "qualname"]
+from .mangling import mangle
+
+__all__ = ["QualnameError", "qualname", "QualnamedMeta", "Qualnamed"]
 
 
 _cache = {}  # type: dict[str, dict[int, str]]
@@ -16,8 +24,8 @@ class QualnameError(Exception):
     """Raised when could not get the qualified name from AST parsing."""
 
 
-def qualname(obj, fallback=None, force_ast=False):
-    # type: (Callable, str | None, bool) -> str
+def qualname(obj, fallback=None, force_ast=False, use_existing=True):
+    # type: (Callable, str | None, bool, bool) -> str
     """
     Try to find out the qualified name for a class or function.
     This function uses AST parsing in Python 2.7 to try to replicate the qualified name functionality available in
@@ -26,6 +34,7 @@ def qualname(obj, fallback=None, force_ast=False):
     :param obj: Function or class.
     :param fallback: Value to return if couldn't get qualified name. Will error if None.
     :param force_ast: Force use AST parser to get qualified name from code.
+    :param use_existing: Whether to use existing '__qualname__' attribute if available.
     :return: Qualified name (or None if not available).
     :raises TypeError: Provided object is not a function or a class.
     :raises QualnameError: Could not get qualified name from AST parsing.
@@ -33,7 +42,7 @@ def qualname(obj, fallback=None, force_ast=False):
 
     # Not available for non-callables.
     if not callable(obj) or not hasattr(obj, "__name__") or not hasattr(obj, "__module__"):
-        error = "can't determine qualified name for instances of {}".format(repr(type(obj).__name__))
+        error = "can't determine qualified name for instances of {!r}".format(type(obj).__name__)
         raise TypeError(error)
     obj_name = obj.__name__
     obj_module = obj.__module__  # type: ignore
@@ -41,8 +50,11 @@ def qualname(obj, fallback=None, force_ast=False):
     # Native qualified name or manually defined.
     if not force_ast:
         try:
+            if not use_existing:
+                error = "{!r} object has '__qualname__' attribute, but 'use_existing' was declared as False"
+                raise QualnameError(error)
             return getattr(obj, "__qualname__")
-        except QualnameError:  # in case this function gets called when getting the attr
+        except QualnameError:
             if fallback is not None:
                 return fallback
             else:
@@ -54,7 +66,7 @@ def qualname(obj, fallback=None, force_ast=False):
     try:
         module = __import__(obj_module, fromlist=[obj_name])
     except ImportError as e:
-        error = "couldn't import module {} for {}; {}".format(repr(obj_module), repr(obj_name), e)
+        error = "couldn't import module {!r} for {!r}; {}".format(obj_module, obj_name, e)
         exc = QualnameError(error)
         six.raise_from(exc, None)
         raise exc
@@ -68,7 +80,7 @@ def qualname(obj, fallback=None, force_ast=False):
             raise TypeError()
     except TypeError:
         if fallback is None:
-            error = "couldn't find source code filename for {}".format(repr(obj_name))
+            error = "couldn't find source code filename for {!r}".format(obj_name)
             exc = QualnameError(error)
             six.raise_from(exc, None)
             raise exc
@@ -81,7 +93,7 @@ def qualname(obj, fallback=None, force_ast=False):
             _, lineno = inspect.getsourcelines(obj)
         except (OSError, IOError):
             if fallback is None:
-                error = "source code for class {} could not be retrieved".format(repr(obj_name))
+                error = "source code for class {!r} could not be retrieved".format(obj_name)
                 exc = QualnameError(error)
                 six.raise_from(exc, None)
                 raise exc
@@ -98,7 +110,7 @@ def qualname(obj, fallback=None, force_ast=False):
         lineno = code.co_firstlineno
     else:
         if fallback is None:
-            error = "source code could not be retrieved for {}".format(repr(obj_name))
+            error = "source code could not be retrieved for {!r}".format(obj_name)
             raise QualnameError(error)
         else:
             return fallback
@@ -112,7 +124,7 @@ def qualname(obj, fallback=None, force_ast=False):
                 source = fp.read()
         except (OSError, IOError) as e:
             if fallback is None:
-                error = "could not read source code at {}; {}".format(repr(filename), e)
+                error = "could not read source code at {!r}; {}".format(filename, e)
                 exc = QualnameError(error)
                 six.raise_from(exc, None)
                 raise exc
@@ -141,7 +153,7 @@ def qualname(obj, fallback=None, force_ast=False):
         qualified_name = qualified_names.get(current_lineno, None)
         if qualified_name is None:
             if fallback is None:
-                error = ("qualified name could not be retrieved from source code for {}").format(repr(obj_name))
+                error = "qualified name could not be retrieved from source code for {!r}".format(obj_name)
                 raise QualnameError(error)
             else:
                 return fallback
@@ -168,10 +180,70 @@ def qualname(obj, fallback=None, force_ast=False):
 
     # No way to reliably retrieve qualified name.
     if fallback is None:
-        error = "qualified name could not be retrieved from source code for {}".format(repr(obj.__name__))
+        error = "qualified name could not be retrieved from source code for {!r}".format(obj.__name__)
         raise QualnameError(error)
     else:
         return fallback
+
+
+class QualnamedMeta(type):
+    """Metaclass that implements `__qualname__` for Python 2.7."""
+
+    if sys.version_info[:2] < (3, 4):
+        assert not hasattr(object, "__qualname__")
+
+        def __repr__(cls):
+            # type: () -> str
+            """
+            Get representation using the class' full name if possible.
+
+            :return: Class representation.
+            """
+            return "<class '{}.{}'>".format(cls.__module__, cls.__qualname__)
+
+        def __getattr__(cls, name):
+            # type: (str) -> Any
+            attr = mangle("__qualname", cls.__name__)
+            if name == attr:
+                qualified_name = qualname(cls, fallback=cls.__name__, force_ast=True, use_existing=False)
+                type.__setattr__(cls, attr, qualified_name)
+                return qualified_name
+            try:
+                return super(QualnamedMeta, cls).__getattr__(name)  # type: ignore  # noqa
+            except AttributeError:
+                pass
+            error = "class {!r} has no attribute {!r}".format(cls.__name__, name)
+            raise AttributeError(error)
+
+        @property
+        def __qualname__(cls):
+            # type: () -> str
+            """Qualified name."""
+            attr = mangle("__qualname", cls.__name__)
+            return getattr(cls, attr)
+
+        @__qualname__.setter
+        def __qualname__(cls, value):
+            # type: (str) -> None
+            attr = mangle("__qualname", cls.__name__)
+            setattr(cls, attr, value)
+
+
+class Qualnamed(six.with_metaclass(QualnamedMeta, object)):
+    """Class that implements `__qualname__` for Python 2.7."""
+
+    __slots__ = ()
+
+    if sys.version_info[:2] < (3, 4):
+
+        def __repr__(self):
+            # type: () -> str
+            """
+            Get representation using the class' full name if possible.
+
+            :return: Representation.
+            """
+            return "<{}.{} at {}>".format(type(self).__module__, type(self).__qualname__, hex(id(self)))
 
 
 class _Visitor(ast.NodeVisitor):

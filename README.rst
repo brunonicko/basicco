@@ -1,25 +1,49 @@
-Basicco
-=======
-.. image:: https://github.com/brunonicko/basicco/workflows/MyPy/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3AMyPy
+.. raw:: html
 
-.. image:: https://github.com/brunonicko/basicco/workflows/Lint/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3ALint
+   <p align="center">
+     <a href="https://github.com/brunonicko/basicco">
+         <picture>
+            <object data="./_static/basicco.svg" type="image/png">
+                <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
+                <img src="./docs/source/_static/basicco.svg" width="60%" alt="basicco" />
+            </object>
+         </picture>
+     </a>
+   </p>
+   <p align="center">
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3AMyPy">
+          <img src="https://github.com/brunonicko/basicco/workflows/MyPy/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://github.com/brunonicko/basicco/workflows/Tests/badge.svg
-   :target: https://github.com/brunonicko/basicco/actions?query=workflow%3ATests
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3ALint">
+          <img src="https://github.com/brunonicko/basicco/workflows/Lint/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://readthedocs.org/projects/basicco/badge/?version=stable
-   :target: https://basicco.readthedocs.io/en/stable/
+      <a href="https://github.com/brunonicko/basicco/actions?query=workflow%3ATests">
+          <img src="https://github.com/brunonicko/basicco/workflows/Tests/badge.svg" alt="MyPy" />
+      </a>
 
-.. image:: https://img.shields.io/github/license/brunonicko/basicco?color=light-green
-   :target: https://github.com/brunonicko/basicco/blob/master/LICENSE
+      <a href="https://basicco.readthedocs.io/en/stable/">
+          <img src="https://readthedocs.org/projects/basicco/badge/?version=stable" alt="MyPy" />
+      </a>
 
-.. image:: https://static.pepy.tech/personalized-badge/basicco?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
-   :target: https://pepy.tech/project/basicco
+      <a href="https://github.com/brunonicko/basicco/blob/master/LICENSE">
+          <img src="https://img.shields.io/github/license/brunonicko/basicco?color=light-green" alt="MyPy" />
+      </a>
 
-.. image:: https://img.shields.io/pypi/pyversions/basicco?color=light-green&style=flat
-   :target: https://pypi.org/project/basicco/
+      <a href="https://pepy.tech/project/basicco">
+          <img src="https://static.pepy.tech/personalized-badge/basicco?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads" alt="MyPy" />
+      </a>
+
+      <a href="https://pypi.org/project/basicco/">
+          <img src="https://img.shields.io/pypi/pyversions/basicco?color=light-green&style=flat" alt="MyPy" />
+      </a>
+   </p>
+
+Overview
+--------
+`basicco` is a Python package that provides low-level `Base Classes`_ and `Utilities`_ to enhance code compatibility,
+features and validation.
 
 Motivation
 ----------
@@ -27,14 +51,83 @@ While developing Python software for Visual Effects pipelines, I found myself ha
 code over and over again, as well as struggling with compatibility issues and feature gaps between Python 2.7 and
 Python 3.7+.
 
-So I decided to implement solutions for those issues at the base, and `basicco` was born.
+So I decided to implement solutions for those issues at the `Base`_, and `basicco` was born.
 
-Overview
---------
-`Basicco` provides a collection of lower-level `Utilities`_ that enhance code readability and validation.
+Base Classes
+------------
+
+CompatBase
+^^^^^^^^^^
+The goal with the `CompatBaseMeta` metaclass and the `CompatBase` class is to bridge some of the feature gaps between
+Python 2.7 and Python 3.7+.
+
+This includes adding Python 2.7 workarounds for:
+  - `PEP 487 <https://peps.python.org/pep-0487/>`_: Support for `__init_subclass__` and `__set_name__`.
+    See also `init_subclass`_ and `set_name`_.
+  - `object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_: Base `__dir__` method.
+    See also `default_dir`_.
+  - `__eq__ override <https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_: Overriding `__eq__` will
+    set `__hash__` to None. See also `implicit_hash`_.
+  - `PEP 307 <https://peps.python.org/pep-0307/>`_: Support for pickling objects with `__slots__`.
+    See also `obj_state`_.
+  - `PEP 3155 <https://peps.python.org/pep-03155/>`_: Qualified name `__qualname__` for nested classes.
+    See also `qualname`_.
+  - `__ne__ behavior <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_: By default,
+    `__ne__` should negate the result of `__eq__`.
+    See also `safe_not_equals`_.
+
+Base
+^^^^
+In addition to the compatibility solutions, the goal with the `BaseMeta` metaclass and the `Base` class is to add
+useful low-level features that hopefully yield better code readability and validation.
+
+This includes:
+  - `locked_class`_: Public class attributes are read-only by default.
+  - `explicit_hash`_: Overriding `__eq__` without overriding `__hash__` will raise an error.
+  - `namespace`_: Adds a protected `__namespace` unique to each class.
+  - `runtime_final`_: Runtime checking for classes and methods decorated with `final`.
 
 Utilities
 ---------
+Apart from the features integrated into the base classes, `basicco` provides a variety of general utilities.
+Those can be imported from the sub-modules described below.
+
+abstract_class
+^^^^^^^^^^^^^^
+Better `abstract classes <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_ support.
+
+Provides abstract decorators that can be used directly on methods but also on classes, properties, classmethods, and
+staticmethods (even in Python 2.7).
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.abstract_class import AbstractMeta, abstract
+    >>> class Asset(with_metaclass(AbstractMeta, object)):
+    ...     @abstract
+    ...     def method(self):
+    ...         pass
+    ...
+    ...     @property
+    ...     @abstract
+    ...     def prop(self):
+    ...         return None
+    ...
+    >>> Asset()
+    Traceback (most recent call last):
+    TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
+
+.. code:: python
+
+    >>> from basicco.abstract_class import AbstractMeta, abstract
+    >>> @abstract
+    ... class Asset(with_metaclass(AbstractMeta, object)):
+    ...     pass
+    ...
+    >>> Asset()
+    Traceback (most recent call last):
+    TypeError: can't instantiate abstract class 'Asset'
+
 
 caller_module
 ^^^^^^^^^^^^^
@@ -51,7 +144,11 @@ Retrieve the caller's module name.
 
 context_vars
 ^^^^^^^^^^^^
-Backport of `contextvars` for Python 2.7 based on `MagicStack/contextvars`.
+Backport of the `contextvars` module for Python 2.7, based on
+`MagicStack/contextvars <https://github.com/MagicStack/contextvars>`_.
+
+When imported from Python 3, it redirects the contents to the native
+`contextvars <https://docs.python.org/3/library/contextvars.html>`_ module.
 
 .. code:: python
 
@@ -66,7 +163,7 @@ Backport of `contextvars` for Python 2.7 based on `MagicStack/contextvars`.
 
 custom_repr
 ^^^^^^^^^^^
-Custom representation functions.
+Custom representation functions for mappings, items, and iterables.
 
 .. code:: python
 
@@ -77,14 +174,40 @@ Custom representation functions.
 
 .. code:: python
 
+    >>> from basicco.custom_repr import mapping_repr
+    >>> items = [("a", 1), ("b", 2)]
+    >>> mapping_repr(items, prefix="[", suffix="]", template=lambda i, key, value: key + " -> " + value)
+    "['a' -> 1, 'b' -> 2]"
+
+.. code:: python
+
     >>> from basicco.custom_repr import iterable_repr
     >>> tup = ("a", "b", "c", 1, 2, 3)
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
+default_dir
+^^^^^^^^^^^
+Backport of Python 3's implementation of
+`object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_ for Python 2.7.
+
+This allows for calling `super().__dir__()` from a subclass to leverage the default implementation.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.default_dir import DefaultDir
+    >>> class Class(DefaultDir):
+    ...     def __dir__(self):
+    ...         return super(Class, self).__dir__()
+    ...
+    >>> obj = Class()
+    >>> dir(obj)
+    [...]
+
 dynamic_code
 ^^^^^^^^^^^^
-Dynamic code generation utilities.
+Generate debuggable code on the fly that supports line numbers on tracebacks.
 
 .. code:: python
 
@@ -92,26 +215,35 @@ Dynamic code generation utilities.
     >>> class MyClass(object):
     ...     pass
     ...
+    >>> bar = 'bar'
     >>> # Prepare the script and necessary data.
+    >>> script = "\n".join(
+    ...     (
+    ...         "def __init__(self):",
+    ...         "    self.foo = 'bar'",
+    ...     )
+    ... )
+    >>> # Gather information.
     >>> name = "__init__"
-    >>> script = "def __init__(self):"
-    >>> script += "    self.foo = 'bar'"
-    >>> filename = generate_unique_filename(name, MyClass.__module__, MyClass.__name__)
+    >>> owner_name = MyClass.__name__
+    >>> module = MyClass.__module__
+    >>> filename = generate_unique_filename(name, module, owner_name)
+    >>> globs = {"bar": bar}
     >>> # Make function and attach it as a method.
-    >>> MyClass.__init__ = make_function(name, script)
+    >>> MyClass.__init__ = make_function(name, script, globs, filename, module)
     >>> obj = MyClass()
     >>> obj.foo
     'bar'
 
 explicit_hash
 ^^^^^^^^^^^^^
-Metaclass that forces `__hash__` to be declared when `__eq__` is declared.
+Metaclass that forces `__hash__` to be declared whenever `__eq__` is declared.
 
 .. code:: python
 
-    >>> import six
+    >>> from six import with_metaclass
     >>> from basicco.explicit_hash import ExplicitHashMeta
-    >>> class Asset(six.with_metaclass(ExplicitHashMeta, object)):
+    >>> class Asset(with_metaclass(ExplicitHashMeta, object)):
     ...     def __eq__(self, other):
     ...         pass
     ...
@@ -125,12 +257,14 @@ Run a value through a callable factory (or None).
 .. code:: python
 
     >>> from basicco.fabricate_value import fabricate_value
-    >>> fabricate_value(None, 3)
+    >>> fabricate_value(None, 3)  # no factory, value passthrough
     3
-    >>> fabricate_value(str, 3)
+    >>> fabricate_value(str, 3)  # callable factory
     '3'
     >>> fabricate_value("str", 3)  # use an import path
     '3'
+    >>> fabricate_value(int)  # no input value, just the factory itself
+    0
 
 get_mro
 ^^^^^^^
@@ -154,6 +288,22 @@ Get consistent MRO amongst different python versions. This works even with gener
     >>> [c.__name__ for c in get_mro(Mixed)]
     ['Mixed', 'SubClass', 'MyGeneric', 'Generic', 'object']
 
+implicit_hash
+^^^^^^^^^^^^^
+Metaclass that forces `__hash__` to None when `__eq__` is declared.
+This is a backport of the default behavior in Python 3.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.implicit_hash import ImplicitHashMeta
+    >>> class Asset(with_metaclass(ImplicitHashMeta, object)):
+    ...     def __eq__(self, other):
+    ...         pass
+    ...
+    >>> Asset.__hash__ is None
+    True
+
 import_path
 ^^^^^^^^^^^
 Generate importable dot paths and import from them.
@@ -176,6 +326,7 @@ Generate importable dot paths and import from them.
 init_subclass
 ^^^^^^^^^^^^^
 Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
+This works for both Python 2 (using `__kwargs__`) and 3 (using the new class parameters).
 
 .. code:: python
 
@@ -185,10 +336,25 @@ Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
     ...         cls.foo = foo
     ...
     >>> class Bar(Foo):
-    ...     __kwargs__ = {"foo": "bar"}
+    ...     __kwargs__ = {"foo": "bar"}  # you can specify cls kwargs on py2 like this
     ...
     >>> Bar.foo
     'bar'
+
+locked_class
+^^^^^^^^^^^^^
+Prevents changing public class attributes.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.locked_class import LockedClassMeta
+    >>> class Foo(with_metaclass(LockedClassMeta, object)):
+    ...     pass
+    ...
+    >>> Foo.bar = "bar"
+    Traceback (most recent call last):
+    AttributeError: can't set read-only class attribute 'bar'
 
 mangling
 ^^^^^^^^
@@ -237,20 +403,50 @@ Wraps a dictionary/mapping and provides attribute-style access to it.
     >>> ns.bar
     'foo'
 
-Also provides a `NamespacedMeta` metaclass for adding a `__namespace__` private property that is unique to each class.
+Also provides a `NamespacedMeta` metaclass that adds a `__namespace` protected class attribute that is unique to each
+class.
 
 .. code:: python
 
     >>> from six import with_metaclass
     >>> from basicco.namespace import NamespacedMeta
     >>> class Asset(with_metaclass(NamespacedMeta, object)):
-    ...     pass
+    ...     @classmethod
+    ...     def set_class_value(cls, value):
+    ...         cls.__namespace.value = value
     ...
-    >>> Asset.__namespace__.foo = "bar"
+    ...     @classmethod
+    ...     def get_class_value(cls):
+    ...         return cls.__namespace.value
+    ...
+    >>> Asset.set_class_value("foobar")
+    >>> Asset.get_class_value()
+    'foobar'
+
+obj_state
+^^^^^^^^^
+Get/update the state of an object, slotted or not (works even in Python 2.7).
+
+.. code:: python
+
+    >>> from basicco.obj_state import get_state
+    >>> class Slotted(object):
+    ...     __slots__ = ("foo", "bar")
+    ...     def __init__(self, foo, bar):
+    ...         self.foo = foo
+    ...         self.bar = bar
+    ...
+    >>> slotted = Slotted("a", "b")
+    >>> sorted(get_state(slotted).items())
+    [('bar', 'b'), ('foo', 'a')]
+
+Also provides a `ReducibleMeta` metaclass that allows for pickling instances of slotted classes in Python 2.7.
 
 qualname
 ^^^^^^^^
-Python 2.7 compatible way of getting the qualified name. Inspired by `wbolster/qualname`.
+Python 2.7 compatible way of getting the qualified name. Based on
+`wbolster/qualname <https://github.com/wbolster/qualname>`_.
+Also provides a `QualnamedMeta` metaclass with a `__qualname__` class property for Python 2.7.
 
 recursive_repr
 ^^^^^^^^^^^^^^
@@ -273,15 +469,15 @@ runtime_final
 ^^^^^^^^^^^^^
 Runtime-checked version of the `typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
 
-Can be used on methods, properties, classmethods, staticmethods, and classes that have `FinalizedMeta` as a metaclass.
+Can be used on methods, properties, classmethods, staticmethods, and classes that have `RuntimeFinalMeta` as a metaclass.
 It is also recognized by static type checkers and prevents subclassing and/or member overriding during runtime:
 
 .. code:: python
 
-    >>> import six
-    >>> from basicco.runtime_final import FinalizedMeta, final
+    >>> from six import with_metaclass
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
     >>> @final
-    ... class Asset(six.with_metaclass(FinalizedMeta, object)):
+    ... class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     pass
     ...
     >>> class SubAsset(Asset):
@@ -292,9 +488,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> import six
-    >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
+    >>> from six import with_metaclass
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
+    >>> class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     @final
     ...     def method(self):
     ...         pass
@@ -307,9 +503,9 @@ It is also recognized by static type checkers and prevents subclassing and/or me
 
 .. code:: python
 
-    >>> import six
-    >>> from basicco.runtime_final import FinalizedMeta, final
-    >>> class Asset(six.with_metaclass(FinalizedMeta, object)):
+    >>> from six import with_metaclass
+    >>> from basicco.runtime_final import RuntimeFinalMeta, final
+    >>> class Asset(with_metaclass(RuntimeFinalMeta, object)):
     ...     @property
     ...     @final
     ...     def prop(self):
@@ -321,6 +517,39 @@ It is also recognized by static type checkers and prevents subclassing and/or me
     ...         pass
     Traceback (most recent call last):
     TypeError: 'SubAsset' overrides final member 'prop' defined by 'Asset'
+
+safe_not_equals
+^^^^^^^^^^^^^^^
+Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.safe_not_equals import SafeNotEqualsMeta
+    >>> class Class(with_metaclass(SafeNotEqualsMeta, object)):
+    ...     pass
+    ...
+    >>> obj_a = Class()
+    >>> obj_b = Class()
+    >>> assert (obj_a == obj_a) is not (obj_a != obj_a)
+    >>> assert (obj_b == obj_b) is not (obj_b != obj_b)
+    >>> assert (obj_a == obj_b) is not (obj_a != obj_b)
+
+safe_repr
+^^^^^^^^^
+Decorator that prevents `__repr__` methods from raising exceptions and return a default representation instead.
+
+.. code:: python
+
+    >>> from basicco.safe_repr import safe_repr
+    >>> class Class(object):
+    ...     @safe_repr
+    ...     def __repr__(self):
+    ...         raise RuntimeError("oh oh")
+    ...
+    >>> obj = Class()
+    >>> repr(obj)
+    "<__main__.Class object at ...; repr failed due to 'RuntimeError: oh oh'>"
 
 set_name
 ^^^^^^^^
@@ -341,23 +570,6 @@ Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
     True
     >>> Collection.foo.name
     'foo'
-
-state
-^^^^^
-Get/update the state of an object, slotted or not (works even in Python 2.7).
-
-.. code:: python
-
-    >>> from basicco.state import get_state
-    >>> class Slotted(object):
-    ...     __slots__ = ("foo", "bar")
-    ...     def __init__(self, foo, bar):
-    ...         self.foo = foo
-    ...         self.bar = bar
-    ...
-    >>> slotted = Slotted("a", "b")
-    >>> sorted(get_state(slotted).items())
-    [('bar', 'b'), ('foo', 'a')]
 
 type_checking
 ^^^^^^^^^^^^^

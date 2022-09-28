@@ -1,17 +1,19 @@
 """Utility functions for managing object state."""
 
 import inspect
+import sys
 import types
 
 import six
 from tippo import Any, Mapping
 
 from .import_path import get_path, import_path
+from .mangling import mangle
 
-__all__ = ["get_state", "update_state", "reducer"]
+__all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 
 
-def get_state(obj):
+def get_state(obj):  # FIXME: test mixed classes (slotted and non-slotted)
     # type: (Any) -> dict[str, Any]
     """
     Get dictionary with an object's attribute values.
@@ -25,7 +27,7 @@ def get_state(obj):
         return dict(obj.__dict__)
 
     if not hasattr(type(obj), "__slots__"):
-        error = "{} object has no state".format(repr(type(obj).__name__))
+        error = "{!r} object has no state".format(type(obj).__name__)
         raise TypeError(error)
 
     state = {}  # type: dict[str, Any]
@@ -40,9 +42,8 @@ def get_state(obj):
             if slot == "__weakref__":
                 continue
 
-            # Privatize slot if needed.
-            if slot.startswith("__") and not slot.endswith("__"):
-                slot = "_{}{}".format(cls.__name__.lstrip("_"), slot)
+            # Mangle slot if needed.
+            slot = mangle(slot, base.__name__)
 
             # Skip if already has a value.
             if slot in state:
@@ -57,7 +58,7 @@ def get_state(obj):
     return state
 
 
-def update_state(obj, state_update):
+def update_state(obj, state_update):  # FIXME: test mixed classes (slotted and non-slotted)
     # type: (Any, Mapping[str, Any]) -> None
     """
     Update attribute values for an object.
@@ -75,7 +76,7 @@ def update_state(obj, state_update):
             obj.__dict__.update(state_update)
         return
     if not hasattr(type(obj), "__slots__"):
-        error = "{} object has no state".format(repr(type(obj).__name__))
+        error = "{!r} object has no state".format(type(obj).__name__)
         raise TypeError(error)
 
     remaining = set(state_update)  # type: set[str]
@@ -108,14 +109,15 @@ def update_state(obj, state_update):
             return
 
     if remaining:
-        error = "could not find slot(s) {} in {}".format(
-            ", ".join(repr(s) for s in sorted(remaining)), repr(cls.__name__)
-        )
+        error = "could not find slot(s) {} in {!r}".format(", ".join(repr(s) for s in sorted(remaining)), cls.__name__)
         raise AttributeError(error)
 
 
-def _reducer(path, state):
-    cls = import_path(path)
+def _reducer(cls_or_path, state):
+    if isinstance(cls_or_path, six.string_types):
+        cls = import_path(cls_or_path)
+    else:
+        cls = cls_or_path
     self = cls.__new__(cls)
     update_state(self, state)
     return self
@@ -123,4 +125,32 @@ def _reducer(path, state):
 
 def reducer(self):
     """Reducer method that supports qualified name and slots for Python 2.7."""
-    return _reducer, (get_path(type(self)), get_state(self))
+    cls = type(self)
+    try:
+        cls_or_path = get_path(cls)
+    except ImportError:
+        cls_or_path = cls
+    return _reducer, (cls_or_path, get_state(self))
+
+
+class ReducibleMeta(type):
+    """Metaclass that allows slotted classes to be pickled in Python 2.7."""
+
+    if sys.version_info[0:2] < (3, 4):
+
+        @staticmethod
+        def __new__(mcs, name, bases, dct, **kwargs):
+            cls = super(ReducibleMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+            old_reducer = getattr(cls, "__reduce__", None)
+            if old_reducer is None or old_reducer is object.__reduce__:
+                type.__setattr__(cls, "__reduce__", reducer)
+            return cls
+
+
+class Reducible(six.with_metaclass(ReducibleMeta, object)):
+    """
+    Class that allows slotted classes to be pickled in Python 2.7.
+    See `PEP 307 <https://peps.python.org/pep-0307/>`_.
+    """
+
+    __slots__ = ()

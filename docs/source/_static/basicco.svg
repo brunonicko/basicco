@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1024 332" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(24.4855,0,0,24.4855,-4685.4,-4678.21)">
+        <text x="193.166px" y="202.045px" style="font-family:'ShareTechMono-Regular', 'Share Tech Mono', monospace;font-size:12px;">b<tspan x="198.446px 203.726px 209.006px " y="202.045px 202.045px 202.045px ">asi</tspan></text>
+        <text x="214.286px" y="202.045px" style="font-family:'ShareTechMono-Regular', 'Share Tech Mono', monospace;font-size:12px;fill:rgb(102,170,204);">c<tspan x="219.566px " y="202.045px ">c</tspan></text>
+        <text x="224.846px" y="202.045px" style="font-family:'ShareTechMono-Regular', 'Share Tech Mono', monospace;font-size:12px;">o</text>
+    </g>
+    <g transform="matrix(1,0,0,1.00075,0,-34.0255)">
+        <path d="M1024,100.474C1024,63.854 994.247,34.124 957.6,34.124L66.4,34.124C29.753,34.124 0,63.854 0,100.474L0,365.876L957.6,365.876C994.247,365.876 1024,336.146 1024,299.526L1024,100.474ZM1006,100.474L1006,299.526C1006,326.218 984.313,347.89 957.6,347.89L18,347.89C18,347.89 18,100.474 18,100.474C18,73.782 39.687,52.11 66.4,52.11L957.6,52.11C984.313,52.11 1006,73.782 1006,100.474Z" style="fill:rgb(102,170,204);"/>
+    </g>
+</svg>

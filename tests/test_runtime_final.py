@@ -2,17 +2,18 @@ import pytest  # noqa
 import six
 from tippo import Generic, GenericMeta, TypeVar
 
-from basicco.runtime_final import (  # noqa
-    _FINAL_CLASS_TAG,
-    _FINAL_METHODS,
-    FinalizedMeta,
-    final,
-)
+from basicco.runtime_final import _FINAL_CLASS_TAG  # noqa
+from basicco.runtime_final import _FINAL_METHODS  # noqa
+from basicco.runtime_final import RuntimeFinal, RuntimeFinalMeta, final
+
+
+def test_class():
+    assert isinstance(RuntimeFinal, RuntimeFinalMeta)
 
 
 def test_final_class():
     @final
-    class Class(six.with_metaclass(FinalizedMeta, object)):
+    class Class(six.with_metaclass(RuntimeFinalMeta, object)):
         pass
 
     # Class should be tagged as final.
@@ -49,7 +50,7 @@ def test_final_method():
     # Different kinds of decorated members should be recognized as final.
     for decorator in decorators:
 
-        class Class(six.with_metaclass(FinalizedMeta, object)):
+        class Class(six.with_metaclass(RuntimeFinalMeta, object)):
             @decorator
             @final
             def method(self):
@@ -81,7 +82,7 @@ def test_descriptor():
         def __get__(self, instance, owner):
             return 3
 
-    class Class(six.with_metaclass(FinalizedMeta, object)):
+    class Class(six.with_metaclass(RuntimeFinalMeta, object)):
         @final
         @Descriptor
         def method(self):
@@ -94,7 +95,7 @@ def test_descriptor():
 def test_generic():
     T = TypeVar("T")  # type: ignore  # noqa
 
-    class BaseMeta(FinalizedMeta, GenericMeta):
+    class BaseMeta(RuntimeFinalMeta, GenericMeta):
         pass
 
     class Base(six.with_metaclass(BaseMeta, Generic[T])):

@@ -11,7 +11,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="7.2.0",
+    version="8.0.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description="Collection of lower-level utilities that enhance code compatibility and validation.",

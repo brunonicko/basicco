@@ -2,7 +2,7 @@
 
 import linecache
 
-from tippo import Any, Callable, Type
+from tippo import Any, Callable
 
 __all__ = ["compile_and_eval", "generate_unique_filename", "make_function"]
 

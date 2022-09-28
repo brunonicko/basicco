@@ -4,7 +4,7 @@ import pytest  # noqa
 import six
 
 from basicco.namespace import _WRAPPED_SLOT  # noqa
-from basicco.namespace import MutableNamespace, Namespace, NamespacedMeta
+from basicco.namespace import MutableNamespace, Namespace, Namespaced, NamespacedMeta
 
 
 def test_read_only_namespace():
@@ -76,32 +76,58 @@ def test_wrap_namespace():
     assert hasattr(ns, "bar")
 
 
-def test_private_namespace():
-    class Class(six.with_metaclass(NamespacedMeta)):
-        pass
+def test_class():
+    assert isinstance(Namespaced, NamespacedMeta)
 
-    assert isinstance(Class.__namespace__, MutableNamespace)
+
+def test_metaclass():
+    class Class(six.with_metaclass(NamespacedMeta, object)):
+        @classmethod
+        def set_class_value(cls, value):
+            cls.__namespace.value = value
+
+        @classmethod
+        def get_class_value(cls):
+            return cls.__namespace.value
+
+    Class.set_class_value("foobar")
+    assert Class.get_class_value() == "foobar"
+
+
+def test_metaclass_uniqueness():
+    class Class(six.with_metaclass(NamespacedMeta)):
+        @classmethod
+        def get_namespace(cls):
+            return cls.__namespace
+
+    assert isinstance(Class.get_namespace(), MutableNamespace)
 
     class SubClassA(Class):
-        pass
+        @classmethod
+        def get_namespace(cls):
+            return cls.__namespace
 
-    assert isinstance(SubClassA.__namespace__, MutableNamespace)
+    assert isinstance(SubClassA.get_namespace(), MutableNamespace)
 
     class SubClassB(Class):
-        pass
+        @classmethod
+        def get_namespace(cls):
+            return cls.__namespace
 
-    assert isinstance(SubClassB.__namespace__, MutableNamespace)
+    assert isinstance(SubClassB.get_namespace(), MutableNamespace)
 
     class SubClassC(SubClassA, SubClassB):
-        pass
+        @classmethod
+        def get_namespace(cls):
+            return cls.__namespace
 
-    assert isinstance(SubClassC.__namespace__, MutableNamespace)
+    assert isinstance(SubClassC.get_namespace(), MutableNamespace)
 
     namespace_ids = {
-        id(Class.__namespace__),
-        id(SubClassA.__namespace__),
-        id(SubClassB.__namespace__),
-        id(SubClassC.__namespace__),
+        id(Class.get_namespace()),
+        id(SubClassA.get_namespace()),
+        id(SubClassB.get_namespace()),
+        id(SubClassC.get_namespace()),
     }
 
     assert len(namespace_ids) == 4

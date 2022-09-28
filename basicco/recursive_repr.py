@@ -4,7 +4,7 @@ import functools
 import threading
 
 import six
-from tippo import Callable, Counter, Literal, TypeVar, overload
+from tippo import Callable, Counter, TypeVar, overload
 
 __all__ = ["recursive_repr"]
 
@@ -26,7 +26,7 @@ def recursive_repr(
 
 @overload
 def recursive_repr(
-    maybe_func,  # type: Literal[None]
+    maybe_func,  # type: None
     max_depth=1,  # type: int | None
     max_repr="...",  # type: str
 ):

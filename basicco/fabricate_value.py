@@ -10,12 +10,12 @@ __all__ = ["fabricate_value", "format_factory"]
 
 T = TypeVar("T")
 
-MISSING = object()
+_MISSING = object()
 
 
 def fabricate_value(
     factory,  # type: str | Callable | None
-    value=MISSING,  # type: Any
+    value=_MISSING,  # type: Any
     args=None,  # type: Iterable | None
     kwargs=None,  # type: Mapping[str, Any] | None
     extra_paths=(),  # type: Iterable[str]
@@ -37,15 +37,18 @@ def fabricate_value(
     """
     if isinstance(factory, six.string_types):
         factory = import_path(factory, extra_paths=extra_paths, builtin_paths=builtin_paths)
+
     if factory is None:
-        if value is MISSING:
+        if value is _MISSING:
             error = "no value and no factory provided"
             raise ValueError(error)
         return value
+
     if not callable(factory):
         error = "{!r} object is not a valid callable factory".format(type(factory).__name__)
         raise TypeError(error)
-    if value is MISSING:
+
+    if value is _MISSING:
         return factory(*args or (), **kwargs or {})
     else:
         return factory(value, *args or (), **kwargs or {})
@@ -62,4 +65,5 @@ def format_factory(factory):
     if factory is not None and not isinstance(factory, six.string_types) and not callable(factory):
         error = "invalid factory type {!r}, expected None, a string, or a callable".format(type(factory).__name__)
         raise TypeError(error)
+
     return factory

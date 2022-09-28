@@ -1,7 +1,11 @@
 import pytest  # noqa
 import six
 
-from basicco.explicit_hash import ExplicitHashMeta
+from basicco.explicit_hash import ExplicitHash, ExplicitHashMeta
+
+
+def test_class():
+    assert isinstance(ExplicitHash, ExplicitHashMeta)
 
 
 def test_force_explicit_hash_declaration():

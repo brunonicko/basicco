@@ -3,11 +3,12 @@
 import functools
 import inspect
 
+import six
 from tippo import Callable, Type, TypeVar, final
 
 from .get_mro import get_mro
 
-__all__ = ["final", "is_final", "FinalizedMeta"]
+__all__ = ["final", "is_final", "RuntimeFinalMeta", "RuntimeFinal"]
 
 
 _T = TypeVar("_T")
@@ -21,8 +22,8 @@ __final = final
 
 def _final(obj):
     if inspect.isclass(obj):
-        if not isinstance(obj, FinalizedMeta):
-            error = "class {!r} doesn't have {!r} as its metaclass".format(obj.__name__, FinalizedMeta.__name__)
+        if not isinstance(obj, RuntimeFinalMeta):
+            error = "class {!r} doesn't have {!r} as its metaclass".format(obj.__name__, RuntimeFinalMeta.__name__)
             raise TypeError(error)
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
@@ -59,9 +60,9 @@ def _is_final_member(member):
 def is_final(obj):
     # type: (Callable) -> bool
     """
-    Tell whether a class/method is final.
+    Tell whether a class or member is final.
 
-    :param obj: Class or method.
+    :param obj: Class or member.
     :return: True if final.
     """
     if inspect.isclass(obj):
@@ -70,11 +71,11 @@ def is_final(obj):
         return _is_final_member(obj)
 
 
-class FinalizedMeta(type):
+class RuntimeFinalMeta(type):
     """Metaclass that enables runtime-checking for `final` decorator."""
 
     def __init__(cls, name, bases, dct, **kwargs):
-        super(FinalizedMeta, cls).__init__(name, bases, dct, **kwargs)
+        super(RuntimeFinalMeta, cls).__init__(name, bases, dct, **kwargs)
         cls.__gather_final_members()
 
     def __gather_final_members(cls):
@@ -110,13 +111,26 @@ class FinalizedMeta(type):
                 if _is_final_member(member):
                     final_member_names[member_name] = base
 
-            # Store final methods.
+            # Store final members.
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
 
     def __setattr__(cls, name, value):
-        super(FinalizedMeta, cls).__setattr__(name, value)
-        cls.__gather_final_members()
+        super(RuntimeFinalMeta, cls).__setattr__(name, value)
+        if is_final(value):
+            cls.__gather_final_members()
 
     def __delattr__(cls, name):
-        super(FinalizedMeta, cls).__delattr__(name)
-        cls.__gather_final_members()
+        gather = False
+        for base in get_mro(cls):
+            if name in base.__dict__:
+                gather = is_final(base.__dict__[name])
+                break
+        super(RuntimeFinalMeta, cls).__delattr__(name)
+        if gather:
+            cls.__gather_final_members()
+
+
+class RuntimeFinal(six.with_metaclass(RuntimeFinalMeta, object)):
+    """Class that enables runtime-checking for `final` decorator."""
+
+    __slots__ = ()
