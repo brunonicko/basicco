@@ -6,17 +6,17 @@ import six
 
 from .dynamic_code import generate_unique_filename, make_function
 
-__all__ = ["DirableMeta", "Dirable"]
+__all__ = ["DefaultDirMeta", "DefaultDir"]
 
 
-class DirableMeta(type):
+class DefaultDirMeta(type):
     """Metaclass that backports the base implementation of `__dir__` for Python 2.7."""
 
     if not hasattr(object, "__dir__"):
 
         @staticmethod
         def __new__(mcs, name, bases, dct, **kwargs):
-            cls = super(DirableMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+            cls = super(DefaultDirMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             if not hasattr(cls, "__dir__"):
                 script = "\n".join(
                     (
@@ -43,7 +43,7 @@ class DirableMeta(type):
             return cls
 
 
-class Dirable(six.with_metaclass(DirableMeta, object)):
+class DefaultDir(six.with_metaclass(DefaultDirMeta, object)):
     """Class that backports the base implementation of `__dir__` for Python 2.7."""
 
     __slots__ = ()

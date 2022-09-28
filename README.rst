@@ -36,17 +36,52 @@
       </a>
    </p>
 
+Overview
+--------
+`Basicco` is a Python package that provides low-level `Base Classes`_ and `Utilities`_ to enhance code compatibility,
+features and validation.
+
 Motivation
 ----------
 While developing Python software for Visual Effects pipelines, I found myself having to write the same boiler-plate
 code over and over again, as well as struggling with compatibility issues and feature gaps between Python 2.7 and
 Python 3.7+.
 
-So I decided to implement solutions for those issues at the base, and `basicco` was born.
+So I decided to implement solutions for those issues at the `Base`_, and `basicco` was born.
 
-Overview
---------
-`Basicco` provides a collection of lower-level `Utilities`_ that enhance code readability and validation.
+Base Classes
+------------
+
+CompatBase
+^^^^^^^^^^
+The goal with the `CompatBaseMeta` metaclass and the `CompatBase` class is to bridge some of the feature gaps between
+Python 2.7 and Python 3.7+.
+
+This includes adding Python 2.7 workarounds for:
+  - `PEP 487 <https://peps.python.org/pep-0487/>`_: Support for `__init_subclass__` and `__set_name__`.
+    See also `init_subclass`_ and `set_name`_.
+  - `object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_: Base `__dir__` method.
+    See also `default_dir`_.
+  - `__eq__ override <https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_: Overriding `__eq__` will
+    set `__hash__` to None. See also `implicit_hash`_.
+  - `PEP 307 <https://peps.python.org/pep-0307/>`_: Support for pickling objects with `__slots__`.
+    See also `obj_state`_.
+  - `PEP 3155 <https://peps.python.org/pep-03155/>`_: Qualified name `__qualname__` for nested classes.
+    See also `qualname`_.
+  - `__ne__ behavior <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_: By default,
+    `__ne__` should negate the result of `__eq__`.
+    See also `safe_not_equals`_.
+
+Base
+^^^^
+In addition to the compatibility solutions, the goal with the `BaseMeta` metaclass and the `Base` class is to add
+useful low-level features that hopefully yield better code readability and validation.
+
+This includes:
+  - `locked_class`_: Public class attributes are read-only by default.
+  - `explicit_hash`_: Overriding `__eq__` without overriding `__hash__` will raise an error.
+  - `namespace`_: Adds a protected `__namespace` unique to each class.
+  - `runtime_final`_: Runtime checking for classes and methods decorated with `final`.
 
 Utilities
 ---------
@@ -97,15 +132,15 @@ Custom representation functions.
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
-dirable
+default_dir
 ^^^^^^^
 Backport of the base implementation of `__dir__` for Python 2.7.
 
 .. code:: python
 
     >>> from six import with_metaclass
-    >>> from basicco.dirable import Dirable
-    >>> class Class(Dirable):
+    >>> from basicco.default_dir import DefaultDir
+    >>> class Class(DefaultDir):
     ...     def __dir__(self):
     ...         return super(Class, self).__dir__()
     ...

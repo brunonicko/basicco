@@ -8,6 +8,7 @@ __all__ = ["SetNameMeta", "SetName"]
 
 
 class SetNameMeta(type):
+    """Metaclass that backports the functionality of `__set_name__` from PEP 487 to Python 2.7."""
 
     if sys.version_info[:3] < (3, 6):
 
@@ -21,4 +22,6 @@ class SetNameMeta(type):
 
 
 class SetName(six.with_metaclass(SetNameMeta, object)):
+    """Class that backports the functionality of `__set_name__` from PEP 487 to Python 2.7."""
+
     __slots__ = ()

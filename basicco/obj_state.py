@@ -13,7 +13,7 @@ from .mangling import mangle
 __all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 
 
-def get_state(obj):
+def get_state(obj):  # FIXME: test mixed classes (slotted and non-slotted)
     # type: (Any) -> dict[str, Any]
     """
     Get dictionary with an object's attribute values.
@@ -58,7 +58,7 @@ def get_state(obj):
     return state
 
 
-def update_state(obj, state_update):
+def update_state(obj, state_update):  # FIXME: test mixed classes (slotted and non-slotted)
     # type: (Any, Mapping[str, Any]) -> None
     """
     Update attribute values for an object.

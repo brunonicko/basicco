@@ -10,6 +10,8 @@ __all__ = ["InitSubclassMeta", "InitSubclass"]
 
 
 class InitSubclassMeta(type):
+    """Metaclass that backports the functionality of `__init_subclass__` from PEP 487 to Python 2.7."""
+
     @staticmethod
     def __new__(mcs, name, bases, dct, **kwargs):
 
@@ -95,6 +97,8 @@ class InitSubclassMeta(type):
 
 
 class InitSubclass(six.with_metaclass(InitSubclassMeta, object)):
+    """Class that backports the functionality of `__init_subclass__` from PEP 487 to Python 2.7"""
+
     __slots__ = ()
 
     if sys.version_info[:3] < (3, 6):

@@ -1,6 +1,6 @@
 import six
 
-from .dirable import Dirable, DirableMeta
+from .default_dir import DefaultDir, DefaultDirMeta
 from .explicit_hash import ExplicitHash, ExplicitHashMeta
 from .implicit_hash import ImplicitHash, ImplicitHashMeta
 from .init_subclass import InitSubclass, InitSubclassMeta
@@ -18,28 +18,30 @@ from .runtime_final import RuntimeFinal, RuntimeFinalMeta, final
 from .safe_not_equals import SafeNotEquals, SafeNotEqualsMeta
 from .set_name import SetName, SetNameMeta
 
-__all__ = ["BaseMeta", "Base", "BetterBaseMeta", "BetterBase", "final", "unlocked_context", "set_locked", "is_locked"]
+__all__ = ["CompatBaseMeta", "CompatBase", "BaseMeta", "Base", "final", "unlocked_context", "set_locked", "is_locked"]
 
 
-class BaseMeta(
-    InitSubclassMeta, DirableMeta, ImplicitHashMeta, ReducibleMeta, QualnamedMeta, SafeNotEqualsMeta, SetNameMeta
+class CompatBaseMeta(
+    InitSubclassMeta, DefaultDirMeta, ImplicitHashMeta, ReducibleMeta, QualnamedMeta, SafeNotEqualsMeta, SetNameMeta
 ):
-    """Metaclass for better compatibility amongst different Python versions."""
+    """Base metaclass for better compatibility amongst different Python versions."""
 
 
-class Base(
-    six.with_metaclass(BaseMeta, InitSubclass, Dirable, ImplicitHash, Reducible, Qualnamed, SafeNotEquals, SetName)
+class CompatBase(
+    six.with_metaclass(
+        CompatBaseMeta, InitSubclass, DefaultDir, ImplicitHash, Reducible, Qualnamed, SafeNotEquals, SetName
+    )
 ):
-    """Class for better compatibility amongst different Python versions."""
+    """Base class for better compatibility amongst different Python versions."""
 
     __slots__ = ()
 
 
-class BetterBaseMeta(LockedClassMeta, ExplicitHashMeta, NamespacedMeta, RuntimeFinalMeta, BaseMeta):
-    """Metaclass that adds features to the basic `type`."""
+class BaseMeta(LockedClassMeta, ExplicitHashMeta, NamespacedMeta, RuntimeFinalMeta, CompatBaseMeta):
+    """Base metaclass that adds extra features to the basic `type`."""
 
 
-class BetterBase(six.with_metaclass(BetterBaseMeta, LockedClass, ExplicitHash, Namespaced, RuntimeFinal, Base)):
-    """Class that adds features to the basic `object`."""
+class Base(six.with_metaclass(BaseMeta, LockedClass, ExplicitHash, Namespaced, RuntimeFinal, CompatBase)):
+    """Base class that adds extra features to the basic `object`."""
 
     __slots__ = ()

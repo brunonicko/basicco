@@ -1,10 +1,10 @@
-from ._bases import Base, BaseMeta, BetterBase, BetterBaseMeta, final, unlocked_context, set_locked, is_locked
+from ._bases import CompatBase, CompatBaseMeta, Base, BaseMeta, final, unlocked_context, set_locked, is_locked
 
-__all__ = ["BaseMeta", "Base", "BetterBaseMeta", "BetterBase", "final", "unlocked_context", "set_locked", "is_locked"]
+__all__ = ["CompatBaseMeta", "CompatBase", "BaseMeta", "Base", "final", "unlocked_context", "set_locked", "is_locked"]
 
 
 # Set module to this one.
-for cls in (BaseMeta, Base, BetterBaseMeta, BetterBase):
+for cls in (CompatBaseMeta, CompatBase, BaseMeta, Base):
     type.__setattr__(cls, "__module__", __name__)
 
 
@@ -12,7 +12,7 @@ for cls in (BaseMeta, Base, BetterBaseMeta, BetterBase):
 # TODO: metaclass that auto-decorates reprs?
 # TODO: metaclass for better abstraction support (including abstract() descriptor)
 # TODO: rename qualname to qualified_name?
-# TODO: rename dirable to something better?
+# TODO: rename default_dir to something better?
 # TODO: find corresponding peps and add to readme/docs
 # TODO: base classes should be the main attraction
 # TODO: motivation, python 2 compatibility for vfx

@@ -1,15 +1,15 @@
 import pytest  # noqa
 import six
 
-from basicco.dirable import Dirable, DirableMeta
+from basicco.default_dir import DefaultDir, DefaultDirMeta
 
 
 def test_class():
-    assert isinstance(Dirable, DirableMeta)
+    assert isinstance(DefaultDir, DefaultDirMeta)
 
 
 def test_metaclass():
-    class Class(six.with_metaclass(DirableMeta, object)):
+    class Class(six.with_metaclass(DefaultDirMeta, object)):
         c = None
         d = None
 

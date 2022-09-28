@@ -1,152 +1,147 @@
 API Documentation
 =================
 
-caller_module (api)
--------------------
+Compatibility
+^^^^^^^^^^^^^
 
-.. automodule:: basicco.caller_module
-   :members:
+Compatibility Base Class
+------------------------
 
-context_vars (api)
-------------------
+.. autoclass:: basicco.CompatBaseMeta
+
+.. autoclass:: basicco.CompatBase
+
+context_vars
+------------
 
 .. automodule:: basicco.context_vars
-   :members:
 
-custom_repr (api)
------------------
+default_dir
+-----------
 
-.. automodule:: basicco.custom_repr
-   :members:
+.. automodule:: basicco.default_dir
 
-dirable (api)
--------------
-
-.. automodule:: basicco.dirable
-   :members:
-
-dynamic_code (api)
-------------------
-
-.. automodule:: basicco.dynamic_code
-   :members:
-
-explicit_hash (api)
--------------------
-
-.. automodule:: basicco.explicit_hash
-   :members:
-
-fabricate_value (api)
----------------------
-
-.. automodule:: basicco.fabricate_value
-   :members:
-
-get_mro (api)
--------------
+get_mro
+-------
 
 .. automodule:: basicco.get_mro
-   :members:
 
-implicit_hash (api)
--------------------
+implicit_hash
+-------------
 
 .. automodule:: basicco.implicit_hash
-   :members:
 
-import_path (api)
------------------
-
-.. automodule:: basicco.import_path
-   :members:
-
-init_subclass (api)
--------------------
+init_subclass
+-------------
 
 .. automodule:: basicco.init_subclass
-   :members:
 
-locked_class (api)
-------------------
-
-.. automodule:: basicco.locked_class
-   :members:
-
-mangling (api)
---------------
-
-.. automodule:: basicco.mangling
-   :members:
-
-mapping_proxy (api)
--------------------
+mapping_proxy
+-------------
 
 .. automodule:: basicco.mapping_proxy
-   :members:
 
-namespace (api)
----------------
-
-.. automodule:: basicco.namespace
-   :members:
-
-obj_state (api)
----------------
+obj_state
+---------
 
 .. automodule:: basicco.obj_state
-   :members:
 
-qualname (api)
---------------
+qualname
+--------
 
 .. automodule:: basicco.qualname
-   :members:
 
-recursive_repr (api)
---------------------
-
-.. automodule:: basicco.recursive_repr
-   :members:
-
-runtime_final (api)
--------------------
-
-.. automodule:: basicco.runtime_final
-   :members:
-
-safe_not_equals (api)
----------------------
-
-.. automodule:: basicco.safe_not_equals
-   :members:
-
-safe_repr (api)
+safe_not_equals
 ---------------
 
-.. automodule:: basicco.safe_repr
-   :members:
+.. automodule:: basicco.safe_not_equals
 
-set_name (api)
---------------
+set_name
+--------
 
 .. automodule:: basicco.set_name
-   :members:
 
-type_checking (api)
--------------------
+Features
+^^^^^^^^
+
+Base Class
+----------
+
+.. autoclass:: basicco.BaseMeta
+
+.. autoclass:: basicco.Base
+
+caller_module
+-------------
+
+.. automodule:: basicco.caller_module
+
+custom_repr
+-----------
+
+.. automodule:: basicco.custom_repr
+
+dynamic_code
+------------
+
+.. automodule:: basicco.dynamic_code
+
+explicit_hash
+-------------
+
+.. automodule:: basicco.explicit_hash
+
+fabricate_value
+---------------
+
+.. automodule:: basicco.fabricate_value
+
+import_path
+-----------
+
+.. automodule:: basicco.import_path
+
+locked_class
+------------
+
+.. automodule:: basicco.locked_class
+
+mangling
+--------
+
+.. automodule:: basicco.mangling
+
+namespace
+---------
+
+.. automodule:: basicco.namespace
+
+recursive_repr
+--------------
+
+.. automodule:: basicco.recursive_repr
+
+runtime_final
+-------------
+
+.. automodule:: basicco.runtime_final
+
+safe_repr
+---------
+
+.. automodule:: basicco.safe_repr
+
+type_checking
+-------------
 
 .. automodule:: basicco.type_checking
-   :members:
 
-unique_iterator (api)
----------------------
+unique_iterator
+---------------
 
 .. automodule:: basicco.unique_iterator
-   :members:
 
-weak_reference (api)
---------------------
+weak_reference
+--------------
 
 .. automodule:: basicco.weak_reference
-   :members:
