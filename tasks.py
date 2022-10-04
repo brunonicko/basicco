@@ -15,6 +15,15 @@ def conform(c):
 
 @task
 def lint(c):
+    c.run(
+        "isort basicco tests ./docs/source/conf.py setup.py tasks.py -m 3 -l 88 --up --tc --lbt 0 --color "
+        "--check-only"
+    )
+    c.run("black basicco --line-length=120 --check")
+    c.run("black tests --line-length=120 --check")
+    c.run("black setup.py --line-length=120 --check")
+    c.run("black tasks.py --line-length=120 --check")
+
     c.run("flake8 basicco --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run("flake8 tests --count --select=E9,F63,F7,F82 --show-source --statistics")
     c.run(

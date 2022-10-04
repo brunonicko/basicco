@@ -1,11 +1,11 @@
 """Value factoring with support for lazy dot paths."""
 
 import six
-from tippo import Any, Callable, Iterable, Mapping, TypeVar
+from tippo import Any, Callable, Iterable, Iterator, Mapping, TypeVar
 
 from .import_path import import_path
 
-__all__ = ["fabricate_value", "format_factory"]
+__all__ = ["fabricate_value", "map_factory", "format_factory"]
 
 
 T = TypeVar("T")
@@ -52,6 +52,34 @@ def fabricate_value(
         return factory(*args or (), **kwargs or {})
     else:
         return factory(value, *args or (), **kwargs or {})
+
+
+def map_factory(
+    factory,  # type: str | Callable | None
+    iterable,  # type: Iterable[Any]
+    args=None,  # type: Iterable | None
+    kwargs=None,  # type: Mapping[str, Any] | None
+    extra_paths=(),  # type: Iterable[str]
+    builtin_paths=None,  # type: Iterable[str] | None
+):
+    # type: (...) -> Iterator[Any]
+    """
+    Run an iterable of values through a factory.
+
+    :param factory: Factory, import path, or None.
+    :param iterable: Input iterable.
+    :param args: Factory arguments.
+    :param kwargs: Factory keyword arguments.
+    :param extra_paths: Extra module paths in fallback order.
+    :param builtin_paths: Builtin module paths in fallback order.
+    :return: Output values iterator.
+    :raises ValueError: Factory is None and no value was provided.
+    :raises TypeError: Invalid factory type.
+    """
+    return (
+        fabricate_value(factory, v, args=args, kwargs=kwargs, extra_paths=extra_paths, builtin_paths=builtin_paths)
+        for v in iterable
+    )
 
 
 def format_factory(factory):
