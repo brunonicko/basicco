@@ -1,3 +1,4 @@
+import copy
 import pickle
 import sys
 
@@ -16,6 +17,15 @@ class _Class(object):
 
 class _ReducibleClass(six.with_metaclass(ReducibleMeta, object)):
     __slots__ = ("a", "b", "c", "d")
+
+
+class _SlottedClass(six.with_metaclass(ReducibleMeta, object)):
+    __slots__ = ("a", "b")
+
+
+class _MixedClass(_SlottedClass):
+    c = None
+    d = None
 
 
 def test_get_state():
@@ -107,6 +117,30 @@ def test_update_slotted_state():
     assert obj.b == 2
     assert obj.c == 3
     assert obj.d == 4
+
+
+def test_mixed_class():
+    obj = _MixedClass()
+    update_state(obj, {"a": 1, "b": 2, "c": 3, "d": 4})
+
+    assert obj.a == 1
+    assert obj.b == 2
+    assert obj.c == 3
+    assert obj.d == 4
+
+    pickled_obj = pickle.loads(pickle.dumps(obj))
+
+    assert pickled_obj.a == 1
+    assert pickled_obj.b == 2
+    assert pickled_obj.c == 3
+    assert pickled_obj.d == 4
+
+    copied_obj = copy.copy(obj)
+
+    assert copied_obj.a == 1
+    assert copied_obj.b == 2
+    assert copied_obj.c == 3
+    assert copied_obj.d == 4
 
 
 def test_reducer():

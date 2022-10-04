@@ -384,7 +384,7 @@ def import_types(
         if integer_types.intersection(imported_types):
             imported_types += tuple(integer_types.difference(imported_types))
 
-    return imported_types
+    return cast("tuple[Type, ...]", format_types(imported_types))
 
 
 def is_instance(
