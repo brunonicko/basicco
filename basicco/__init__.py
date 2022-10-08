@@ -3,6 +3,8 @@ from ._bases import (
     BaseMeta,
     CompatBase,
     CompatBaseMeta,
+    SlottedBase,
+    SlottedBaseMeta,
     abstract,
     final,
     is_abstract,
@@ -16,6 +18,8 @@ __all__ = [
     "CompatBase",
     "BaseMeta",
     "Base",
+    "SlottedBase",
+    "SlottedBaseMeta",
     "abstract",
     "is_abstract",
     "final",
@@ -26,5 +30,5 @@ __all__ = [
 
 
 # Set module to this one.
-for cls in (CompatBaseMeta, CompatBase, BaseMeta, Base):
+for cls in (CompatBaseMeta, CompatBase, BaseMeta, Base, SlottedBaseMeta, SlottedBase):
     type.__setattr__(cls, "__module__", __name__)

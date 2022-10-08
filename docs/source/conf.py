@@ -22,11 +22,12 @@ extensions = [
 
 # Intersphinx configuration.
 intersphinx_mapping = {
-    "tippo": ("https://tippo.readthedocs.io/en/stable/", None),
-    "six": ("https://six.readthedocs.io/", None),
     "pyrsistent": ("https://pyrsistent.readthedocs.io/en/stable/", None),
-    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
     "python": ("https://docs.python.org/3.10", None),
+    "six": ("https://six.readthedocs.io/", None),
+    "slotted": ("https://slotted.readthedocs.io/en/stable/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    "tippo": ("https://tippo.readthedocs.io/en/stable/", None),
 }
 
 # Autodoc configuration.
