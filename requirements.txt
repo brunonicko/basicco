@@ -1,5 +1,6 @@
-tippo>=3.4,<4
-typing_inspect>=0,<1
-six>=1,<2
 enum34; python_version < "3.4"
 pyrsistent>=0,<1
+six>=1,<2
+slotted>=4,<5
+tippo>=3.4,<4
+typing_inspect>=0,<1

@@ -86,6 +86,11 @@ This includes:
   - `namespace`_: Adds a protected `__namespace` unique to each class.
   - `runtime_final`_: Runtime checking for classes and methods decorated with `final`.
 
+SlottedBase
+^^^^^^^^^^^
+The `SlottedBase` class and the `SlottedBaseMeta` metaclass offer all features from `Base` and `BaseMeta` plus implicit
+`__slots__` declaration. See `slotted <https://github.com/brunonicko/slotted>`_ for more information.
+
 Utilities
 ---------
 Apart from the features integrated into the base classes, `basicco` provides a variety of general utilities.

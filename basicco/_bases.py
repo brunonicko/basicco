@@ -1,4 +1,5 @@
 import six
+import slotted
 from tippo import GenericMeta
 
 from .abstract_class import Abstract, AbstractMeta, abstract, is_abstract
@@ -25,6 +26,8 @@ __all__ = [
     "CompatBase",
     "BaseMeta",
     "Base",
+    "SlottedBaseMeta",
+    "SlottedBase",
     "abstract",
     "is_abstract",
     "final",
@@ -89,3 +92,13 @@ class Base(
     """Base class that adds extra features to the basic `object`."""
 
     __slots__ = ("__weakref__",)
+
+
+class SlottedBaseMeta(BaseMeta, slotted.SlottedABCGenericMeta):
+    """Slotted base metaclass."""
+
+
+class SlottedBase(six.with_metaclass(SlottedBaseMeta, Base, slotted.SlottedABC)):
+    """Slotted base class."""
+
+    __slots__ = ()
