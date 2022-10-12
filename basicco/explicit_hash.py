@@ -1,8 +1,12 @@
 """Metaclass that forces `__hash__` to be declared when `__eq__` is declared."""
 
 import six
+from tippo import Callable, TypeVar, cast
 
-__all__ = ["ExplicitHashMeta", "ExplicitHash"]
+__all__ = ["ExplicitHashMeta", "ExplicitHash", "set_to_none"]
+
+
+T = TypeVar("T")
 
 
 class ExplicitHashMeta(type):
@@ -20,3 +24,14 @@ class ExplicitHash(six.with_metaclass(ExplicitHashMeta, object)):
     """Class that forces `__hash__` to be declared when `__eq__` is declared."""
 
     __slots__ = ()
+
+
+def set_to_none(_hash_method):
+    # type: (Callable[[T], int]) -> Callable[[T], int]
+    """
+    Decorates a '__hash__' method, so it gets set to None for non-hashable classes.
+
+    :param _hash_method: Hash method function.
+    :return: None
+    """
+    return cast(Callable[[T], int], None)
