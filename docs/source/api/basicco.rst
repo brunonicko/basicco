@@ -29,6 +29,7 @@ Submodules
    basicco.locked_class
    basicco.mangling
    basicco.mapping_proxy
+   basicco.named_tuple
    basicco.namespace
    basicco.obj_state
    basicco.qualname

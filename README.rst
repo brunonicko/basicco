@@ -424,6 +424,20 @@ Mapping Proxy type (read-only) for older Python versions.
     >>> proxy_dict["foo"]
     'bar'
 
+named_tuple
+^^^^^^^^^^^
+Named Tuple utilities.
+
+Example of `defaults` decorator/function to set a Named Tuple's default values:
+
+.. code:: python
+
+    >>> from collections import namedtuple
+    >>> from basicco.named_tuple import defaults
+    >>> Point = defaults(name="foo")(namedtuple("Point", ("x", "y", "name")))
+    >>> Point(1, 2)
+    Point(x=1, y=2, name='foo')
+
 namespace
 ^^^^^^^^^
 Wraps a dictionary/mapping and provides attribute-style access to it.
