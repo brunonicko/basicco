@@ -319,6 +319,8 @@ def format_types(types):
     """
     if types is None:
         return (type(None),)
+    elif typing_inspect.is_union_type(types):
+        return tuple(itertools.chain.from_iterable(format_types(t) for t in get_args(types)))
     elif isinstance(types, type) or isinstance(types, six.string_types) or get_name(types) is not None:
         return (types,)  # type: ignore
     elif isinstance(types, Iterable):  # type: ignore

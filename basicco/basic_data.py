@@ -2,9 +2,10 @@ from enum import Enum
 
 from tippo import Any, Iterable, SupportsKeysAndGetItem, TypeVar, cast, overload
 
-from ._bases import Base
+from ._bases import SlottedBase
 from .abstract_class import abstract
 from .custom_repr import mapping_repr
+from .explicit_hash import set_to_none
 from .hash_cache_wrapper import HashCacheWrapper
 from .mangling import mangle
 from .recursive_repr import recursive_repr
@@ -20,8 +21,8 @@ class ItemUsecase(Enum):
     INIT = "INIT"
 
 
-class BasicData(Base):
-    __slots__ = ()
+class BasicData(SlottedBase):
+    __slots__ = ("__hash_cache__",)
 
     @safe_repr
     @recursive_repr
@@ -43,6 +44,7 @@ class BasicData(Base):
         # type: (str) -> Any
         return self.to_dict()[key]
 
+    @set_to_none
     def __hash__(self):
         error = "{!r} object is not hashable".format(type(self).__qualname__)
         raise TypeError(error)
@@ -64,16 +66,13 @@ class BasicData(Base):
         return tuple(k for k, _ in self.to_items(usecase=usecase))
 
 
-type.__setattr__(BasicData, "__hash__", None)
-
-
 class ImmutableBasicData(BasicData):
-    __slots__ = ("__cached_hash",)
+    __slots__ = ()
 
     def __hash__(self):
         # type: () -> int
         try:
-            cached_hash = self.__cached_hash  # type: ignore
+            cached_hash = self.__hash_cache__  # type: ignore
             if cached_hash is None:
                 raise AttributeError()
         except AttributeError:
@@ -84,8 +83,8 @@ class ImmutableBasicData(BasicData):
                     ", ".join(repr(a) for a in sorted(unsafe_attributes))
                 )
                 raise RuntimeError(error)
-            self.__cached_hash = HashCacheWrapper(hash(hash_items))  # type: HashCacheWrapper | None
-            cached_hash = self.__cached_hash  # type: ignore
+            self.__hash_cache__ = HashCacheWrapper(hash(hash_items))  # type: HashCacheWrapper | None
+            cached_hash = self.__hash_cache__  # type: ignore
         return cast(int, cached_hash)
 
     def __setattr__(self, name, value):
@@ -93,8 +92,8 @@ class ImmutableBasicData(BasicData):
         if not name.startswith("_") and (hasattr(self, name) and not hasattr(type(self), name)):
             error = "{!r} object is immutable".format(type(self).__name__)
             raise AttributeError(error)
-        if name != mangle("__cached_hash", ImmutableBasicData.__name__):
-            self.__cached_hash = None
+        if name != mangle("__hash_cache__", ImmutableBasicData.__name__):
+            self.__hash_cache__ = None
         super(ImmutableBasicData, self).__setattr__(name, value)
 
     def __delattr__(self, name):
@@ -102,8 +101,8 @@ class ImmutableBasicData(BasicData):
         if not name.startswith("_"):
             error = "{!r} object is immutable".format(type(self).__name__)
             raise AttributeError(error)
-        if name != mangle("__cached_hash", ImmutableBasicData.__name__):
-            self.__cached_hash = None
+        if name != mangle("__hash_cache__", ImmutableBasicData.__name__):
+            self.__hash_cache__ = None
         super(ImmutableBasicData, self).__delattr__(name)
 
     def _set_attr(self, name, value):
@@ -116,7 +115,7 @@ class ImmutableBasicData(BasicData):
         :param name: Attribute name.
         :param value: Value.
         """
-        self.__cached_hash = None
+        self.__hash_cache__ = None
         super(ImmutableBasicData, self).__setattr__(name, value)
 
     def _del_attr(self, name):
@@ -128,7 +127,7 @@ class ImmutableBasicData(BasicData):
 
         :param name: Attribute name.
         """
-        self.__cached_hash = None
+        self.__hash_cache__ = None
         super(ImmutableBasicData, self).__delattr__(name)
 
     @overload

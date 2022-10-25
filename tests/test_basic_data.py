@@ -5,7 +5,9 @@ import pytest  # noqa
 from basicco.basic_data import BasicData, ImmutableBasicData, ItemUsecase
 
 
-class VectorMixin(object):
+class Vector(BasicData):
+    __slots__ = ("x", "y", "name")
+
     def __init__(self, x, y, name):
         self.x = x
         self.y = y
@@ -24,11 +26,7 @@ class VectorMixin(object):
         return math.sqrt(self.x**2 + self.y**2)
 
 
-class Vector(VectorMixin, BasicData):
-    pass
-
-
-class ImmutableVector(VectorMixin, ImmutableBasicData):
+class ImmutableVector(Vector, ImmutableBasicData):
     def update(self, *args, **kwargs):
         init_args = self.to_dict(ItemUsecase.INIT)
         init_args.update(*args, **kwargs)
