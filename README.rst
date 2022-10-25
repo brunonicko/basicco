@@ -142,6 +142,7 @@ representation, conversion to dictionary, etc.
     >>> from math import sqrt
     >>> from basicco.basic_data import ItemUsecase, BasicData
     >>> class Vector(BasicData):
+    ...     __slots__ = ("x", "y")
     ...     def __init__(self, x, y):
     ...         self.x = x
     ...         self.y = y

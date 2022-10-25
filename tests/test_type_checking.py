@@ -42,6 +42,8 @@ def test_format_types():
     assert format_types((None,)) == (type(None),)
     assert format_types(float) == (float,)
     assert format_types("itertools.chain") == ("itertools.chain",)
+    assert format_types(tippo.Union[float, bool]) == (float, bool)
+    assert format_types((tippo.Union[float, bool], None)) == (float, bool, type(None))
     with pytest.raises(TypeError):
         format_types(3)  # type: ignore
 
