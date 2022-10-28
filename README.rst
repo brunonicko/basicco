@@ -234,6 +234,21 @@ This allows for calling `super().__dir__()` from a subclass to leverage the defa
     >>> dir(obj)
     [...]
 
+dynamic_class
+^^^^^^^^^^^^^
+Easily generate classes on the fly. This works best with a `Base`_ class.
+If provided a valid qualified name and module (uses `caller_module`_ by default), the class will be pickable/importable.
+
+.. code:: python
+
+    >>> from basicco import Base
+    >>> from basicco.dynamic_class import make_cls
+    >>> class MyClass(object):
+    ...     DynClass = make_cls("MyClass.DynClass", bases=(Base,), dct={"foo": "bar"})
+    ...
+    >>> repr(MyClass.DynClass)
+    "<class '__main__.MyClass.DynClass'>"
+
 dynamic_code
 ^^^^^^^^^^^^
 Generate debuggable code on the fly that supports line numbers on tracebacks.
