@@ -18,6 +18,7 @@ Submodules
    basicco.context_vars
    basicco.custom_repr
    basicco.default_dir
+   basicco.dynamic_class
    basicco.dynamic_code
    basicco.explicit_hash
    basicco.fabricate_value
