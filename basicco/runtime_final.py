@@ -79,6 +79,7 @@ class RuntimeFinalMeta(type):
         cls.__gather_final_members()
 
     def __gather_final_members(cls):
+        # type: () -> None
 
         # Iterate over MRO of the class.
         final_cls = None  # type: Type | None

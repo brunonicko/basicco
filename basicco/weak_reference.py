@@ -33,7 +33,7 @@ class WeakReference(Generic[_T]):
 
     @staticmethod
     def __new__(cls, obj=None):
-        # type: (Type[WeakReference[_T]], _T) -> WeakReference[_T]
+        # type: (Type[WeakReference[_T]], _T | None) -> WeakReference[_T]
         with _lock:
             cache = _cache.setdefault(cls, weakref.WeakValueDictionary())
             if obj is None:

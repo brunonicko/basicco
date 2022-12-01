@@ -8,7 +8,7 @@ __all__ = ["compile_and_eval", "generate_unique_filename", "make_function"]
 
 
 def compile_and_eval(script, globs=None, locs=None, filename=""):
-    # type: (str, dict[str, Any], dict[str, Any] | None, str) -> None
+    # type: (str, dict[str, Any] | None, dict[str, Any] | None, str) -> None
     """
     Evaluate the script with the given globals and locals.
 
@@ -43,7 +43,7 @@ def generate_unique_filename(obj_name, module=None, owner_name=None):
 
 
 def make_function(name, script, globs=None, filename=None, module=None):
-    # type: (str, str, dict[str, Any], str | None, str | None) -> Callable
+    # type: (str, str, dict[str, Any] | None, str | None, str | None) -> Callable
     """
     Create a function with the given script.
 
