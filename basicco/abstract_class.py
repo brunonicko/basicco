@@ -137,6 +137,7 @@ class AbstractMeta(abc.ABCMeta):
         cls.__gather_abstract_members()
 
     def __gather_abstract_members(cls):
+        # type: () -> None
 
         # Iterate over MRO of the class.
         abstract_method_names = set()  # type: Set[str]

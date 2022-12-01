@@ -53,7 +53,7 @@ class BasicData(SlottedBase):
         return type(other) is type(self) and self.to_items(ItemUsecase.EQ) == other.to_items(ItemUsecase.EQ)
 
     def to_dict(self, usecase=None):
-        # type: (ItemUsecase) -> dict[str, Any]
+        # type: (ItemUsecase | None) -> dict[str, Any]
         return dict(self.to_items(usecase=usecase))
 
     @abstract
@@ -62,7 +62,7 @@ class BasicData(SlottedBase):
         raise NotImplementedError()
 
     def keys(self, usecase=None):
-        #  type: (ItemUsecase) -> tuple[str, ...]
+        #  type: (ItemUsecase | None) -> tuple[str, ...]
         return tuple(k for k, _ in self.to_items(usecase=usecase))
 
 

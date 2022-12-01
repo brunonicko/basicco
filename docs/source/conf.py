@@ -23,7 +23,7 @@ extensions = [
 # Intersphinx configuration.
 intersphinx_mapping = {
     "pyrsistent": ("https://pyrsistent.readthedocs.io/en/stable/", None),
-    "python": ("https://docs.python.org/3.10", None),
+    "python": ("https://docs.python.org/3.11", None),
     "six": ("https://six.readthedocs.io/", None),
     "slotted": ("https://slotted.readthedocs.io/en/stable/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
