@@ -36,8 +36,7 @@
 
 Overview
 --------
-`basicco` is a Python package that provides low-level `Base Classes`_ and `Utilities`_ to enhance code compatibility,
-features and validation.
+`Base Classes`_ and `Utilities`_ that enhance code compatibility, features and validation.
 
 Motivation
 ----------
@@ -93,8 +92,7 @@ The `SlottedBase` class and the `SlottedBaseMeta` metaclass offer all features f
 
 Utilities
 ---------
-Apart from the features integrated into the base classes, `basicco` provides a variety of general utilities.
-Those can be imported from the sub-modules described below.
+Apart from the features integrated into the base classes, `basicco` provides many general utility modules.
 
 abstract_class
 ^^^^^^^^^^^^^^
@@ -176,7 +174,7 @@ context_vars
 Backport of the `contextvars` module for Python 2.7, based on
 `MagicStack/contextvars <https://github.com/MagicStack/contextvars>`_.
 
-When imported from Python 3, it redirects the contents to the native
+When imported from Python 3, it simply redirects to the native
 `contextvars <https://docs.python.org/3/library/contextvars.html>`_ module.
 
 .. code:: python
@@ -400,7 +398,7 @@ This works for both Python 2 (using `__kwargs__`) and 3 (using the new class par
     'bar'
 
 locked_class
-^^^^^^^^^^^^^
+^^^^^^^^^^^^
 Prevents changing public class attributes.
 
 .. code:: python
@@ -408,7 +406,7 @@ Prevents changing public class attributes.
     >>> from six import with_metaclass
     >>> from basicco.locked_class import LockedClassMeta
     >>> class Foo(with_metaclass(LockedClassMeta, object)):
-    ...     pass
+    ...     bar = "foo"
     ...
     >>> Foo.bar = "bar"
     Traceback (most recent call last):
@@ -430,7 +428,7 @@ Functions to mangle/unmangle/extract private names.
 
 mapping_proxy
 ^^^^^^^^^^^^^
-Mapping Proxy type (read-only) for older Python versions.
+Mapping Proxy type (read-only dictionary) for older Python versions.
 
 .. code:: python
 
@@ -649,7 +647,7 @@ Runtime type checking with support for import paths and type hints.
 
 .. code:: python
 
-    >>> from tippo import Mapping
+    >>> from tippo import Mapping, Literal
     >>> from itertools import chain
     >>> from basicco.type_checking import is_instance
     >>> class SubChain(chain):
@@ -668,6 +666,8 @@ Runtime type checking with support for import paths and type hints.
     >>> is_instance(SubChain(), "itertools.chain", subtypes=False)
     False
     >>> is_instance({"a": 1, "b": 2}, Mapping[str, int])
+    True
+    >>> is_instance("PRE", Literal["PRE", "POST"])
     True
 
 unique_iterator
