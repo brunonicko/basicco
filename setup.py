@@ -24,10 +24,10 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="8.11.0",
+    version="8.12.0",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
-    description="Collection of lower-level utilities that enhance code compatibility and validation.",
+    description="Base classes and utilities that enhance code compatibility, features and validation.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/brunonicko/basicco",
