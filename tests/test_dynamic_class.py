@@ -17,7 +17,7 @@ class BaseClass(six.with_metaclass(ReducibleMeta, Reducible)):
 
 
 class ParentClass(object):
-    pass
+    MyClass = None  # type: Type[BaseClass] | None
 
 
 def test_make_cls():

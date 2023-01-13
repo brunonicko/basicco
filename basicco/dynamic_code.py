@@ -55,7 +55,7 @@ def make_function(name, script, globs=None, filename=None, module=None):
     :return: Function object.
     """
 
-    # Add a fake linecache entry for debuggers.
+    # Add a fake linecache entry for debuggers.  # FIXME: infinite looping here when dup function is generated
     if filename:
         count = 1
         base_filename = complete_filename = filename  # type: str
@@ -66,7 +66,7 @@ def make_function(name, script, globs=None, filename=None, module=None):
                 script.splitlines(True),
                 complete_filename,
             )  # type: tuple[int, float | None, list[str], str]
-            old_val = linecache.cache.setdefault(filename, linecache_tuple)
+            old_val = linecache.cache.setdefault(complete_filename, linecache_tuple)
             if old_val == linecache_tuple:
                 break
             else:

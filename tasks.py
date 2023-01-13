@@ -31,7 +31,7 @@ def lint(c):
 
 @task
 def mypy(c):
-    c.run("mypy basicco")
+    c.run("mypy basicco --check-untyped-defs")
 
 
 @task

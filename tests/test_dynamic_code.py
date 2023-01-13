@@ -1,4 +1,5 @@
 import pytest  # noqa
+from tippo import Any
 
 from basicco.dynamic_code import (
     compile_and_eval,
@@ -14,7 +15,7 @@ def test_generate_unique_filename():
 
 
 def test_compile_and_eval():
-    globs = {}
+    globs = {}  # type: dict[str, Any]
     compile_and_eval("foo = 40", globs)
     compile_and_eval("bar = 2", globs)
     compile_and_eval("foobar = foo + bar", globs)
