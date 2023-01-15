@@ -27,8 +27,8 @@ class BasicData(SlottedBase):
     @safe_repr
     @recursive_repr
     def __repr__(self):
-        repr_items = self.to_items(ItemUsecase.REPR)
-        init_keys = frozenset(dict(self.to_items(ItemUsecase.INIT)))
+        repr_items = self.__items__(ItemUsecase.REPR)
+        init_keys = frozenset(dict(self.__items__(ItemUsecase.INIT)))
         template = lambda i, key, value, _init_keys=init_keys: (
             "{}={}".format(key, value) if key in _init_keys else "<{}={}>".format(key, value)
         )
@@ -50,24 +50,22 @@ class BasicData(SlottedBase):
         raise TypeError(error)
 
     def __eq__(self, other):
-        return type(other) is type(self) and self.to_items(ItemUsecase.EQ) == other.to_items(ItemUsecase.EQ)
-
-    def to_dict(self, usecase=None):
-        # type: (ItemUsecase | None) -> dict[str, Any]
-        return dict(self.to_items(usecase=usecase))
+        return type(other) is type(self) and self.__items__(ItemUsecase.EQ) == other.__items__(ItemUsecase.EQ)
 
     @abstract
-    def to_items(self, usecase=None):
+    def __items__(self, usecase=None):
         # type: (ItemUsecase | None) -> list[tuple[str, Any]]
         raise NotImplementedError()
-
-    def keys(self, usecase=None):
-        #  type: (ItemUsecase | None) -> tuple[str, ...]
-        return tuple(k for k, _ in self.to_items(usecase=usecase))
 
 
 class ImmutableBasicData(BasicData):
     __slots__ = ()
+
+    def __copy__(self):
+        new_self = super(ImmutableBasicData, self).__copy__()
+        if hasattr(new_self, "__hash_cache__"):
+            del new_self.__hash_cache__
+        return new_self
 
     def __hash__(self):
         # type: () -> int
@@ -76,8 +74,8 @@ class ImmutableBasicData(BasicData):
             if cached_hash is None:
                 raise AttributeError()
         except AttributeError:
-            hash_items = tuple(self.to_items(ItemUsecase.HASH))
-            unsafe_attributes = set(hash_items).difference(self.to_items(ItemUsecase.EQ))
+            hash_items = tuple(self.__items__(ItemUsecase.HASH))
+            unsafe_attributes = set(hash_items).difference(self.__items__(ItemUsecase.EQ))
             if unsafe_attributes:
                 error = "unsafe hash, attributes {} contribute to the hash but don't contribute to the eq".format(
                     ", ".join(repr(a) for a in sorted(unsafe_attributes))
@@ -105,55 +103,15 @@ class ImmutableBasicData(BasicData):
             self.__hash_cache__ = None
         super(ImmutableBasicData, self).__delattr__(name)
 
-    def _set_attr(self, name, value):
-        # type: (str, Any) -> None
-        """
-        Internally set attribute.
-        Can be useful for setting lazily calculated values.
-        Use with caution.
-
-        :param name: Attribute name.
-        :param value: Value.
-        """
-        self.__hash_cache__ = None
-        super(ImmutableBasicData, self).__setattr__(name, value)
-
-    def _del_attr(self, name):
-        # type: (str) -> None
-        """
-        Internally delete attribute.
-        Can be useful for resetting lazily calculated values.
-        Use with caution.
-
-        :param name: Attribute name.
-        """
-        self.__hash_cache__ = None
-        super(ImmutableBasicData, self).__delattr__(name)
-
-    @overload
-    def update(self, __m, **kwargs):
-        # type: (IBD, SupportsKeysAndGetItem[str, Any], **Any) -> IBD
-        pass
-
-    @overload
-    def update(self, __m, **kwargs):
-        # type: (IBD, Iterable[tuple[str, Any]], **Any) -> IBD
-        pass
-
-    @overload
-    def update(self, **kwargs):
-        # type: (IBD, **Any) -> IBD
-        pass
-
-    @abstract
-    def update(self, *args, **kwargs):
-        """
-        Make a new version with updates.
-
-        :params: Same parameters as `dict`.
-        :return: Updated version.
-        """
-        raise NotImplementedError()
-
 
 IBD = TypeVar("IBD", bound=ImmutableBasicData)
+
+
+def to_dict(self, usecase=None):
+    # type: (ItemUsecase | None) -> dict[str, Any]
+    return dict(self.__items__(usecase=usecase))
+
+
+def keys(self, usecase=None):
+    #  type: (ItemUsecase | None) -> tuple[str, ...]
+    return tuple(k for k, _ in self.__items__(usecase=usecase))

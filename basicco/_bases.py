@@ -15,7 +15,7 @@ from .locked_class import (
     unlocked_context,
 )
 from .namespace import Namespaced, NamespacedMeta
-from .obj_state import Reducible, ReducibleMeta
+from .obj_state import Reducible, ReducibleMeta, get_state, update_state
 from .qualname import Qualnamed, QualnamedMeta
 from .runtime_final import RuntimeFinal, RuntimeFinalMeta, final
 from .safe_not_equals import SafeNotEquals, SafeNotEqualsMeta
@@ -92,6 +92,12 @@ class Base(
     """Base class that adds extra features to the basic `object`."""
 
     __slots__ = ("__weakref__",)
+
+    def __copy__(self):
+        cls = type(self)
+        new_self = cls.__new__(cls)
+        update_state(new_self, get_state(self))
+        return new_self
 
 
 class SlottedBaseMeta(BaseMeta, slotted.SlottedABCGenericMeta):
