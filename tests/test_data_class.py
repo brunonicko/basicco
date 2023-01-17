@@ -2,7 +2,7 @@ import math
 
 import pytest  # noqa
 
-from basicco.data_class import DataClass, field, to_dict, fields, replace, deletes
+from basicco.data_class import DataClass, as_dict, as_tuple, deletes, field, fields, replace
 
 
 class Vector(DataClass):
@@ -31,7 +31,7 @@ def test_basic_data():
     vector_a.y = 3
     assert vector_a != Vector(3, 4, "vector_a")
 
-    assert "mag" in to_dict(vector_a)
+    assert "mag" in as_dict(vector_a)
 
     with pytest.raises(TypeError):
         hash(vector_a)
@@ -45,6 +45,11 @@ def test_basic_data():
 
 
 def test_immutable_basic_data():
+    vector_m = Vector(3, 4, name="mut_vector")
+    vector_m.x = 300
+    vector_m.y = 400
+    assert as_tuple(vector_m) == (300, 400, "mut_vector", 500)
+
     vector_a = ImmutableVector(3, 4, name="vector_a")
     assert vector_a == ImmutableVector(3, 4, name="vector_b")
     assert hash(vector_a) == hash(ImmutableVector(3, 4, name="vector_b"))

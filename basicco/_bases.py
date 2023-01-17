@@ -7,13 +7,7 @@ from .default_dir import DefaultDir, DefaultDirMeta
 from .explicit_hash import ExplicitHash, ExplicitHashMeta
 from .implicit_hash import ImplicitHash, ImplicitHashMeta
 from .init_subclass import InitSubclass, InitSubclassMeta
-from .locked_class import (
-    LockedClass,
-    LockedClassMeta,
-    is_locked,
-    set_locked,
-    unlocked_context,
-)
+from .locked_class import LockedClass, LockedClassMeta, is_locked, set_locked, unlocked_context
 from .namespace import Namespaced, NamespacedMeta
 from .obj_state import Reducible, ReducibleMeta, get_state, update_state
 from .qualname import Qualnamed, QualnamedMeta

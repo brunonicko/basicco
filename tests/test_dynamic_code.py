@@ -1,11 +1,7 @@
 import pytest  # noqa
 from tippo import Any
 
-from basicco.dynamic_code import (
-    compile_and_eval,
-    generate_unique_filename,
-    make_function,
-)
+from basicco.dynamic_code import compile_and_eval, generate_unique_filename, make_function
 
 
 def test_generate_unique_filename():

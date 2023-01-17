@@ -130,32 +130,6 @@ staticmethods (even in Python 2.7).
     Traceback (most recent call last):
     TypeError: can't instantiate abstract class 'Asset'
 
-basic_data
-^^^^^^^^^^
-Eases the task of creating simple data container classes that support equality comparisons, hashing, string
-representation, conversion to dictionary, etc.
-
-.. code:: python
-
-    >>> from math import sqrt
-    >>> from basicco.basic_data import ItemUsecase, BasicData
-    >>> class Vector(BasicData):
-    ...     __slots__ = ("x", "y")
-    ...     def __init__(self, x, y):
-    ...         self.x = x
-    ...         self.y = y
-    ...     def to_items(self, usecase=None):
-    ...         items = [("x", self.x), ("y", self.y)]
-    ...         if usecase is ItemUsecase.REPR:
-    ...             items.append(("mag", self.mag))
-    ...         return items
-    ...     @property
-    ...     def mag(self):
-    ...         return sqrt(self.x**2 + self.y**2)
-    ...
-    >>> Vector(3.0, 4.0)
-    Vector(x=3.0, y=4.0, <mag=5.0>)
-
 caller_module
 ^^^^^^^^^^^^^
 Retrieve the caller's module name.
@@ -212,6 +186,25 @@ Custom representation functions for mappings, items, and iterables.
     >>> tup = ("a", "b", "c", 1, 2, 3)
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
+
+data_class
+^^^^^^^^^^
+Python 2.7 compatible dataclass-like structures.
+
+.. code:: python
+
+    >>> from math import sqrt
+    >>> from basicco.data_class import DataClass, field
+    >>> class Vector(DataClass):
+    ...     x = field()  # type: float
+    ...     y = field()  # type: float
+    ...     @property
+    ...     @field
+    ...     def mag(self):
+    ...         return sqrt(self.x**2 + self.y**2)
+    ...
+    >>> Vector(3.0, 4.0)
+    Vector(3.0, 4.0, mag=5.0)
 
 default_dir
 ^^^^^^^^^^^

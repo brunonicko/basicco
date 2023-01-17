@@ -4,17 +4,19 @@ from collections import OrderedDict
 from enum import Enum
 
 import six
-from tippo import Any, Callable, TypeVar, TypedDict, Final, Type, dataclass_transform, cast
+from tippo import Any, Callable, Final, Literal, Type, TypedDict, TypeVar, cast, dataclass_transform
 
-from ._bases import SlottedBaseMeta, SlottedBase
-from .basic_data import ImmutableBasicData, ItemUsecase
+from ._bases import SlottedBase, SlottedBaseMeta
+from .custom_repr import mapping_repr
+from .dynamic_code import generate_unique_filename, make_function
 from .get_mro import preview_mro
 from .mangling import mangle, unmangle
-from .dynamic_code import generate_unique_filename, make_function
-from .safe_repr import safe_repr
+from .mapping_proxy import MappingProxyType
 from .recursive_repr import recursive_repr
+from .runtime_final import final
+from .safe_repr import safe_repr
 
-__all__ = ["field", "fields", "replace", "deletes", "to_items", "to_dict", "DataClassMeta", "DataClass"]
+__all__ = ["field", "fields", "replace", "deletes", "as_items", "as_dict", "as_tuple", "DataClassMeta", "DataClass"]
 
 
 T = TypeVar("T")
@@ -39,7 +41,8 @@ _DEFAULT = _DefaultType.DEFAULT
 _field_count = 0
 
 
-class _Field(ImmutableBasicData):
+@final
+class _Field(SlottedBase):
     """Field type."""
 
     __slots__ = (
@@ -54,6 +57,8 @@ class _Field(ImmutableBasicData):
         "eq",
         "hash",
         "frozen",
+        "order",
+        "required",
     )
 
     def __init__(
@@ -67,6 +72,8 @@ class _Field(ImmutableBasicData):
         eq,  # type: bool
         hash,  # type: bool | None
         frozen,  # type: bool
+        order,  # type: bool | None
+        required,  # type: bool | None
     ):
         # type: (...) -> None
 
@@ -84,6 +91,22 @@ class _Field(ImmutableBasicData):
             error = "can't contribute to the hash when not contributing to the eq"
             raise ValueError(error)
 
+        # Ensure safe required and order.
+        if order is None:
+            order = eq
+        else:
+            order = bool(order)
+        if order and required is None:
+            required = True
+        else:
+            required = bool(required)
+        if order and not eq:
+            error = "can't contribute to order if it's not contributing to the eq"
+            raise ValueError(error)
+        if order and not required:
+            error = "can't contribute to order if it's not required"
+            raise ValueError(error)
+
         # Cast parameters.
         init = bool(init)
         kw_only = bool(kw_only)
@@ -94,16 +117,18 @@ class _Field(ImmutableBasicData):
         global _field_count
         _field_count += 1
 
-        self.default = default
-        self.default_factory = default_factory
-        self.converter = converter
-        self.init = init
-        self.kw_only = kw_only
-        self.repr = repr
-        self.eq = eq
-        self.hash = hash
-        self.frozen = frozen
-        self.id = _field_count
+        self.default = default  # type: T | _MissingType
+        self.default_factory = default_factory  # type: Callable[..., T] | _MissingType
+        self.converter = converter  # type: Callable[[Any], T] | None
+        self.init = init  # type: bool
+        self.kw_only = kw_only  # type: bool
+        self.repr = repr  # type: bool
+        self.eq = eq  # type: bool
+        self.hash = hash  # type: bool
+        self.frozen = frozen  # type: bool
+        self.order = order  # type: bool
+        self.required = required  # type: bool
+        self.id = _field_count  # type: int
         self.property = None  # type: property | None
 
     def __call__(self, fget):
@@ -117,8 +142,38 @@ class _Field(ImmutableBasicData):
         object.__setattr__(fget, "__field__", self)
         return fget
 
-    def to_items(self, usecase=None):
-        # type: (ItemUsecase | None) -> list[tuple[str, Any]]
+    def __hash__(self):
+        return hash(tuple(self.__items()))
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.__items() == other.__items()
+
+    def __setattr__(self, name, value):
+        if hasattr(self, name) and not name.startswith("_"):
+            error = "can't set read-only attribute {!r}".format(name)
+            raise AttributeError(error)
+        super(_Field, self).__setattr__(name, value)
+
+    def __delattr__(self, name):
+        if hasattr(self, name) and not name.startswith("_"):
+            error = "can't delete read-only attribute {!r}".format(name)
+            raise AttributeError(error)
+        super(_Field, self).__delattr__(name)
+
+    @safe_repr
+    @recursive_repr
+    def __repr__(self):
+        # type: () -> str
+        return mapping_repr(
+            self.__items(),
+            template="{key}={value}",
+            prefix="Field(",
+            suffix=")",
+            key_repr=str,
+            value_repr=repr,
+        )
+
+    def __items(self):
         return [
             ("default", self.default),
             ("default_factory", self.default_factory),
@@ -129,12 +184,10 @@ class _Field(ImmutableBasicData):
             ("eq", self.eq),
             ("hash", self.hash),
             ("frozen", self.frozen),
+            ("order", self.order),
             ("id", self.id),
             ("property", self.property),
         ]
-
-    def update(self, *args, **kwargs):
-        return type(self)(**dict(dict((k, v) for k, v in self.to_dict().items() if k != "id"), **dict(*args, **kwargs)))
 
 
 def field(
@@ -147,6 +200,8 @@ def field(
     eq=True,  # type: bool
     hash=None,  # type: bool | None
     frozen=False,  # type: bool
+    order=None,  # type: bool | None
+    required=None,  # type: bool | None
 ):
     # type: (...) -> T
     """
@@ -161,6 +216,8 @@ def field(
     :param eq: Whether to include in `__eq__`.
     :param hash: Whether to include in `__hash__`.
     :param frozen: Whether should be frozen (immutable).
+    :param order: Whether to include in order methods.
+    :param required: Whether to require a value after initialization/replacement.
     """
     _field = _Field(
         default=default,
@@ -172,6 +229,8 @@ def field(
         eq=eq,
         hash=hash,
         frozen=frozen,
+        order=order,
+        required=required,
     )
     return cast(T, _field)
 
@@ -220,7 +279,27 @@ def deletes(__data, *deletions):
     return new_data
 
 
-def to_items(data, recursively=True):
+def _as_items(converter, data, recursively):
+    # type: (Callable[..., Any], DataClass, bool) -> list[tuple[str, Any]]
+    items = []
+    for field_name, field_ in type(data).__fields__.items():
+        value = getattr(data, field_name, _MISSING)
+        if value is _MISSING:
+            continue
+        if recursively:
+            if isinstance(value, DataClass):
+                value = converter(value, True)
+            elif isinstance(value, (tuple, list, set, frozenset)):
+                value = type(value)(converter(v, True) if isinstance(v, DataClass) else v for v in value)
+            elif isinstance(value, (dict, MappingProxyType)):
+                value = type(value)(
+                    dict((k, converter(v, True)) if isinstance(v, DataClass) else (k, v) for k, v in value.items())
+                )
+        items.append((field_name, value))
+    return items
+
+
+def as_items(data, recursively=True):
     # type: (DataClass, bool) -> list[tuple[str, Any]]
     """
     Convert data to ordered items.
@@ -229,17 +308,10 @@ def to_items(data, recursively=True):
     :param recursively: Whether to convert recursively.
     :return: Items.
     """
-    items = []
-    for field_name, field_ in type(data).__fields__.items():
-        value = getattr(data, field_name, _MISSING)
-        if value is not _MISSING:
-            if recursively and isinstance(value, DataClass):
-                value = to_items(value, True)
-            items.append((field_name, value))
-    return items
+    return _as_items(as_items, data, recursively)
 
 
-def to_dict(data, recursively=True):
+def as_dict(data, recursively=True):
     # type: (DataClass, bool) -> dict[str, Any]
     """
     Convert data to dictionary.
@@ -248,14 +320,19 @@ def to_dict(data, recursively=True):
     :param recursively: Whether to convert recursively.
     :return: Dictionary.
     """
-    dct = {}
-    for field_name, field_ in type(data).__fields__.items():
-        value = getattr(data, field_name, _MISSING)
-        if value is not _MISSING:
-            if recursively and isinstance(value, DataClass):
-                value = to_dict(value, True)
-            dct[field_name] = value
-    return dct
+    return dict(_as_items(as_dict, data, recursively))
+
+
+def as_tuple(data, recursively=True):
+    # type: (DataClass, bool) -> tuple[Any, ...]
+    """
+    Convert data to a tuple.
+
+    :param data: Data.
+    :param recursively: Whether to convert recursively.
+    :return: Tuple.
+    """
+    return tuple(list(zip(*_as_items(as_tuple, data, recursively)))[1])
 
 
 def _has_default(field_):
@@ -306,8 +383,17 @@ def _make_init(module, cls_fields, cls_name, kw_only):
     globs = {"object": object}  # type: dict[str, Any]
     params = []  # type: list[str]
     lines = []  # type: list[str]
+    required_lines = []  # type: list[str]
     seen_default = None  # type: str | None
     for field_name, field_ in cls_fields.items():
+
+        # Add required field check.
+        if field_.required and not field_.init:
+            required_lines.append("if not hasattr(self, '{f}'):".format(f=field_name))
+            required_lines.append("    error = 'missing value for required attribute {f}'".format(f=field_name))
+            required_lines.append("    raise TypeError(error)")
+
+        # Skip non-init fields.
         if not field_.init:
             continue
 
@@ -394,6 +480,7 @@ def _make_init(module, cls_fields, cls_name, kw_only):
     script += ("    " + "\n    ".join(lines) + "\n") if lines else ""
     script += "    if hasattr(self, '__post_init__'):\n"
     script += "        self.__post_init__()\n"
+    script += ("    " + "\n    ".join(required_lines) + "\n") if lines else ""
 
     return make_function(
         "__init__",
@@ -464,12 +551,7 @@ def _make_repr(module, cls_fields, cls_name, kw_only):  # noqa
             script += "        parts.append('{!r}'.format(getattr(self, '" + field_name + "')))\n"
     script += "    repr_str += ', '.join(parts) + ')'\n"
     script += "    return repr_str\n"
-    globs = {
-        "safe_repr": safe_repr,
-        "recursive_repr": recursive_repr,
-        "to_items": to_items,
-        "type": type,
-    }  # type: dict[str, Any]
+    globs = {"safe_repr": safe_repr, "recursive_repr": recursive_repr, "type": type}  # type: dict[str, Any]
 
     return make_function(
         "__repr__",
@@ -586,6 +668,73 @@ def _make_delattr(module, cls_fields, cls_name, frozen_cls):
     )
 
 
+_order_operators = {
+    "__lt__": "<",
+    "__le__": "<=",
+    "__gt__": ">",
+    "__ge__": ">=",
+}
+
+
+def _make_order(
+    module,  # type: str
+    cls_fields,  # type: OrderedDict[str, _Field]
+    cls_name,  # type: str
+    method_name,  # type: Literal["__lt__", "__le__", "__gt__", "__ge__"]
+):
+    # type: (...) -> Callable[..., None]
+    """
+    Make order method function.
+
+    :param module: Module.
+    :param cls_fields: Ordered dictionary of named cls_fields.
+    :param cls_name: Class name.
+    :param method_name: Method name.
+    :return: Method function.
+    """
+    script = "def {}(self, other):\n".format(method_name)
+    script += "    cls = type(self)\n"
+    script += "    if cls is not type(other):\n"
+    script += "        return NotImplemented\n"
+    globs = {"object": object}  # type: dict[str, Any]
+    self_parts = []  # type: list[str]
+    other_parts = []  # type: list[str]
+    for field_name, field_ in cls_fields.items():
+        if not field_.order:
+            continue
+
+        self_parts.append("self.{f}".format(f=field_name))
+        other_parts.append("other.{f}".format(f=field_name))
+
+    script += "    self_values = (" + ", ".join(self_parts) + ")\n"
+    script += "    other_values = (" + ", ".join(other_parts) + ")\n"
+    script += "    return self_values {} other_values\n".format(_order_operators[method_name])
+
+    return make_function(
+        method_name,
+        script,
+        globs,
+        generate_unique_filename(method_name, module, cls_name),
+        module,
+    )
+
+
+def _make_match_args(cls_fields):
+    # type: (OrderedDict[str, _Field]) -> tuple[str, ...]
+    """
+    Make `__match_args__` tuple class variable.
+
+    :param cls_fields: Ordered dictionary of named cls_fields.
+    :return: Match args tuple.
+    """
+    match_args = []
+    for field_name, field_ in cls_fields.items():
+        if not field_.init:
+            continue
+        match_args.append(field_name)
+    return tuple(match_args)
+
+
 DataClassParams = TypedDict(
     "DataClassParams",
     {
@@ -596,6 +745,8 @@ DataClassParams = TypedDict(
         "hash": bool,
         "frozen": bool,
         "unsafe_hash": bool,
+        "order": bool,
+        "match_args": bool,
     },
     total=False,
 )
@@ -611,7 +762,7 @@ class DataClassMeta(SlottedBaseMeta):
         dct = dict(dct)
 
         # Gather fields for this class.
-        __fields = dct[mangle("__fields", name)] = {}
+        __fields = dct[mangle("__fields", name)] = OrderedDict()
         for member_name, member in list(dct.items()):
 
             # Regular field.
@@ -700,8 +851,10 @@ class DataClass(six.with_metaclass(DataClassMeta, SlottedBase)):
         repr=None,  # type: bool | None
         eq=None,  # type: bool | None
         hash=None,  # type: bool | None
-        frozen=False,  # type: bool
+        frozen=None,  # type: bool | None
         unsafe_hash=False,  # type: bool
+        order=None,  # type: bool | None
+        match_args=None,  # type: bool | None
     ):
         # type: (...) -> None
         """
@@ -714,6 +867,8 @@ class DataClass(six.with_metaclass(DataClassMeta, SlottedBase)):
         :param hash: Whether to generate `__hash__` method.
         :param frozen: Whether class should be immutable.
         :param unsafe_hash: Whether to allow manual declaration of potentially unsafe `__hash__` method.
+        :param order: Whether to generate order methods.
+        :param match_args: Whether to generate `__match_args__`.
         """
 
         # Merge parameters.
@@ -731,6 +886,8 @@ class DataClass(six.with_metaclass(DataClassMeta, SlottedBase)):
                         "eq": eq,
                         "hash": hash,
                         "frozen": frozen,
+                        "order": order,
+                        "match_args": match_args,
                     }.items()
                     if v is not None
                 )
@@ -773,7 +930,7 @@ class DataClass(six.with_metaclass(DataClassMeta, SlottedBase)):
             type.__setattr__(cls, "__eq__", object.__eq__)
 
         # __hash__.
-        frozen_cls = cls.__params__.get("frozen", True)
+        frozen_cls = cls.__params__.get("frozen", False)
         if cls.__params__.get("hash", True):
             if "__hash__" in cls.__dict__:
                 error = (
@@ -814,5 +971,35 @@ class DataClass(six.with_metaclass(DataClassMeta, SlottedBase)):
             elif method not in cls.__dict__:
                 type.__setattr__(cls, method, getattr(object, method))
 
+        # order.
+        for method_name, order_operator in _order_operators.items():
+            if cls.__params__.get("order", False):
+                if method_name in cls.__dict__:
+                    error = "auto generated {!r} method can't be overriden without disabling 'order' parameter".format(
+                        method_name
+                    )
+                    raise TypeError(error)
+                type.__setattr__(
+                    cls,
+                    method_name,
+                    _make_order(cls.__module__, cls.__fields__, cls.__name__, method_name),  # type: ignore
+                )
+            elif method_name not in cls.__dict__:
+                type.__setattr__(cls, method_name, getattr(object, method_name))
+
+        # __match_args__.
+        if cls.__params__.get("match_args", True):
+            if "__match_args__" in cls.__dict__:
+                error = (
+                    "auto generated '__match_args__' tuple can't be overriden without disabling 'match_args' parameter"
+                )
+                raise TypeError(error)
+            type.__setattr__(cls, "__match_args__", _make_match_args(cls.__fields__))
+        elif "__match_args__" not in cls.__dict__:
+            type.__setattr__(cls, "__match_args__", ())
+
     def __init__(self, *args, **kwargs):
+        pass
+
+    def __post_init__(self):
         pass
