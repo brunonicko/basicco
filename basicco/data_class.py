@@ -1,4 +1,5 @@
 """Python 2.7 compatible implementation of slotted data classes based on a metaclass."""
+
 import copy
 from collections import OrderedDict
 from enum import Enum
@@ -93,7 +94,9 @@ class _Field(SlottedBase):
 
         # Ensure safe required and order.
         if order is None:
-            order = eq
+            if required is None:
+                required = True
+            order = eq and required
         else:
             order = bool(order)
         if order and required is None:
@@ -273,6 +276,11 @@ def deletes(__data, *deletions):
     :param deletions: Fields to delete.
     :return: Data with deletions.
     """
+    cls = type(__data)
+    required = set(n for n, f in cls.__fields__.items() if f.required).intersection(deletions)
+    if required:
+        error = "can't delete required field(s) {}".format(", ".join(repr(r) for r in required))
+        raise AttributeError(error)
     new_data = copy.copy(__data)
     for name in deletions:
         object.__delattr__(new_data, name)
@@ -825,7 +833,7 @@ class DataClassMeta(SlottedBaseMeta):
                     field_ids[field_name] = field_.id
 
         # Order fields by id and store them in a ordered dict.
-        __fields__ = dct["__fields__"] = OrderedDict(sorted(all_fields.items(), key=lambda i: field_ids[i[0]]))
+        dct["__fields__"] = OrderedDict(sorted(all_fields.items(), key=lambda i: field_ids[i[0]]))
 
         # Build class and return it.
         try:

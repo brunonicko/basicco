@@ -84,7 +84,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):
+    if not isinstance(obj, origin):  # type: ignore
         return False
 
     mapping_args = get_args(mapping)
@@ -107,7 +107,7 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):
+    if not isinstance(obj, origin):  # type: ignore
         return False
 
     iterable_args = get_args(iterable)

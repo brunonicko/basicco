@@ -40,9 +40,9 @@ def make_cls(
         bases = tuple(bases)
 
     if dct is None:
-        dct = {}
+        dct_ = {}
     else:
-        dct = dict(dct)
+        dct_ = dict(dct)
 
     if kwargs is None:
         kwargs = {}
@@ -53,8 +53,8 @@ def make_cls(
         module = caller_module()
 
     name = qualified_name.split(".")[-1]
-    dct["__qualname__"] = qualified_name
-    dct["__module__"] = module
+    dct_["__qualname__"] = qualified_name
+    dct_["__module__"] = module
 
     if hasattr(types, "new_class"):
 
@@ -63,7 +63,7 @@ def make_cls(
 
         def exec_body(namespace):
             """Construct class body."""
-            for key, value in six.iteritems(dct):
+            for key, value in six.iteritems(dct_):
                 namespace[key] = value
             return namespace
 
@@ -74,12 +74,12 @@ def make_cls(
             bases = (six.with_metaclass(meta, *bases),)
 
         if kwargs and any(isinstance(b, InitSubclassMeta) for b in bases):
-            dct["__kwargs__"] = kwargs
+            dct_["__kwargs__"] = kwargs
             kwargs = {}
 
-        cls = type(name, bases, dct, **kwargs)
+        cls = type(name, bases, dct_, **kwargs)
 
     type.__setattr__(cls, "__qualname__", qualified_name)
     type.__setattr__(cls, "__module__", module)
 
-    return cls
+    return cls  # noqa

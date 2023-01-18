@@ -6,7 +6,7 @@ from basicco.data_class import DataClass, as_dict, as_tuple, deletes, field, fie
 
 
 class Vector(DataClass):
-    x = field()  # type: float
+    x = field(required=False)  # type: float
     y = field()  # type: float
     name = field(eq=False, kw_only=True)  # type: str
 
