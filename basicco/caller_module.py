@@ -49,29 +49,29 @@ def auto_caller_module(
     :return: Decorator.
     """
     if isinstance(iterable_params, six.string_types):
-        iterable_params = (iterable_params,)
+        iterable_params_ = (iterable_params,)  # type: tuple[str, ...]
     elif iterable_params is None:
-        iterable_params = ()
+        iterable_params_ = ()
     else:
-        iterable_params = tuple(iterable_params)
+        iterable_params_ = tuple(iterable_params)
 
     if isinstance(single_params, six.string_types):
-        single_params = (single_params,)
+        single_params_ = (single_params,)  # type: tuple[str, ...]
     elif single_params is None:
-        single_params = ()
+        single_params_ = ()
     else:
-        single_params = tuple(single_params)
+        single_params_ = tuple(single_params)
 
     def decorator(func):
         @functools.wraps(func)
         def decorated(*args, **kwargs):
             _iterable_params = []
             _single_params = []
-            for iterable_param in iterable_params:
+            for iterable_param in iterable_params_:
                 values = tuple(kwargs.get(iterable_param, ()))
                 if not values:
                     _iterable_params.append(iterable_param)
-            for single_param in single_params:
+            for single_param in single_params_:
                 value = kwargs.get(single_param, None)
                 if value is None:
                     _single_params.append(single_param)

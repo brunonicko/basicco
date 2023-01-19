@@ -1,7 +1,7 @@
-basicco.basic\_data module
+basicco.data\_class module
 ==========================
 
-.. automodule:: basicco.basic_data
+.. automodule:: basicco.data_class
    :members:
    :undoc-members:
    :show-inheritance:

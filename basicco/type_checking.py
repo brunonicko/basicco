@@ -4,19 +4,7 @@ import itertools
 
 import six
 import typing_inspect  # type: ignore
-from tippo import (
-    Any,
-    Callable,
-    ForwardRef,
-    Iterable,
-    Mapping,
-    Type,
-    TypeVar,
-    cast,
-    get_args,
-    get_origin,
-    get_typing,
-)
+from tippo import Any, Callable, ForwardRef, Iterable, Mapping, Type, TypeVar, cast, get_args, get_origin, get_typing
 
 from .import_path import get_name, import_path
 
@@ -96,7 +84,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):
+    if not isinstance(obj, origin):  # type: ignore
         return False
 
     mapping_args = get_args(mapping)
@@ -119,7 +107,7 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):
+    if not isinstance(obj, origin):  # type: ignore
         return False
 
     iterable_args = get_args(iterable)

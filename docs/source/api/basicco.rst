@@ -13,10 +13,10 @@ Submodules
    :maxdepth: 4
 
    basicco.abstract_class
-   basicco.basic_data
    basicco.caller_module
    basicco.context_vars
    basicco.custom_repr
+   basicco.data_class
    basicco.default_dir
    basicco.dynamic_class
    basicco.dynamic_code

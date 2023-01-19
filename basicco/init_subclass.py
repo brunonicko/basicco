@@ -67,6 +67,7 @@ class InitSubclassMeta(type):
 
             # Found a method.
             if method is not None:
+                assert method_owner is not None
 
                 # Invalid base.
                 if not isinstance(method_owner, InitSubclassMeta):

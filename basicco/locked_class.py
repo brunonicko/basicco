@@ -23,11 +23,10 @@ def is_locked(cls):
     try:
         locked = getattr(cls, locked_attr)
     except AttributeError:
-        pass
+        assert_is_instance(cls, LockedClassMeta)
+        return True
     else:
         return locked
-    assert_is_instance(cls, LockedClassMeta)
-    raise
 
 
 def set_locked(cls, locked):
@@ -42,7 +41,10 @@ def set_locked(cls, locked):
     locked_attr = mangle("__locked", cls.__name__)
     if not hasattr(cls, locked_attr):
         assert_is_instance(cls, LockedClassMeta)
-    type.__setattr__(cls, locked_attr, locked)
+    elif not locked:
+        type.__setattr__(cls, locked_attr, False)
+    else:
+        type.__delattr__(cls, locked_attr)
 
 
 @contextlib.contextmanager
@@ -67,6 +69,11 @@ def unlocked_context(cls):
 class LockedClassMeta(type):
     """Metaclass that prevents changing public class attributes."""
 
+    def __new__(mcs, name, bases, dct, **kwargs):
+        dct = dict(dct)
+        dct[mangle("__locked", name)] = False
+        return super(LockedClassMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+
     def __init__(cls, name, bases, dct, **kwargs):
         super(LockedClassMeta, cls).__init__(name, bases, dct, **kwargs)
         if not is_locked(cls):
@@ -74,10 +81,8 @@ class LockedClassMeta(type):
 
     def __getattr__(cls, name):
         # type: (str) -> Any
-        locked_attr = mangle("__locked", cls.__name__)
-        if name == locked_attr:
-            type.__setattr__(cls, locked_attr, False)
-            return False
+        if name == mangle("__locked", cls.__name__):
+            return True
         try:
             return super(LockedClassMeta, cls).__getattr__(name)  # type: ignore  # noqa
         except AttributeError:
