@@ -4,7 +4,7 @@ import functools
 import inspect
 
 import six
-from tippo import Callable, Type, TypeVar, final
+from tippo import Any, Callable, Dict, Tuple, Type, TypeVar, Union, final
 
 from .get_mro import get_mro
 
@@ -21,14 +21,17 @@ __final = final
 
 
 def _final(obj):
+    # type: (_T) -> _T
     if inspect.isclass(obj):
         if not isinstance(obj, RuntimeFinalMeta):
-            error = "class {!r} doesn't have {!r} as its metaclass".format(obj.__name__, RuntimeFinalMeta.__name__)
+            error = "class {!r} doesn't have {!r} as its metaclass".format(
+                obj.__name__, RuntimeFinalMeta.__name__
+            )
             raise TypeError(error)
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
         object.__setattr__(obj, _FINAL_METHOD_TAG, True)
-    return __final(obj)
+    return __final(obj)  # type: ignore
 
 
 globals()["final"] = functools.wraps(final)(_final)  # trick IDEs/static type checkers
@@ -36,6 +39,7 @@ globals()["final"].__doc__ = "A decorator to indicate final methods and final cl
 
 
 def _is_final_member(member):
+    # type: (object) -> bool
     _is_final = False
 
     # Descriptor.
@@ -58,7 +62,7 @@ def _is_final_member(member):
 
 
 def is_final(obj):
-    # type: (Callable) -> bool
+    # type: (Callable[..., Any]) -> bool
     """
     Tell whether a class or member is final.
 
@@ -75,6 +79,7 @@ class RuntimeFinalMeta(type):
     """Metaclass that enables runtime-checking for `final` decorator."""
 
     def __init__(cls, name, bases, dct, **kwargs):
+        # type: (str, Tuple[Type[Any], ...], Dict[str, Any], **Any) -> None
         super(RuntimeFinalMeta, cls).__init__(name, bases, dct, **kwargs)
         cls.__gather_final_members()
 
@@ -82,8 +87,8 @@ class RuntimeFinalMeta(type):
         # type: () -> None
 
         # Iterate over MRO of the class.
-        final_cls = None  # type: Type | None
-        final_member_names = {}  # type: dict[str, Type]
+        final_cls = None  # type: Union[Type[Any], None]
+        final_member_names = {}  # type: Dict[str, Type[Any]]
         mro = get_mro(cls)
         for base in reversed(mro):
             if base is object:
@@ -98,7 +103,6 @@ class RuntimeFinalMeta(type):
 
             # Find final members.
             for member_name, member in base.__dict__.items():
-
                 # Can't override final members.
                 if member_name in final_member_names:
                     error = "{!r} overrides final member {!r} defined by {!r}".format(
@@ -116,11 +120,13 @@ class RuntimeFinalMeta(type):
             type.__setattr__(cls, _FINAL_METHODS, frozenset(final_member_names))
 
     def __setattr__(cls, name, value):
+        # type: (str, Any) -> None
         super(RuntimeFinalMeta, cls).__setattr__(name, value)
         if is_final(value):
             cls.__gather_final_members()
 
     def __delattr__(cls, name):
+        # type: (str) -> None
         gather = False
         for base in get_mro(cls):
             if name in base.__dict__:

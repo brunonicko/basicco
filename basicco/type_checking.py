@@ -4,7 +4,21 @@ import itertools
 
 import six
 import typing_inspect  # type: ignore
-from tippo import Any, Callable, ForwardRef, Iterable, Mapping, Type, TypeVar, cast, get_args, get_origin, get_typing
+from tippo import (
+    Any,
+    Callable,
+    ForwardRef,
+    Iterable,
+    Mapping,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+    get_typing,
+)
 
 from .import_path import get_name, import_path
 
@@ -24,7 +38,7 @@ __all__ = [
 ]
 
 
-TEXT_TYPES = tuple({str, six.text_type})  # type: tuple[Type, ...]
+TEXT_TYPES = tuple({str, six.text_type})  # type: Tuple[Type[str], ...]
 
 _T = TypeVar("_T")
 
@@ -34,14 +48,20 @@ class TypeCheckError(Exception):
 
 
 def _check_literal(obj, literal, type_depth, *args):
-    return any(_check(obj, type(v), type_depth, *args) if type_depth else obj == v for v in get_args(literal))
+    # type: (Any, Any, int, *Any) -> bool
+    return any(
+        _check(obj, type(v), type_depth, *args) if type_depth else obj == v
+        for v in get_args(literal)
+    )
 
 
 def _check_union(obj, union, *args):
+    # type: (Any, Any, *Any) -> bool
     return any(_check(obj, t, *args) for t in get_args(union))
 
 
 def _check_type(obj, typ, type_depth, *args):
+    # type: (Any, Any, int, *Any) -> bool
     if not isinstance(obj, type):
         return False
 
@@ -57,6 +77,7 @@ def _check_type(obj, typ, type_depth, *args):
 
 
 def _check_tuple(obj, typed_tuple, type_depth, instance, *args):
+    # type: (Any, Any, int, Any, *Any) -> bool
     if type_depth or not instance:
         return _check(obj, tuple, type_depth, instance, *args)
 
@@ -76,10 +97,13 @@ def _check_tuple(obj, typed_tuple, type_depth, instance, *args):
     if len(obj) != len(tuple_args):
         return False
 
-    return all(_check(v, t, type_depth, instance, *args) for v, t in zip(obj, tuple_args))
+    return all(
+        _check(v, t, type_depth, instance, *args) for v, t in zip(obj, tuple_args)
+    )
 
 
 def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
+    # type: (Any, Any, int, Any, bool, *Any) -> bool
     origin = get_origin(mapping)
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
@@ -103,6 +127,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
 
 
 def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
+    # type: (Any, Any, int, Any, bool, *Any) -> bool
     origin = get_origin(iterable)
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
@@ -124,16 +149,17 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
 
 
 def _check_forward_ref(
-    obj,
-    forward_ref,
-    type_depth,
-    instance,
-    typing,
-    subtypes,
-    extra_paths,
-    builtin_paths,
-    generic,
+    obj,  # type: Any
+    forward_ref,  # type: Any
+    type_depth,  # type: int
+    instance,  # type: Any
+    typing,  # type: bool
+    subtypes,  # type: bool
+    extra_paths,  # type: Iterable[str]
+    builtin_paths,  # type: Union[Iterable[str], None]
+    generic,  # type: bool
 ):
+    # type: (...) -> bool
     typ = import_path(
         forward_ref.__forward_arg__,
         extra_paths=extra_paths,
@@ -154,16 +180,17 @@ def _check_forward_ref(
 
 
 def _check_typing(
-    obj,
-    typ,
-    type_depth,
-    instance,
-    typing,
-    subtypes,
-    extra_paths,
-    builtin_paths,
-    generic,
+    obj,  # type: Any
+    typ,  # type: Any
+    type_depth,  # type: int
+    instance,  # type: Any
+    typing,  # type: bool
+    subtypes,  # type: bool
+    extra_paths,  # type: Iterable[str]
+    builtin_paths,  # type: Union[Iterable[str], None]
+    generic,  # type: bool
 ):
+    # type: (...) -> bool
     args = (
         type_depth,
         instance,
@@ -196,7 +223,9 @@ def _check_typing(
 
     # Mapping.
     try:
-        type_is_mapping = issubclass(get_typing(get_origin(typ)), Mapping)
+        type_is_mapping = issubclass(
+            get_typing(get_origin(typ)), Mapping  # type: ignore
+        )
     except TypeError:
         pass
     else:
@@ -205,7 +234,9 @@ def _check_typing(
 
     # Iterable.
     try:
-        type_is_iterable = issubclass(get_typing(get_origin(typ)), Iterable)
+        type_is_iterable = issubclass(
+            get_typing(get_origin(typ)), Iterable  # type: ignore
+        )
     except TypeError:
         pass
     else:
@@ -221,16 +252,17 @@ def _check_typing(
 
 
 def _check(
-    obj,
-    typ,
-    type_depth,
-    instance,
-    typing,
-    subtypes,
-    extra_paths,
-    builtin_paths,
-    generic,
+    obj,  # type: Any
+    typ,  # type: Any
+    type_depth,  # type: int
+    instance,  # type: Any
+    typing,  # type: bool
+    subtypes,  # type: bool
+    extra_paths,  # type: Iterable[str]
+    builtin_paths,  # type: Union[Iterable[str], None]
+    generic,  # type: bool
 ):
+    # type: (...) -> bool
 
     # Import lazy path.
     if isinstance(typ, six.string_types):
@@ -297,8 +329,10 @@ def _check(
         return obj is typ
 
 
-def format_types(types):
-    # type: (Type| str | None | Iterable[Type| str | None]) -> tuple[Type | str, ...]
+def format_types(
+    types,  # type: Union[Type[_T], str, None, Iterable[Union[Type[_T], str, None]]]
+):
+    # type: (...) -> Tuple[Union[Type[_T], Type[None], str], ...]
     """
     Format types into a tuple.
 
@@ -308,20 +342,28 @@ def format_types(types):
     if types is None:
         return (type(None),)
     elif typing_inspect.is_union_type(types):
-        return tuple(itertools.chain.from_iterable(format_types(t) for t in get_args(types)))
-    elif isinstance(types, type) or isinstance(types, six.string_types) or get_name(types) is not None:
+        return tuple(
+            itertools.chain.from_iterable(format_types(t) for t in get_args(types))
+        )
+    elif (
+        isinstance(types, type)
+        or isinstance(types, six.string_types)
+        or get_name(types) is not None
+    ):
         return (types,)  # type: ignore
-    elif isinstance(types, Iterable):  # type: ignore
+    elif isinstance(types, Iterable):
         return tuple(itertools.chain.from_iterable(format_types(t) for t in types))
     else:
         error = "{!r} object is not a valid type".format(type(types).__name__)
         raise TypeError(error)
 
 
-def type_names(types):
-    # type: (Type | str | None | Iterable[Type | str | None]) -> tuple[str, ...]
+def type_names(
+    types,  # type: Union[Type[Any], str, None, Iterable[Union[Type[Any], str, None]]]
+):
+    # type: (...) -> Tuple[str, ...]
     """
-    Get type names without importing from paths. Can be used for user-feedback purposes.
+    Get type names without importing from paths. Can be used for user feedback purposes.
 
     :param types: Types.
     :return: Type names.
@@ -340,12 +382,12 @@ def type_names(types):
 
 
 def import_types(
-    types,  # type: Type | str | None | Iterable[Type | str | None]
+    types,  # type: Union[Type[_T], str, None, Iterable[Union[Type[_T], str, None]]]
     extra_paths=(),  # type: Iterable[str]
     builtin_paths=None,  # type: Iterable[str] | None
     generic=True,  # type: bool
 ):
-    # type: (...) -> tuple[Type, ...]
+    # type: (...) -> Tuple[Type[_T], ...]
     """
     Import types from lazy import paths.
 
@@ -356,7 +398,9 @@ def import_types(
     :return: Imported types.
     """
     imported_types = tuple(
-        import_path(t, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
+        import_path(
+            t, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic
+        )
         if isinstance(t, six.string_types)
         else t
         for t in format_types(types)
@@ -374,12 +418,12 @@ def import_types(
         if integer_types.intersection(imported_types):
             imported_types += tuple(integer_types.difference(imported_types))
 
-    return cast("tuple[Type, ...]", format_types(imported_types))
+    return cast(Tuple[Type[_T], ...], format_types(imported_types))
 
 
 def is_instance(
     obj,  # type: Any
-    types,  # type: Type | str | None | Iterable[Type | str | None]
+    types,  # type: Union[Type[Any], str, None, Iterable[Union[Type[Any], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
     builtin_paths=None,  # type: Iterable[str] | None
@@ -399,7 +443,9 @@ def is_instance(
     :param typing: Whether to check against typing.
     :return: True if it is an instance.
     """
-    imported_types = import_types(types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
+    imported_types = import_types(
+        types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic
+    )
     return any(
         _check(
             obj=obj,
@@ -417,8 +463,8 @@ def is_instance(
 
 
 def is_subclass(
-    cls,  # type: Type
-    types,  # type: Type | str | None | Iterable[Type | str | None]
+    cls,  # type: Type[Any]
+    types,  # type: Union[Type[Any], str, None, Iterable[Union[Type[Any], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
     builtin_paths=None,  # type: Iterable[str] | None
@@ -442,7 +488,9 @@ def is_subclass(
     if not isinstance(cls, type):
         error = "is_subclass() arg 1 must be a class"
         raise TypeError(error)
-    imported_types = import_types(types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic)
+    imported_types = import_types(
+        types, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic
+    )
     return any(
         _check(
             obj=cls,
@@ -469,7 +517,7 @@ def is_iterable(value, include_strings=False):
     :param include_strings: Whether to consider strings as iterables.
     :return: True if iterable.
     """
-    return isinstance(value, Iterable) and (  # type: ignore
+    return isinstance(value, Iterable) and (
         (not isinstance(value, six.string_types) or include_strings)
     )
 
@@ -506,13 +554,13 @@ def assert_is_instance(
         generic=generic,
         typing=typing,
     ):
-        types = format_types(types)
-        if not types:
+        formatted_types = format_types(types)
+        if not formatted_types:
             error = "no types were provided to perform assertion"
             raise ValueError(error)
         error = "got {!r} object, expected instance of {}{}".format(
             type(obj).__name__,
-            ", ".join(repr(n) for n in type_names(types)),
+            ", ".join(repr(n) for n in type_names(formatted_types)),
             "" if subtypes else " (instances of subclasses are not accepted)",
         )
         raise TypeCheckError(error)
@@ -543,11 +591,11 @@ def assert_is_subclass(
     :raises TypeCheckError: Class is not a subclass of provided types.
     """
     if not isinstance(cls, type):
-        types = format_types(types)
+        formatted_types = format_types(types)
         error = "got instance of {!r}, expected {}{}{}".format(
             type(cls).__name__,
-            "one of " if len(types) > 1 else "class ",
-            ", ".join(repr(n) for n in type_names(types)),
+            "one of " if len(formatted_types) > 1 else "class ",
+            ", ".join(repr(n) for n in type_names(formatted_types)),
             "" if subtypes else " (subclasses are not accepted)",
         )
         raise TypeCheckError(error)
@@ -561,20 +609,20 @@ def assert_is_subclass(
         generic=generic,
         typing=typing,
     ):
-        types = format_types(types)
-        if not types:
+        formatted_types = format_types(types)
+        if not formatted_types:
             error = "no types were provided to perform assertion"
             raise ValueError(error)
 
         error = "got {!r}, expected {}{}{}".format(
             cls.__name__,
-            "one of " if len(types) > 1 else "class ",
-            ", ".join(repr(n) for n in type_names(types)),
+            "one of " if len(formatted_types) > 1 else "class ",
+            ", ".join(repr(n) for n in type_names(formatted_types)),
             "" if subtypes else " (subclasses are not accepted)",
         )
         raise TypeCheckError(error)
 
-    return cast(Type[_T], cls)
+    return cast(Type[_T], cls)  # type: ignore
 
 
 def assert_is_callable(value):
@@ -586,7 +634,9 @@ def assert_is_callable(value):
     :raises TypeCheckError: Value is not a callable.
     """
     if not callable(value):
-        error = "got non-callable {!r} object, expected a callable".format(type(value).__name__)
+        error = "got non-callable {!r} object, expected a callable".format(
+            type(value).__name__
+        )
         raise TypeCheckError(error)
     return value
 
@@ -602,6 +652,8 @@ def assert_is_iterable(value, include_strings=False):
     :raises TypeCheckError: Value is not iterable.
     """
     if not is_iterable(value, include_strings=include_strings):
-        error = "got non-iterable {!r} object, expected an iterable".format(type(value).__name__)
+        error = "got non-iterable {!r} object, expected an iterable".format(
+            type(value).__name__
+        )
         raise TypeCheckError(error)
     return value

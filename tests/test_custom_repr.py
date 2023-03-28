@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 
 from basicco.custom_repr import iterable_repr, mapping_repr
 

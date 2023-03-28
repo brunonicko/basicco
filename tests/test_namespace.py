@@ -1,6 +1,8 @@
+# type: ignore
+
 from pickle import dumps, loads
 
-import pytest  # noqa
+import pytest
 import six
 
 from basicco.namespace import _WRAPPED_SLOT  # noqa

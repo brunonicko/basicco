@@ -1,7 +1,9 @@
+# type: ignore
+
 import abc
 import itertools
 
-import pytest  # noqa
+import pytest
 import tippo
 
 from basicco.type_checking import (
@@ -51,7 +53,9 @@ def test_format_types():
 def test_type_names():
     assert type_names(None) == (type(None).__name__,)
     assert type_names((None,)) == (type(None).__name__,)
-    assert type_names(("module.module.Cls", "abc.abstractmethod", abc.ABCMeta, itertools.chain)) == (
+    assert type_names(
+        ("module.module.Cls", "abc.abstractmethod", abc.ABCMeta, itertools.chain)
+    ) == (
         "Cls",
         "abstractmethod",
         "ABCMeta",
@@ -258,7 +262,9 @@ def test_typing_type():
     assert is_instance(3.0, float) == isinstance(3.0, float)
     assert is_instance(float, tippo.Type[float]) == is_subclass(float, float)
 
-    assert is_subclass(float, tippo.Type[tippo.Type[float]]) == is_subclass(float, type(float))
+    assert is_subclass(float, tippo.Type[tippo.Type[float]]) == is_subclass(
+        float, type(float)
+    )
     assert is_subclass(float, tippo.Type[int]) == is_subclass(float, type)
 
     assert is_instance({"a": 1}, tippo.Mapping[str, int])

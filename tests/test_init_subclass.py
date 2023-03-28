@@ -1,6 +1,8 @@
+# type: ignore
+
 import sys
 
-import pytest  # noqa
+import pytest
 import six
 from tippo import Generic, GenericMeta, TypeVar
 

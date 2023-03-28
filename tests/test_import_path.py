@@ -1,8 +1,10 @@
+# type: ignore
+
 import collections
 import itertools
 import math
 
-import pytest  # noqa
+import pytest
 import six.moves
 import tippo
 
@@ -18,7 +20,7 @@ def test_import_path():
     assert import_path("math.floor") is math.floor
     assert import_path("itertools.chain") is itertools.chain
     assert import_path("six.moves") is six.moves
-    assert import_path("six.moves.collections_abc") is six.moves.collections_abc  # type: ignore
+    assert import_path("six.moves.collections_abc") is six.moves.collections_abc  # noqa
 
     assert import_path(__name__ + ".MyClass") is MyClass
     assert import_path(__name__ + ".MyClass.MyNestedClass") is MyClass.MyNestedClass

@@ -4,9 +4,23 @@ import copy
 import re
 
 import six
-from tippo import Any, Iterable, Iterator, Mapping, Tuple, TypeVar
+from tippo import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    MutableMapping,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from .mangling import mangle
+from .recursive_repr import recursive_repr
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta", "Namespaced"]
 
@@ -15,8 +29,18 @@ _VT = TypeVar("_VT")
 
 _WRAPPED_SLOT = "__wrapped__"
 _MEMBER_REGEX = re.compile(r"^[a-zA-Z_]\w*$")
-_init = lambda s, w: object.__setattr__(s, _WRAPPED_SLOT, w)
-_read = lambda s: object.__getattribute__(s, _WRAPPED_SLOT)
+
+_WrappedDict = MutableMapping[str, _VT]
+
+
+def _init(self, wrapped):
+    # type: (Namespace[_VT], _WrappedDict[_VT]) -> None
+    object.__setattr__(self, _WRAPPED_SLOT, wrapped)
+
+
+def _read(self):
+    # type: (Namespace[_VT]) -> _WrappedDict[_VT]
+    return cast(Dict[str, _VT], object.__getattribute__(self, _WRAPPED_SLOT))
 
 
 class Namespace(Iterable[Tuple[str, _VT]]):
@@ -26,44 +50,63 @@ class Namespace(Iterable[Tuple[str, _VT]]):
     __hash__ = None  # type: ignore
 
     def __init__(self, wrapped=None):
-        # type: (Mapping[str, _VT] | Namespace[_VT] | None) -> None
+        # type: (Union[Mapping[str, _VT], Namespace[_VT], None]) -> None
         """
         :param wrapped: Mapping/Namespace to be wrapped.
         """
         if wrapped is None:
-            wrapped = {}
+            wrapped_dict = {}  # type: _WrappedDict[_VT]
         elif isinstance(wrapped, Namespace):
-            wrapped = _read(wrapped)
-        _init(self, wrapped)
+            wrapped_dict = _read(wrapped)
+        elif not isinstance(wrapped, MutableMapping):
+            wrapped_dict = dict(wrapped)
+        else:
+            wrapped_dict = wrapped  # noqa
+        _init(self, wrapped_dict)
 
     def __getitem__(self, name):
+        # type: (str) -> _VT
         return _read(self)[name]
 
     def __dir__(self):
-        keys = {k for k in _read(self) if isinstance(k, str) and not hasattr(type(self), k) and _MEMBER_REGEX.match(k)}
+        # type: () -> List[str]
+        keys = {
+            k
+            for k in _read(self)
+            if isinstance(k, str)
+            and not hasattr(type(self), k)
+            and _MEMBER_REGEX.match(k)
+        }
         return sorted(keys)
 
     def __eq__(self, other):
+        # type: (object) -> bool
         return isinstance(other, Namespace) and _read(other) == _read(self)
 
     def __ne__(self, other):
+        # type: (object) -> bool
         return not self.__eq__(other)
 
+    @recursive_repr
     def __repr__(self):
+        # type: () -> str
         return "{}({})".format(type(self).__name__, _read(self))
 
     def __reduce__(self):
-        return type(self), (_read(self),)
+        # type: () -> Tuple[Type[_N], Tuple[_WrappedDict[_VT]]]
+        return cast(Type[_N], type(self)), (_read(self),)
 
     def __copy__(self):
-        return type(self)(_read(self).copy())
+        # type: (_N) -> _N
+        return type(self)(dict(_read(self)))
 
     def __deepcopy__(self, memo=None):
+        # type: (_N, Union[Dict[int, object], None]) -> _N
         if memo is None:
             memo = {}
         self_id = id(self)
         try:
-            deep_copied = memo[self_id]
+            deep_copied = cast(_N, memo[self_id])
         except KeyError:
             cls = type(self)
             deep_copied = memo[self_id] = cls.__new__(cls)
@@ -75,7 +118,7 @@ class Namespace(Iterable[Tuple[str, _VT]]):
         return len(_read(self))
 
     def __iter__(self):
-        # type: () -> Iterator[tuple[str, _VT]]
+        # type: () -> Iterator[Tuple[str, _VT]]
         for key, value in _read(self).items():
             yield key, value
 
@@ -87,11 +130,14 @@ class Namespace(Iterable[Tuple[str, _VT]]):
         # type: (str) -> _VT
         cls = type(self)
         if hasattr(cls, name):
-            return object.__getattribute__(self, name)
+            return cast(_VT, object.__getattribute__(self, name))
         try:
             return _read(self)[name]
         except KeyError:
             raise AttributeError(name)
+
+
+_N = TypeVar("_N", bound=Namespace[Any])
 
 
 class MutableNamespace(Namespace[_VT]):
@@ -100,9 +146,11 @@ class MutableNamespace(Namespace[_VT]):
     __slots__ = ()
 
     def __setitem__(self, name, value):
+        # type: (str, _VT) -> None
         _read(self)[name] = value
 
     def __delitem__(self, name):
+        # type: (str) -> None
         del _read(self)[name]
 
     def __setattr__(self, name, value):
@@ -138,7 +186,7 @@ class MutableNamespace(Namespace[_VT]):
 
 
 class NamespacedMeta(type):
-    """Metaclass that provides a mutable `__namespace` as a protected class attribute."""
+    """Provides a mutable `__namespace` as a protected class attribute."""
 
     __namespace = MutableNamespace()  # type: MutableNamespace[Any]
 

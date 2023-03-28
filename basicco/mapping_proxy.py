@@ -7,20 +7,20 @@ try:
     from types import MappingProxyType
 
 except ImportError:
-    from tippo import Iterator, Mapping, TypeVar  # type: ignore
+    from tippo import Iterator, Mapping, TypeVar
 
-    KT = TypeVar("KT")
-    VT = TypeVar("VT")
+    _KT = TypeVar("_KT")
+    _VT = TypeVar("_VT")
 
-    class _MappingProxyType(Mapping[KT, VT]):  # type: ignore
+    class _MappingProxyType(Mapping[_KT, _VT]):
         __slots__ = ("__mapping",)
 
         def __init__(self, mapping):
-            # type: (Mapping[KT, VT]) -> None
+            # type: (Mapping[_KT, _VT]) -> None
             self.__mapping = mapping
 
         def __getitem__(self, item):
-            # type: (KT) -> VT
+            # type: (_KT) -> _VT
             return self.__mapping[item]
 
         def __len__(self):
@@ -28,7 +28,7 @@ except ImportError:
             return len(self.__mapping)
 
         def __iter__(self):
-            # type: () -> Iterator[KT]
+            # type: () -> Iterator[_KT]
             for key in self.__mapping:
                 yield key
 

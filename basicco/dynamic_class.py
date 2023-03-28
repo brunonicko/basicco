@@ -3,7 +3,7 @@
 import types
 
 import six
-from tippo import Any, Iterable, Mapping, Type, TypeVar
+from tippo import Any, Dict, Iterable, Mapping, Type, TypeVar, Union
 
 from .caller_module import caller_module
 from .init_subclass import InitSubclassMeta
@@ -11,18 +11,18 @@ from .init_subclass import InitSubclassMeta
 __all__ = ["make_cls"]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 def make_cls(
     qualified_name,  # type: str
-    bases=None,  # type: Iterable[type] | None
-    meta=None,  # type: Type | None
-    dct=None,  # type: Mapping[str, Any] | None
-    kwargs=None,  # type: Mapping[str, Any] | None
-    module=None,  # type: str | None
+    bases=None,  # type: Union[Iterable[Type[Any]], None]
+    meta=None,  # type: Union[Type[Any], None]
+    dct=None,  # type: Union[Mapping[str, Any], None]
+    kwargs=None,  # type: Union[Mapping[str, Any], None]
+    module=None,  # type: Union[str, None]
 ):
-    # type: (...) -> Type[T]
+    # type: (...) -> Type[_T]
     """
     Dynamically make a class.
 
@@ -57,19 +57,19 @@ def make_cls(
     dct_["__module__"] = module
 
     if hasattr(types, "new_class"):
-
         if meta is not None:
             kwargs["metaclass"] = meta
 
         def exec_body(namespace):
+            # type: (Dict[str, Any]) -> Dict[str, Any]
             """Construct class body."""
             for key, value in six.iteritems(dct_):
                 namespace[key] = value
             return namespace
 
-        cls = types.new_class(name, bases, kwargs, exec_body)
+        assert bases is not None
+        cls = types.new_class(name, bases, kwargs, exec_body)  # noqa
     else:
-
         if meta is not None:
             bases = (six.with_metaclass(meta, *bases),)
 

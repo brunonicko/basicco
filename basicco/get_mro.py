@@ -1,16 +1,15 @@
-"""Utility to get mro bases."""
+"""Utilities to get the MRO that work with generic classes in older Python versions."""
 
 import collections
 import inspect
-import types
 
-from tippo import GenericMeta, Type
+from tippo import Any, Deque, Dict, GenericMeta, Tuple, Type, cast
 
 __all__ = ["resolve_origin", "get_mro", "preview_mro"]
 
 
 def resolve_origin(cls):
-    # type: (Type | types.GenericAlias) -> Type
+    # type: (Type[Any]) -> Type[Any]
     """
     Resolve origin for generic alias.
 
@@ -18,7 +17,7 @@ def resolve_origin(cls):
     :return: Original class.
     """
     if hasattr(cls, "__mro_entries__"):
-        return cls.__mro_entries__(())[0]
+        return cast(Type[Any], cls.__mro_entries__(())[0])
     assert isinstance(cls, type)
     generic = cls
     while hasattr(generic, "__origin__"):
@@ -29,7 +28,7 @@ def resolve_origin(cls):
 
 
 def get_mro(cls):
-    # type: (Type) -> tuple[Type, ...]
+    # type: (Type[Any]) -> Tuple[Type[Any], ...]
     """
     Get consistent mro amongst different python versions.
     This works even with generic classes.
@@ -45,8 +44,8 @@ def get_mro(cls):
     if GenericMeta is type:
         return tuple(inspect.getmro(cls))
 
-    # Special logic to skip generic classes when GenericMeta is being used, for old python.
-    mro = collections.deque()  # type: collections.deque[Type]
+    # Special logic to skip generic classes when GenericMeta is being used (old python).
+    mro = collections.deque()  # type: Deque[Type[Any]]
     for base in reversed(inspect.getmro(cls)):
         origin = resolve_origin(base)
         if origin in mro:
@@ -55,11 +54,14 @@ def get_mro(cls):
     return tuple(mro)
 
 
-def _build_dummy_bases(bases, dummy_map, base_map):
-    # type: (tuple[Type, ...], dict[Type, Type], dict[Type, Type]) -> tuple[Type, ...]
+def _build_dummy_bases(
+    bases,  # type: Tuple[Type[Any], ...]
+    dummy_map,  # type: Dict[Type[Any], Type[Any]]
+    base_map,  # type: Dict[Type[Any], Type[Any]]
+):
+    # type: (...) -> Tuple[Type[Any], ...]
     dummy_bases = []
     for base in bases:
-
         # Reuse dummy base.
         if base in base_map:
             dummy_bases.append(base_map[base])
@@ -85,15 +87,15 @@ def _build_dummy_bases(bases, dummy_map, base_map):
 
 
 def preview_mro(*bases):
-    # type: (*Type) -> tuple[Type, ...]
+    # type: (*Type[Any]) -> Tuple[Type[Any], ...]
     """
     Preview the mro before building the actual class.
 
     :param bases: Bases.
     :return: Tuple of classes.
     """
-    dummy_map = {}  # type: dict[Type, Type]
-    base_map = {}  # type: dict[Type, Type]
+    dummy_map = {}  # type: Dict[Type[Any], Type[Any]]
+    base_map = {}  # type: Dict[Type[Any], Type[Any]]
     dummy_bases = _build_dummy_bases(bases, dummy_map, base_map)
     dummy_cls = type.__new__(type, "Dummy", dummy_bases, {})
     return tuple(dummy_map[b] for b in get_mro(dummy_cls)[1:])

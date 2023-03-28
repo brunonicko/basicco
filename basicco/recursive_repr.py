@@ -4,7 +4,7 @@ import functools
 import threading
 
 import six
-from tippo import Callable, Counter, TypeVar, overload
+from tippo import Any, Callable, Counter, TypeVar, overload
 
 __all__ = ["recursive_repr"]
 
@@ -35,6 +35,7 @@ def recursive_repr(
 
 
 def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
+    # type: (Any, Any, Any) -> Any
     """
     Decorate a representation method/function to prevent infinite recursion.
 
@@ -49,6 +50,7 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
 
         @functools.wraps(func)
         def decorated(*args, **kwargs):
+            # type: (*Any, **Any) -> Any
 
             # Get self (or cls for class methods).
             try:
@@ -77,7 +79,6 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
                 else:
                     return func(*args, **kwargs)
             finally:
-
                 # Decrement repr counter and clean up if needed.
                 reprs[self_id] -= 1
                 if not reprs[self_id]:

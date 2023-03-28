@@ -5,8 +5,15 @@
      <a href="https://github.com/brunonicko/basicco">
          <picture>
             <object data="./_static/basicco.svg" type="image/png">
-                <source srcset="./docs/source/_static/basicco_white.svg" media="(prefers-color-scheme: dark)">
-                <img src="./docs/source/_static/basicco.svg" width="60%" alt="basicco" />
+                <source
+                    srcset="./docs/source/_static/basicco_white.svg"
+                    media="(prefers-color-scheme: dark)"
+                />
+                <img
+                    src="./docs/source/_static/basicco.svg"
+                    width="60%"
+                    alt="basicco"
+                />
             </object>
          </picture>
      </a>
@@ -36,70 +43,81 @@
 
 Overview
 --------
-`Base Classes`_ and `Utilities`_ that enhance code compatibility, features and validation.
+`Base Classes`_ and `Utilities`_ for compatibility, features and validation.
 
 Motivation
 ----------
-While developing Python software for Visual Effects pipelines, I found myself having to write the same boiler-plate
-code over and over again, as well as struggling with compatibility issues and feature gaps between Python 2.7 and
-Python 3.7+.
+While developing Python software for Visual Effects pipelines, I found myself having to
+write the same boiler-plate code over and over again, as well as struggling with
+compatibility issues and feature gaps between Python 2.7 and Python 3.7+.
 
-So I decided to implement solutions for those issues at the `Base`_, and `basicco` was born.
+So I decided to implement solutions for those issues at the `Base`_, and `basicco`
+was born.
 
 Base Classes
 ------------
 
 CompatBase
 ^^^^^^^^^^
-The goal with the `CompatBaseMeta` metaclass and the `CompatBase` class is to bridge some of the feature gaps between
-Python 2.7 and Python 3.7+.
+The goal with the `CompatBaseMeta` metaclass and the `CompatBase` class is to bridge
+some of the feature gaps between Python 2.7 and Python 3.7+.
 
 This includes adding Python 2.7 workarounds for:
-  - `Abstract properties <https://docs.python.org/3/library/abc.html#abc.abstractproperty>`_: Better `abstractmethod`
-    decorator support for property-like descriptors. See also `abstract_class`_.
-  - `PEP 487 <https://peps.python.org/pep-0487/>`_: Support for `__init_subclass__` and `__set_name__`.
+  - `Abstract properties <https://docs.python.org/3/library/abc.html#abc.abstractproperty>`_:
+    Better `abstractmethod` decorator support for property-like descriptors.
+    See also `abstract_class`_.
+  - `PEP 487 <https://peps.python.org/pep-0487/>`_:
+    Support for `__init_subclass__` and `__set_name__`.
     See also `init_subclass`_ and `set_name`_.
-  - `object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_: Base `__dir__` method.
+  - `object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_:
+    Base `__dir__` method.
     See also `default_dir`_.
-  - `__eq__ override <https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_: Overriding `__eq__` will
-    set `__hash__` to None. See also `implicit_hash`_.
-  - `PEP 307 <https://peps.python.org/pep-0307/>`_: Support for pickling objects with `__slots__`.
+  - `__eq__ override <https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_:
+    Overriding `__eq__` will set `__hash__` to None. See also `implicit_hash`_.
+  - `PEP 307 <https://peps.python.org/pep-0307/>`_:
+    Support for pickling objects with `__slots__`.
     See also `obj_state`_.
-  - `PEP 3155 <https://peps.python.org/pep-03155/>`_: Qualified name `__qualname__` for nested classes.
+  - `PEP 3155 <https://peps.python.org/pep-03155/>`_:
+    Qualified name `__qualname__` for nested classes.
     See also `qualname`_.
-  - `__ne__ behavior <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_: By default,
-    `__ne__` should negate the result of `__eq__`.
+  - `__ne__ behavior <https://docs.python.org/3.0/whatsnew/3.0.html#operators-and-special-methods>`_:
+    By default, `__ne__` should negate the result of `__eq__`.
     See also `safe_not_equals`_
-  - `PEP 0560 <https://peps.python.org/pep-0560/>`_: Better handling of Generic classes.
+  - `PEP 0560 <https://peps.python.org/pep-0560/>`_:
+    Better handling of Generic classes.
     See also `tippo <https://github.com/brunonicko/tippo#generic-fixes>`_.
 
 Base
 ^^^^
-In addition to the compatibility solutions, the goal with the `BaseMeta` metaclass and the `Base` class is to add
-useful low-level features that hopefully yield better code readability and validation.
+In addition to the compatibility solutions, the goal with the `BaseMeta` metaclass and
+the `Base` class is to add useful low-level features that hopefully yield better code
+readability and validation.
 
 This includes:
   - `__weakref__` slot: Added by default.
   - `locked_class`_: Public class attributes are read-only by default.
-  - `explicit_hash`_: Overriding `__eq__` without overriding `__hash__` will raise an error.
+  - `explicit_hash`_: Overriding `__eq__` without overriding `__hash__` will error.
   - `namespace`_: Adds a protected `__namespace` unique to each class.
   - `runtime_final`_: Runtime checking for classes and methods decorated with `final`.
 
 SlottedBase
 ^^^^^^^^^^^
-The `SlottedBase` class and the `SlottedBaseMeta` metaclass offer all features from `Base` and `BaseMeta` plus implicit
-`__slots__` declaration. See `slotted <https://github.com/brunonicko/slotted>`_ for more information.
+The `SlottedBase` class and the `SlottedBaseMeta` metaclass offer all features from
+`Base` and `BaseMeta` plus implicit `__slots__` declaration.
+See `slotted <https://github.com/brunonicko/slotted>`_ for more information.
 
 Utilities
 ---------
-Apart from the features integrated into the base classes, `basicco` provides many general utility modules.
+Apart from the features integrated into the base classes, `basicco` provides many
+general utility modules.
 
 abstract_class
 ^^^^^^^^^^^^^^
-Better `abstract classes <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_ support.
+Better support for
+`abstract classes <https://docs.python.org/3/library/abc.html#abc.abstractmethod>`_.
 
-Provides abstract decorators that can be used directly on methods but also on classes, properties, classmethods, and
-staticmethods (even in Python 2.7).
+Provides abstract decorators that can be used directly on methods but also on
+property getters, classmethods, and staticmethods (even in Python 2.7).
 
 .. code:: python
 
@@ -118,17 +136,6 @@ staticmethods (even in Python 2.7).
     >>> Asset()
     Traceback (most recent call last):
     TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
-
-.. code:: python
-
-    >>> from basicco.abstract_class import AbstractMeta, abstract
-    >>> @abstract
-    ... class Asset(with_metaclass(AbstractMeta, object)):
-    ...     pass
-    ...
-    >>> Asset()
-    Traceback (most recent call last):
-    TypeError: can't instantiate abstract class 'Asset'
 
 caller_module
 ^^^^^^^^^^^^^
@@ -170,14 +177,24 @@ Custom representation functions for mappings, items, and iterables.
 
     >>> from basicco.custom_repr import mapping_repr
     >>> dct = {"a": 1, "b": 2}
-    >>> mapping_repr(dct, prefix="<", suffix=">", template="{key}={value}", sorting=True)
+    >>> mapping_repr(
+    ...     dct,
+    ...     prefix="<",
+    ...     suffix=">",
+    ...     template="{key}={value}",
+    ...     sorting=True
+    ... )
     "<'a'=1, 'b'=2>"
 
 .. code:: python
 
     >>> from basicco.custom_repr import mapping_repr
     >>> items = [("a", 1), ("b", 2)]
-    >>> mapping_repr(items, prefix="[", suffix="]", template=lambda i, key, value: key + " -> " + value)
+    >>> mapping_repr(
+    ...     items,
+    ...     prefix="[", suffix="]",
+    ...     template=(lambda i, key, value: key + " -> " + value),
+    ... )
     "['a' -> 1, 'b' -> 2]"
 
 .. code:: python
@@ -187,31 +204,13 @@ Custom representation functions for mappings, items, and iterables.
     >>> iterable_repr(tup, prefix="<", suffix=">", value_repr=str)
     '<a, b, c, 1, 2, 3>'
 
-data_class
-^^^^^^^^^^
-Python 2.7 compatible dataclass-like structures.
-
-.. code:: python
-
-    >>> from math import sqrt
-    >>> from basicco.data_class import DataClass, field
-    >>> class Vector(DataClass):
-    ...     x = field()  # type: float
-    ...     y = field()  # type: float
-    ...     @property
-    ...     @field
-    ...     def mag(self):
-    ...         return sqrt(self.x**2 + self.y**2)
-    ...
-    >>> Vector(3.0, 4.0)
-    Vector(3.0, 4.0, mag=5.0)
-
 default_dir
 ^^^^^^^^^^^
 Backport of Python 3's implementation of
-`object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_ for Python 2.7.
+`object.__dir__ <https://docs.python.org/3/reference/datamodel.html#object.__dir__>`_.
 
-This allows for calling `super().__dir__()` from a subclass to leverage the default implementation.
+This allows for calling `super().__dir__()` from a subclass to leverage the default
+implementation.
 
 .. code:: python
 
@@ -228,7 +227,8 @@ This allows for calling `super().__dir__()` from a subclass to leverage the defa
 dynamic_class
 ^^^^^^^^^^^^^
 Easily generate classes on the fly. This works best with a `Base`_ class.
-If provided a valid qualified name and module (uses `caller_module`_ by default), the class will be pickable/importable.
+If provided a valid qualified name and module (uses `caller_module`_ by default), the
+class will be pickable/importable.
 
 .. code:: python
 
@@ -303,7 +303,8 @@ Run a value through a callable factory (or None).
 
 get_mro
 ^^^^^^^
-Get consistent MRO amongst different python versions. This works even with generic classes in Python 2.7.
+Get consistent MRO amongst different python versions. This works even with generic
+classes in Python 2.7.
 
 .. code:: python
 
@@ -325,7 +326,8 @@ Get consistent MRO amongst different python versions. This works even with gener
 
 hash_cache_wrapper
 ^^^^^^^^^^^^^^^^^^
-An integer subclass that pickles/copies as None. This can be used to avoid serializing a cached hash value.
+An integer subclass that pickles/copies as None. This can be used to avoid serializing
+a cached hash value.
 
 .. code:: python
 
@@ -375,7 +377,8 @@ Generate importable dot paths and import from them.
 init_subclass
 ^^^^^^^^^^^^^
 Backport of the functionality of `__init_subclass__` from PEP 487 to Python 2.7.
-This works for both Python 2 (using `__kwargs__`) and 3 (using the new class parameters).
+This works for both Python 2 (using `__kwargs__`) and 3 (using the new class
+parameters).
 
 .. code:: python
 
@@ -431,20 +434,6 @@ Mapping Proxy type (read-only dictionary) for older Python versions.
     >>> proxy_dict["foo"]
     'bar'
 
-named_tuple
-^^^^^^^^^^^
-Named Tuple utilities.
-
-Example of `defaults` decorator/function to set a Named Tuple's default values:
-
-.. code:: python
-
-    >>> from collections import namedtuple
-    >>> from basicco.named_tuple import defaults
-    >>> Point = defaults(name="foo")(namedtuple("Point", ("x", "y", "name")))
-    >>> Point(1, 2)
-    Point(x=1, y=2, name='foo')
-
 namespace
 ^^^^^^^^^
 Wraps a dictionary/mapping and provides attribute-style access to it.
@@ -466,8 +455,8 @@ Wraps a dictionary/mapping and provides attribute-style access to it.
     >>> ns.bar
     'foo'
 
-Also provides a `NamespacedMeta` metaclass that adds a `__namespace` protected class attribute that is unique to each
-class.
+Also provides a `NamespacedMeta` metaclass that adds a `__namespace` protected class
+attribute that is unique to each class.
 
 .. code:: python
 
@@ -503,13 +492,15 @@ Get/update the state of an object, slotted or not (works even in Python 2.7).
     >>> sorted(get_state(slotted).items())
     [('bar', 'b'), ('foo', 'a')]
 
-Also provides a `ReducibleMeta` metaclass that allows for pickling instances of slotted classes in Python 2.7.
+Also provides a `ReducibleMeta` metaclass that allows for pickling instances of slotted
+classes in Python 2.7.
 
 qualname
 ^^^^^^^^
 Python 2.7 compatible way of getting the qualified name. Based on
 `wbolster/qualname <https://github.com/wbolster/qualname>`_.
-Also provides a `QualnamedMeta` metaclass with a `__qualname__` class property for Python 2.7.
+Also provides a `QualnamedMeta` metaclass with a `__qualname__` class property for
+Python 2.7.
 
 recursive_repr
 ^^^^^^^^^^^^^^
@@ -530,10 +521,12 @@ Decorator that prevents infinite recursion for `__repr__` methods.
 
 runtime_final
 ^^^^^^^^^^^^^
-Runtime-checked version of the `typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
+Runtime-checked version of the
+`typing.final <https://docs.python.org/3/library/typing.html#typing.final>`_ decorator.
 
-Can be used on methods, properties, classmethods, staticmethods, and classes that have `RuntimeFinalMeta` as a metaclass.
-It is also recognized by static type checkers and prevents subclassing and/or member overriding during runtime:
+Can be used on methods, properties, classmethods, staticmethods, and classes that have
+`RuntimeFinalMeta` as a metaclass. It is also recognized by static type checkers and
+prevents subclassing and/or member overriding during runtime:
 
 .. code:: python
 
@@ -600,7 +593,8 @@ Backport of the default Python 3 behavior of `__ne__` behavior for Python 2.7.
 
 safe_repr
 ^^^^^^^^^
-Decorator that prevents `__repr__` methods from raising exceptions and return a default representation instead.
+Decorator that prevents `__repr__` methods from raising exceptions and return a default
+representation instead.
 
 .. code:: python
 
@@ -672,7 +666,3 @@ Iterator that yields unique values.
     >>> from basicco.unique_iterator import unique_iterator
     >>> list(unique_iterator([1, 2, 3, 3, 4, 4, 5]))
     [1, 2, 3, 4, 5]
-
-weak_reference
-^^^^^^^^^^^^^^
-Weak Reference-like object that supports pickling.

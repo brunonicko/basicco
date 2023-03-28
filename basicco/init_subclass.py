@@ -1,11 +1,12 @@
 """
 Backport of the functionality of `__init_subclass__` from
-`PEP 487 <https://peps.python.org/pep-0487/>`_ to Python 2.7.
+`PEP 487 <https://peps.python.org/pep-0487/>`_.
 """
 
 import sys
 
 import six
+from tippo import Any, Dict, Tuple, Type, TypeVar
 
 from .get_mro import get_mro
 
@@ -13,10 +14,16 @@ __all__ = ["InitSubclassMeta", "InitSubclass"]
 
 
 class InitSubclassMeta(type):
-    """Metaclass that backports the functionality of `__init_subclass__` from PEP 487 to Python 2.7."""
+    """Backports the functionality of `__init_subclass__` from PEP 487."""
 
-    @staticmethod
-    def __new__(mcs, name, bases, dct, **kwargs):
+    def __new__(
+        mcs,  # type: Type[_ISM]
+        name,  # type: str
+        bases,  # type: Tuple[Type[Any], ...]
+        dct,  # type: Dict[str, Any]
+        **kwargs  # type: Any
+    ):
+        # type: (...) -> _ISM
 
         # Keep a copy of the original kwargs -- they are sometimes used by generics.
         original_kwargs = dict(kwargs)
@@ -32,7 +39,7 @@ class InitSubclassMeta(type):
         else:
             compat_kwargs = {}
 
-        # Error out if the same kwarg is defined both in the body and in the class arguments.
+        # Same kwarg is defined both in the body and in the class arguments, error.
         conflicting_kwargs = set(compat_kwargs).intersection(kwargs)
         if conflicting_kwargs:
             error = "conflicting class keyword arguments {}".format(
@@ -45,14 +52,17 @@ class InitSubclassMeta(type):
 
         # For older python versions.
         if sys.version_info[:3] < (3, 6):
-
             # Ensure classmethod.
-            if "__init_subclass__" in dct and not isinstance(dct["__init_subclass__"], classmethod):
+            if "__init_subclass__" in dct and not isinstance(
+                dct["__init_subclass__"], classmethod
+            ):
                 dct = dict(dct)
                 dct["__init_subclass__"] = classmethod(dct["__init_subclass__"])
 
             # Build class and pass original kwargs (for generics).
-            cls = super(InitSubclassMeta, mcs).__new__(mcs, name, bases, dct, **original_kwargs)
+            cls = super(InitSubclassMeta, mcs).__new__(
+                mcs, name, bases, dct, **original_kwargs
+            )
 
             # Find '__init_subclass__' method.
             method = None
@@ -71,9 +81,10 @@ class InitSubclassMeta(type):
 
                 # Invalid base.
                 if not isinstance(method_owner, InitSubclassMeta):
-                    error = "base {!r} defines '__init_subclass__' but does not utilize {!r} as a metaclass".format(
-                        method_owner.__name__, InitSubclassMeta.__name__
-                    )
+                    error = (
+                        "base {!r} defines '__init_subclass__' but does not utilize "
+                        "{!r} as a metaclass"
+                    ).format(method_owner.__name__, InitSubclassMeta.__name__)
                     raise TypeError(error)
 
                 # Call it with compat kwargs only.
@@ -84,15 +95,16 @@ class InitSubclassMeta(type):
                 error = "object.__init_subclass__() takes no keyword arguments"
                 raise TypeError(error)
 
-        # We don't need to do anything for newer python versions, just pass the merged kwargs.
+        # We don't need to do anything for newer python versions.
         else:
             cls = super(InitSubclassMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
         # Remove kwargs from the body of the class.
         if not dct_had_kwargs and hasattr(cls, "__kwargs__"):
-            error = "one or more bases for class {!r} define {!r} but do not utilize {!r} as a metaclass".format(
-                name, "__kwargs__", InitSubclassMeta.__name__
-            )
+            error = (
+                "one or more bases for class {!r} define {!r} but do not utilize {!r} "
+                "as a metaclass"
+            ).format(name, "__kwargs__", InitSubclassMeta.__name__)
             raise TypeError(error)
         elif dct_had_kwargs:
             type.__delattr__(cls, "__kwargs__")
@@ -100,12 +112,16 @@ class InitSubclassMeta(type):
         return cls
 
 
+_ISM = TypeVar("_ISM", bound=InitSubclassMeta)
+
+
 class InitSubclass(six.with_metaclass(InitSubclassMeta, object)):
-    """Class that backports the functionality of `__init_subclass__` from PEP 487 to Python 2.7"""
+    """Backports the functionality of `__init_subclass__` from PEP 487."""
 
     __slots__ = ()
 
     if sys.version_info[:3] < (3, 6):
 
         def __init_subclass__(cls):
+            # type: () -> None
             pass

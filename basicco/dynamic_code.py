@@ -2,13 +2,13 @@
 
 import linecache
 
-from tippo import Any, Callable
+from tippo import Any, Callable, Dict, List, Tuple, Union, cast
 
 __all__ = ["compile_and_eval", "generate_unique_filename", "make_function"]
 
 
 def compile_and_eval(script, globs=None, locs=None, filename=""):
-    # type: (str, dict[str, Any] | None, dict[str, Any] | None, str) -> None
+    # type: (str, Union[Dict[str, Any], None], Union[Dict[str, Any], None], str) -> None
     """
     Evaluate the script with the given globals and locals.
 
@@ -22,7 +22,7 @@ def compile_and_eval(script, globs=None, locs=None, filename=""):
 
 
 def generate_unique_filename(obj_name, module=None, owner_name=None):
-    # type: (str, str | None, str | None) -> str
+    # type: (str, Union[str, None], Union[str, None]) -> str
     """
     Create a unique 'filename' suitable for a generated object.
 
@@ -42,8 +42,14 @@ def generate_unique_filename(obj_name, module=None, owner_name=None):
         return "<generated {}>".format(obj_name)
 
 
-def make_function(name, script, globs=None, filename=None, module=None):
-    # type: (str, str, dict[str, Any] | None, str | None, str | None) -> Callable
+def make_function(
+    name,  # type: str
+    script,  # type: str
+    globs=None,  # type: Union[Dict[str, Any], None]
+    filename=None,  # type: Union[str, None]
+    module=None,  # type: Union[str, None]
+):
+    # type: (...) -> Callable[..., Any]
     """
     Create a function with the given script.
 
@@ -55,7 +61,8 @@ def make_function(name, script, globs=None, filename=None, module=None):
     :return: Function object.
     """
 
-    # Add a fake linecache entry for debuggers.  # FIXME: infinite looping here when dup function is generated
+    # Add a fake linecache entry for debuggers.
+    # FIXME: infinite looping here when dup function is generated
     if filename:
         count = 1
         base_filename = complete_filename = filename  # type: str
@@ -65,7 +72,7 @@ def make_function(name, script, globs=None, filename=None, module=None):
                 None,
                 script.splitlines(True),
                 complete_filename,
-            )  # type: tuple[int, float | None, list[str], str]
+            )  # type: Tuple[int, Union[float, None], List[str], str]
             old_val = linecache.cache.setdefault(complete_filename, linecache_tuple)
             if old_val == linecache_tuple:
                 break
@@ -76,7 +83,7 @@ def make_function(name, script, globs=None, filename=None, module=None):
         complete_filename = ""
 
     # Compile and evaluate.
-    locs = {}  # type: dict[str, Any]
+    locs = {}  # type: Dict[str, Any]
     compile_and_eval(script, globs, locs, complete_filename)
     func = locs[name]
 
@@ -84,4 +91,4 @@ def make_function(name, script, globs=None, filename=None, module=None):
     if module is not None:
         object.__setattr__(func, "__module__", module)
 
-    return func
+    return cast("Callable[..., Any]", func)

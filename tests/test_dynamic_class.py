@@ -1,6 +1,8 @@
+# type: ignore
+
 import pickle
 
-import pytest  # noqa
+import pytest
 import six
 from tippo import Type
 

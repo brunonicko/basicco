@@ -4,7 +4,7 @@ import sys
 import types
 
 import six
-from tippo import Any, Callable, Mapping, Type
+from tippo import Any, Callable, Dict, Mapping, Set, Tuple, Type, TypeVar, Union, cast
 
 from .dynamic_code import generate_unique_filename, make_function
 from .get_mro import get_mro
@@ -14,8 +14,11 @@ from .mangling import mangle
 __all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 
 
+_T = TypeVar("_T")
+
+
 def get_state(obj):
-    # type: (Any) -> dict[str, Any]
+    # type: (Any) -> Dict[str, Any]
     """
     Get dictionary with an object's attribute values.
     Works with regular and slotted objects.
@@ -23,20 +26,18 @@ def get_state(obj):
     :param obj: Object instance or class.
     :return: State dictionary.
     """
-    state = {}  # type: dict[str, Any]
+    state = {}  # type: Dict[str, Any]
 
     # Get slotted values.
     if not isinstance(obj, type) and hasattr(type(obj), "__slots__"):
         cls = type(obj)
         for base in get_mro(cls):
-
             # Skip object.
             if base is object:
                 continue
 
             # Get slot values.
             for slot in getattr(base, "__slots__", ()):
-
                 # Skip weak reference slot.
                 if slot == "__weakref__":
                     continue
@@ -70,13 +71,12 @@ def update_state(obj, state_update):
     :param obj: Object instance or class.
     :param state_update: Dictionary with state updates.
     """
-    remaining = set(state_update)  # type: set[str]
+    remaining = set(state_update)  # type: Set[str]
 
     # Set slotted attributes.
     if not isinstance(obj, type) and hasattr(type(obj), "__slots__"):
         cls = type(obj)
         for base in get_mro(cls):
-
             # Nothing left to do.
             if not remaining:
                 return
@@ -87,7 +87,6 @@ def update_state(obj, state_update):
 
             # Set slot values.
             for slot in tuple(remaining):
-
                 # Skip if not a slot in this base.
                 member = base.__dict__.get(slot)
                 if not isinstance(member, types.MemberDescriptorType):
@@ -106,17 +105,18 @@ def update_state(obj, state_update):
 
 
 def _reducer(cls_or_path, state):
+    # type: (Union[Type[_T], str], Mapping[str, Any]) -> _T
     if isinstance(cls_or_path, six.string_types):
         cls = import_path(cls_or_path)
     else:
         cls = cls_or_path
-    self = cls.__new__(cls)
+    self = cast(_T, cls.__new__(cls))
     update_state(self, state)
     return self
 
 
 def _make_reducer(name, owner=None):
-    # type: (str, Type | None) -> Callable
+    # type: (str, Union[Type[Any], None]) -> Callable[..., _T]
     script = """def {}(self):
     \"\"\"Reducer method that supports qualified name and slots for Python 2.7.\"\"\"
     cls = type(self)
@@ -152,12 +152,22 @@ class ReducibleMeta(type):
     if sys.version_info[0:2] < (3, 4):
 
         @staticmethod
-        def __new__(mcs, name, bases, dct, **kwargs):
+        def __new__(
+            mcs,  # type: Type[_RM]
+            name,  # type: str
+            bases,  # type: Tuple[Type[Any], ...]
+            dct,  # type: Dict[str, Any]
+            **kwargs  # type: Any
+        ):
+            # type: (...) -> _RM
             cls = super(ReducibleMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             old_reducer = getattr(cls, "__reduce__", None)
             if old_reducer is None or old_reducer is object.__reduce__:
                 type.__setattr__(cls, "__reduce__", _make_reducer("__reducer__", cls))
             return cls
+
+
+_RM = TypeVar("_RM", bound=ReducibleMeta)
 
 
 class Reducible(six.with_metaclass(ReducibleMeta, object)):

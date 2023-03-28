@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 
 from basicco.fabricate_value import fabricate_value, format_factory
 
