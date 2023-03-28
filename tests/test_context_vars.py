@@ -43,7 +43,7 @@ def test_var():
     _var.reset(token)
 
     with pytest.raises(LookupError):
-        _var.get()  # type: ignore
+        _var.get()
     assert _var.get(None) is None
 
 
@@ -61,11 +61,11 @@ def test_default_var():
 
 def test_context_var_new():
     with pytest.raises(TypeError):
-        ContextVar()  # type: ignore
+        ContextVar()  # noqa
 
     exp = "must be a str"
     with pytest.raises(TypeError) as exc:
-        ContextVar(1)  # type: ignore
+        ContextVar(1)  # noqa
     assert exp in str(exc)
 
     c = ContextVar("a")
@@ -98,7 +98,7 @@ def test_context_subclassing_1():
     exp = "not an acceptable base type"
     with pytest.raises(TypeError) as exc:
 
-        class MyContextVar(ContextVar):  # type: ignore
+        class MyContextVar(ContextVar):  # noqa
             pass
 
         assert not MyContextVar
@@ -107,7 +107,7 @@ def test_context_subclassing_1():
     exp = "not an acceptable base type"
     with pytest.raises(TypeError) as exc:
 
-        class MyContext(Context):  # type: ignore
+        class MyContext(Context):  # noqa
             pass
 
         assert not MyContext
@@ -116,7 +116,7 @@ def test_context_subclassing_1():
     exp = "not an acceptable base type"
     with pytest.raises(TypeError) as exc:
 
-        class MyToken(Token):  # type: ignore
+        class MyToken(Token):  # noqa
             pass
 
         assert not MyToken
@@ -125,12 +125,12 @@ def test_context_subclassing_1():
 
 def test_context_new_1():
     with pytest.raises(TypeError):
-        Context(1)  # type: ignore
+        Context(1)  # noqa
     with pytest.raises(TypeError):
-        Context(1, a=1)  # type: ignore
+        Context(1, a=1)  # noqa
     with pytest.raises(TypeError):
-        Context(a=1)  # type: ignore
-    Context(**{})  # type: ignore
+        Context(a=1)  # noqa
+    Context(**{})  # noqa
 
 
 def test_context_type_errors_1():
@@ -138,7 +138,7 @@ def test_context_type_errors_1():
 
     exp = "ContextVar key was expected"
     with pytest.raises(TypeError) as exc:
-        _ = ctx[1]  # type: ignore
+        _ = ctx[1]  # noqa
     assert exp in str(exc)
 
     exp = "ContextVar key was expected"
@@ -148,7 +148,7 @@ def test_context_type_errors_1():
 
     exp = "ContextVar key was expected"
     with pytest.raises(TypeError) as exc:
-        _ = ctx.get(1)  # type: ignore
+        _ = ctx.get(1)  # noqa
     assert exp in str(exc)
 
 
@@ -161,7 +161,7 @@ def test_context_run_1():
     ctx = Context()
 
     with pytest.raises(TypeError):
-        ctx.run()  # type: ignore
+        ctx.run()  # noqa
 
 
 def test_context_run_2():

@@ -23,7 +23,7 @@ def test_format_factory():
     assert format_factory("str") == "str"
 
     with pytest.raises(TypeError):
-        format_factory(3)  # type: ignore
+        format_factory(3)  # noqa
 
 
 if __name__ == "__main__":
