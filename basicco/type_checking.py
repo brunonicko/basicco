@@ -261,6 +261,7 @@ def _check(
     extra_paths,  # type: Iterable[str]
     builtin_paths,  # type: Union[Iterable[str], None]
     generic,  # type: bool
+    _expand_py2_types=True,  # type: bool
 ):
     # type: (...) -> bool
 
@@ -272,6 +273,48 @@ def _check(
             builtin_paths=builtin_paths,
             generic=generic,
         )
+
+    # Expand python 2 types.
+    if _expand_py2_types:
+        # Check against all text types.
+        if len(TEXT_TYPES) > 1:
+            text_types = set(TEXT_TYPES)
+            if text_types.intersection({typ}):
+                return any(
+                    _check(
+                        obj,
+                        t,
+                        type_depth,
+                        instance,
+                        typing,
+                        subtypes,
+                        extra_paths,
+                        builtin_paths,
+                        generic,
+                        _expand_py2_types=False,
+                    )
+                    for t in text_types
+                )
+
+        # Check against all integer types.
+        if len(six.integer_types) > 1:
+            integer_types = set(six.integer_types)
+            if integer_types.intersection({typ}):
+                return any(
+                    _check(
+                        obj,
+                        t,
+                        type_depth,
+                        instance,
+                        typing,
+                        subtypes,
+                        extra_paths,
+                        builtin_paths,
+                        generic,
+                        _expand_py2_types=False,
+                    )
+                    for t in integer_types
+                )
 
     # Convert None to NoneType.
     if typ is None:
