@@ -10,7 +10,7 @@ def test_recursive_repr():
     def my_repr(_self, prefix="MyRepr<", suffix=">"):
         return prefix + my_repr(_self) + suffix
 
-    assert my_repr(object()) == "MyRepr<...>"
+    assert my_repr(object()) == "MyRepr<...>"  # noqa
 
 
 if __name__ == "__main__":

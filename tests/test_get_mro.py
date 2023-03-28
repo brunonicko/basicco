@@ -8,7 +8,7 @@ from basicco.get_mro import get_mro, preview_mro, resolve_origin
 
 
 def test_resolve_origin():
-    T = TypeVar("T")  # type: ignore  # noqa
+    T = TypeVar("T")  # noqa
 
     class Base(Generic[T]):
         pass
@@ -19,7 +19,7 @@ def test_resolve_origin():
 
 
 def test_get_mro():
-    T = TypeVar("T")  # type: ignore  # noqa
+    T = TypeVar("T")  # noqa
 
     class Base(Generic[T]):
         pass

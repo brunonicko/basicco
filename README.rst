@@ -224,6 +224,46 @@ implementation.
     >>> dir(obj)
     [...]
 
+descriptors
+^^^^^^^^^^^
+Configurable descriptors.
+
+.. code:: python
+
+    >>> from six import with_metaclass
+    >>> from basicco.descriptors import REMOVE, Descriptor, Owner
+    >>> class SlotDescriptor(Descriptor):
+    ...     def __get_required_slots__(self):
+    ...         return (self.name,)  # request a slot with the same name as this
+    ...     def __get_replacement__(self):
+    ...         return REMOVE  # remove this descriptor from the class body
+    ...
+    >>> class PropDescriptor(Descriptor):
+    ...     __slots__ = ("_slot_desc",)
+    ...     def __init__(self, slot_desc):
+    ...         super(PropDescriptor, self).__init__()
+    ...         self._slot_desc = slot_desc
+    ...     def __get__(self, instance, owner):
+    ...         if instance is not None:
+    ...             return getattr(instance, self._slot_desc.name)
+    ...         return self
+    ...     def __set__(self, instance, value):
+    ...         setattr(instance, self._slot_desc.name, value)
+    ...
+    >>> class Stuff(Owner):
+    ...     _foo = SlotDescriptor()
+    ...     _bar = SlotDescriptor()
+    ...     foo = PropDescriptor(_foo)
+    ...     bar = PropDescriptor(_bar)
+    ...
+    >>> stuff = Stuff()
+    >>> stuff.foo = "foo"
+    >>> stuff.bar = "bar"
+    >>> stuff.foo
+    'foo'
+    >>> stuff.bar
+    'bar'
+
 dynamic_class
 ^^^^^^^^^^^^^
 Easily generate classes on the fly. This works best with a `Base`_ class.
@@ -392,6 +432,21 @@ parameters).
     ...
     >>> Bar.foo
     'bar'
+
+lazy_tuple
+^^^^^^^^^^
+Lazily-evaluated tuple-like structure.
+
+.. code:: python
+
+    >>> from basicco.lazy_tuple import LazyTuple
+    >>> def expensive_generator():
+    ...     for i in range(100):
+    ...         yield i
+    ...
+    >>> lazy_tuple = LazyTuple(expensive_generator())
+    >>> lazy_tuple[4]
+    4
 
 locked_class
 ^^^^^^^^^^^^
@@ -607,6 +662,25 @@ representation instead.
     >>> obj = Class()
     >>> repr(obj)
     "<__main__.Class object at ...; repr failed due to 'RuntimeError: oh oh'>"
+
+sentinel
+^^^^^^^^
+Easily define singleton sentinel values and their type (for type hinting).
+
+.. code:: python
+
+    >>> from basicco.sentinel import SentinelType
+    >>> class MissingType(SentinelType):
+    ...     def __repr__(self):
+    ...         return "MISSING"
+    ...
+    >>> MISSING = MissingType()
+    >>> MISSING
+    MISSING
+    >>> MissingType() is MISSING
+    True
+    >>> isinstance(MISSING, MissingType)
+    True
 
 set_name
 ^^^^^^^^

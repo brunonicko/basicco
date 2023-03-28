@@ -40,7 +40,7 @@ def test_get_path():
     assert get_path(tippo.Mapping[str, int]) == "typing.Mapping[str, int]"
 
     if hasattr(collections, "abc"):
-        col_mapping = six.moves.collections_abc.Mapping  # type: ignore
+        col_mapping = six.moves.collections_abc.Mapping  # noqa
         try:
             typed_col_mapping = col_mapping[str, int]
         except TypeError:

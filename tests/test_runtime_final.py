@@ -24,7 +24,7 @@ def test_final_class():
     # Should error when trying to subclass from final class.
     with pytest.raises(TypeError):
 
-        class SubClass(Class):  # type: ignore
+        class SubClass(Class):  # noqa
             pass
 
         assert not SubClass
@@ -70,7 +70,7 @@ def test_final_method():
 
             class SubClass(Class):
                 @decorator
-                def method(self):  # type: ignore
+                def method(self):  # noqa
                     pass
 
             assert not SubClass
@@ -95,7 +95,7 @@ def test_descriptor():
 
 
 def test_generic():
-    T = TypeVar("T")  # type: ignore  # noqa
+    T = TypeVar("T")  # noqa
 
     class BaseMeta(RuntimeFinalMeta, GenericMeta):
         pass

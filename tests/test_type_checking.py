@@ -48,7 +48,7 @@ def test_format_types():
     assert format_types(tippo.Union[float, bool]) == (float, bool)
     assert format_types((tippo.Union[float, bool], None)) == (float, bool, type(None))
     with pytest.raises(TypeError):
-        format_types(3)
+        format_types(3)  # noqa
 
 
 def test_type_names():

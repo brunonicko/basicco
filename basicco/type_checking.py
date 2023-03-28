@@ -566,7 +566,7 @@ def is_iterable(value, include_strings=False):
 
 
 def assert_is_instance(
-    obj,  # type: _T
+    obj,  # type: Any
     types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
@@ -607,11 +607,11 @@ def assert_is_instance(
             "" if subtypes else " (instances of subclasses are not accepted)",
         )
         raise TypeCheckError(error)
-    return obj
+    return cast(_T, obj)
 
 
 def assert_is_subclass(
-    cls,  # type: Type[_T]
+    cls,  # type: Type[Any]
     types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
@@ -665,11 +665,11 @@ def assert_is_subclass(
         )
         raise TypeCheckError(error)
 
-    return cast(Type[_T], cls)  # type: ignore
+    return cast(Type[_T], cls)
 
 
 def assert_is_callable(value):
-    # type: (Callable[..., _T]) -> Callable[..., _T]
+    # type: (Any) -> Callable[..., _T]
     """
     Assert a value is callable.
 
@@ -681,11 +681,11 @@ def assert_is_callable(value):
             type(value).__name__
         )
         raise TypeCheckError(error)
-    return value
+    return cast("Callable[..., _T]", value)
 
 
 def assert_is_iterable(value, include_strings=False):
-    # type: (Iterable[_T], bool) -> Iterable[_T]
+    # type: (Any, bool) -> Iterable[_T]
     """
     Assert a value is iterable.
     By default, strings are not considered iterables.
@@ -699,4 +699,4 @@ def assert_is_iterable(value, include_strings=False):
             type(value).__name__
         )
         raise TypeCheckError(error)
-    return value
+    return cast(Iterable[_T], value)

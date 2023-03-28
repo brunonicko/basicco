@@ -11,10 +11,10 @@ def test_wrap_dict():
     assert proxy_dict["foo"] == "bar"
 
     with pytest.raises(TypeError):
-        proxy_dict["foo"] = "foo"  # type: ignore
+        proxy_dict["foo"] = "foo"  # noqa
 
     with pytest.raises(TypeError):
-        del proxy_dict["foo"]  # type: ignore
+        del proxy_dict["foo"]  # noqa
 
     internal_dict["foo"] = "foo"
     assert proxy_dict["foo"] == "foo"
