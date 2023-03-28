@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 
 from basicco.unique_iterator import unique_iterator
 

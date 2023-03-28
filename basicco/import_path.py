@@ -5,11 +5,17 @@ import types
 import six
 import tippo
 from six import moves
-from tippo import Any, Iterable, Optional
+from tippo import Any, Iterable, List, Tuple, Union
 
 from .qualname import QualnameError, qualname
 
-__all__ = ["DEFAULT_BUILTIN_PATHS", "import_path", "extract_generic_paths", "get_name", "get_path"]
+__all__ = [
+    "DEFAULT_BUILTIN_PATHS",
+    "import_path",
+    "extract_generic_paths",
+    "get_name",
+    "get_path",
+]
 
 
 DEFAULT_BUILTIN_PATHS = (moves.builtins.__name__, "tippo")
@@ -37,8 +43,10 @@ def _import_builtin(path, builtin_paths):
 
 
 def _get_generic_path(obj, generic_paths, builtin_paths):
-    # type: (Any, tuple[str, ...], Iterable[str]) -> Any
-    generics = tuple(import_path(gp, builtin_paths=builtin_paths) for gp in generic_paths)
+    # type: (Any, Tuple[str, ...], Iterable[str]) -> Any
+    generics = tuple(
+        import_path(gp, builtin_paths=builtin_paths) for gp in generic_paths
+    )
     if generics:
         if len(generics) == 1:
             return obj[generics[0]]
@@ -51,8 +59,8 @@ def _get_generic_path(obj, generic_paths, builtin_paths):
 def import_path(
     path,  # type: str
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
-    generic=True,
+    builtin_paths=None,  # type: Union[Iterable[str], None]
+    generic=True,  # type: bool
 ):
     # type: (...) -> Any
     """
@@ -74,7 +82,12 @@ def import_path(
         return _SPECIAL_VALUES[path]
 
     # Strings.
-    if path.startswith("'") and path.endswith("'") or path.startswith('"') and path.endswith('"'):
+    if (
+        path.startswith("'")
+        and path.endswith("'")
+        or path.startswith('"')
+        and path.endswith('"')
+    ):
         return str(path[1:-1])
 
     # Integers.
@@ -121,7 +134,9 @@ def import_path(
     obj_path_parts = path_parts[len(module_path_parts) :]
     if not obj_path_parts:
         if generic_paths:
-            error = "can't import generics {!r} for module {!r}".format(generic_paths, path)
+            error = "can't import generics {!r} for module {!r}".format(
+                generic_paths, path
+            )
             raise ImportError(error)
         return module
     previous_obj = module
@@ -139,7 +154,7 @@ def import_path(
 
 
 def extract_generic_paths(path):
-    # type: (str) -> tuple[str, tuple[str, ...]]
+    # type: (str) -> Tuple[str, Tuple[str, ...]]
     """
     Extract generic paths from dot path.
 
@@ -149,7 +164,6 @@ def extract_generic_paths(path):
 
     # Check if contains generic brackets.
     if any(t in path for t in ("[", "]")):
-
         # Separate generic paths string from import path.
         if path.count("[") != path.count("]") or not path.endswith("]"):
             error = "invalid path {!r}".format(path)
@@ -159,7 +173,7 @@ def extract_generic_paths(path):
         generic_paths = path[first_index:stop_index]
 
         # Split on commas but not the ones inside brackets.
-        extracted_generic_paths = []  # type: list[str]
+        extracted_generic_paths = []  # type: List[str]
         current_path = ""
         in_brackets = 0
         for character in generic_paths:
@@ -194,14 +208,15 @@ def extract_generic_paths(path):
 
 
 def _get_qualname(obj):
+    # type: (object) -> Union[str, None]
     try:
-        return qualname(obj)
+        return qualname(obj)  # type: ignore
     except (QualnameError, TypeError):
         return None
 
 
 def get_name(obj):
-    # type: (Any) -> Optional[str]
+    # type: (Any) -> Union[str, None]
     """
     Get importable name.
 
@@ -214,7 +229,7 @@ def get_name(obj):
 def get_path(
     obj,  # type: Any
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
     check=True,  # type: bool
 ):
@@ -258,7 +273,6 @@ def get_path(
     generic_suffix = ""
     generic_origin, generic_args = tippo.get_origin(obj), tippo.get_args(obj)
     if generic and generic_origin is not None:
-
         # Remap from collections.abc to typing.
         if (
             getattr(obj, "__module__", None) == "typing"
@@ -273,7 +287,10 @@ def get_path(
             generic_suffix = "".join(
                 (
                     "[",
-                    ", ".join(get_path(ga, builtin_paths=builtin_paths, check=check) for ga in generic_args),
+                    ", ".join(
+                        get_path(ga, builtin_paths=builtin_paths, check=check)
+                        for ga in generic_args
+                    ),
                     "]",
                 )
             )

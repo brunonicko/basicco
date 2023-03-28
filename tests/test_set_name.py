@@ -1,6 +1,8 @@
+# type: ignore
+
 import sys
 
-import pytest  # noqa
+import pytest
 
 from basicco.set_name import SetName, SetNameMeta
 

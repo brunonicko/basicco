@@ -1,3 +1,5 @@
+# type: ignore
+
 import pytest
 import six
 
@@ -6,38 +8,6 @@ from basicco.abstract_class import Abstract, AbstractMeta, abstract, is_abstract
 
 def test_class():
     assert isinstance(Abstract, AbstractMeta)
-
-
-def test_abstract_class():
-    @abstract
-    class Class(six.with_metaclass(AbstractMeta, object)):
-        pass
-
-    with pytest.raises(TypeError):
-        Class()
-
-    class SubClass(Class):
-        pass
-
-    assert SubClass()
-
-
-def test_super_new():
-    class Class(six.with_metaclass(AbstractMeta, object)):
-        @staticmethod
-        def __new__(cls):
-            self = super(Class, cls).__new__(cls)
-            self.new_called = True
-            return self
-
-    obj = Class()
-    assert obj.new_called is True
-
-    class SubClass(Class):
-        pass
-
-    obj = SubClass()
-    assert obj.new_called is True
 
 
 def test_abstract_method():

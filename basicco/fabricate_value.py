@@ -1,27 +1,27 @@
 """Value factoring with support for lazy dot paths."""
 
 import six
-from tippo import Any, Callable, Iterable, Iterator, Mapping, TypeVar
+from tippo import Any, Callable, Iterable, Iterator, Mapping, TypeVar, Union, cast
 
 from .import_path import import_path
 
 __all__ = ["fabricate_value", "map_factory", "format_factory"]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 _MISSING = object()
 
 
 def fabricate_value(
-    factory,  # type: str | Callable | None
+    factory,  # type: Union[str, Callable[..., _T], None]
     value=_MISSING,  # type: Any
-    args=None,  # type: Iterable | None
-    kwargs=None,  # type: Mapping[str, Any] | None
+    args=None,  # type: Union[Iterable[Any], None]
+    kwargs=None,  # type: Union[Mapping[str, Any], None]
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
 ):
-    # type: (...) -> Any
+    # type: (...) -> _T
     """
     Pass value through the factory.
 
@@ -36,16 +36,20 @@ def fabricate_value(
     :raises TypeError: Invalid factory type.
     """
     if isinstance(factory, six.string_types):
-        factory = import_path(factory, extra_paths=extra_paths, builtin_paths=builtin_paths)
+        factory = import_path(
+            factory, extra_paths=extra_paths, builtin_paths=builtin_paths
+        )
 
     if factory is None:
         if value is _MISSING:
             error = "no value and no factory provided"
             raise ValueError(error)
-        return value
+        return cast(_T, value)
 
     if not callable(factory):
-        error = "{!r} object is not a valid callable factory".format(type(factory).__name__)
+        error = "{!r} object is not a valid callable factory".format(
+            type(factory).__name__
+        )
         raise TypeError(error)
 
     if value is _MISSING:
@@ -55,12 +59,12 @@ def fabricate_value(
 
 
 def map_factory(
-    factory,  # type: str | Callable | None
+    factory,  # type: Union[str, Callable[..., _T], None]
     iterable,  # type: Iterable[Any]
-    args=None,  # type: Iterable | None
-    kwargs=None,  # type: Mapping[str, Any] | None
+    args=None,  # type: Union[Iterable[Any], None]
+    kwargs=None,  # type: Union[Mapping[str, Any], None]
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
 ):
     # type: (...) -> Iterator[Any]
     """
@@ -77,21 +81,36 @@ def map_factory(
     :raises TypeError: Invalid factory type.
     """
     return (
-        fabricate_value(factory, v, args=args, kwargs=kwargs, extra_paths=extra_paths, builtin_paths=builtin_paths)
+        fabricate_value(
+            factory,
+            v,
+            args=args,
+            kwargs=kwargs,
+            extra_paths=extra_paths,
+            builtin_paths=builtin_paths,
+        )
         for v in iterable
     )
 
 
 def format_factory(factory):
-    # type: (str | Callable[..., T] | None) -> str | Callable[..., T] | None
+    # type: (Union[str, Callable[..., _T], None]) -> Union[str, Callable[..., _T], None]
     """
     Format and check factory.
 
     :param factory: Factory.
     :return: Checked factory.
     """
-    if factory is not None and not isinstance(factory, six.string_types) and not callable(factory):
-        error = "invalid factory type {!r}, expected None, a string, or a callable".format(type(factory).__name__)
+    if (
+        factory is not None
+        and not isinstance(factory, six.string_types)
+        and not callable(factory)
+    ):
+        error = (
+            "invalid factory type {!r}, expected None, a string, or a callable".format(
+                type(factory).__name__
+            )
+        )
         raise TypeError(error)
 
     return factory

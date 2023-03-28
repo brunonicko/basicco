@@ -2,6 +2,8 @@
 
 import re
 
+from tippo import Tuple, Union
+
 __all__ = ["mangle", "unmangle", "extract"]
 
 
@@ -38,7 +40,7 @@ def unmangle(name, cls_name):
 
 
 def extract(name):
-    # type: (str) -> tuple[str, str | None]
+    # type: (str) -> Tuple[str, Union[str, None]]
     """
     Extract name and class name from mangled name if applicable.
 

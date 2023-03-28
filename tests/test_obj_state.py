@@ -1,8 +1,10 @@
+# type: ignore
+
 import copy
 import pickle
 import sys
 
-import pytest  # noqa
+import pytest
 import six
 
 from basicco.obj_state import Reducible, ReducibleMeta, get_state, reducer, update_state

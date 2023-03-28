@@ -1,9 +1,12 @@
-"""Decorator that prevents `__repr__` methods from raising exceptions and return a default representation instead."""
+"""
+Decorator that prevents `__repr__` methods from raising exceptions and return a default
+representation instead.
+"""
 
 import functools
 import traceback
 
-from tippo import Callable, overload
+from tippo import Any, Callable, overload
 
 __all__ = ["default_alternative_repr", "safe_repr"]
 
@@ -13,7 +16,9 @@ _in_repr = False
 
 def default_alternative_repr(obj):
     # type: (object) -> str
-    message = [ln.strip(" ") for ln in traceback.format_exc().split("\n") if ln.strip(" ")][-1]
+    message = [
+        ln.strip(" ") for ln in traceback.format_exc().split("\n") if ln.strip(" ")
+    ][-1]
     return "{}; repr failed due to {!r}>".format(object.__repr__(obj)[:-1], message)
 
 
@@ -36,6 +41,7 @@ def safe_repr(
 
 
 def safe_repr(maybe_func=None, alternative_repr=default_alternative_repr):
+    # type: (Any, Any) -> Any
     """
     Decorate a representation method/function to prevent infinite recursion.
 
@@ -49,6 +55,7 @@ def safe_repr(maybe_func=None, alternative_repr=default_alternative_repr):
 
         @functools.wraps(func)
         def decorated(self, *args, **kwargs):
+            # type: (Any, *Any, **Any) -> Any
             global _in_repr
             before = _in_repr
             if not before:

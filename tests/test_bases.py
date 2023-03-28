@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 from tippo import GenericMeta
 
 import basicco

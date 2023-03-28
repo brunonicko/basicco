@@ -10,14 +10,14 @@ import inspect
 import sys
 
 import six
-from tippo import Any, Callable
+from tippo import Any, Callable, Dict, List, Union, cast
 
 from .mangling import mangle
 
 __all__ = ["QualnameError", "qualname", "QualnamedMeta", "Qualnamed"]
 
 
-_cache = {}  # type: dict[str, dict[int, str]]
+_cache = {}  # type: Dict[str, Dict[int, str]]
 
 
 class QualnameError(Exception):
@@ -25,14 +25,14 @@ class QualnameError(Exception):
 
 
 def qualname(obj, fallback=None, force_ast=False, use_existing=True):
-    # type: (Callable, str | None, bool, bool) -> str
+    # type: (Callable[..., Any], Union[str, None], bool, bool) -> str
     """
     Try to find out the qualified name for a class or function.
-    This function uses AST parsing in Python 2.7 to try to replicate the qualified name functionality available in
-    Python 3.3+.
+    This function uses AST parsing in Python 2.7 to try to replicate the qualified name
+    functionality available in Python 3.3+.
 
     :param obj: Function or class.
-    :param fallback: Value to return if we couldn't get qualified name. Will error if None.
+    :param fallback: Value to return if we couldn't get qualified name. Errors if None.
     :param force_ast: Force use AST parser to get qualified name from code.
     :param use_existing: Whether to use existing '__qualname__' attribute if available.
     :return: Qualified name (or None if not available).
@@ -41,19 +41,28 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
     """
 
     # Not available for non-callables.
-    if not callable(obj) or not hasattr(obj, "__name__") or not hasattr(obj, "__module__"):
-        error = "can't determine qualified name for instances of {!r}".format(type(obj).__name__)
+    if (
+        not callable(obj)
+        or not hasattr(obj, "__name__")
+        or not hasattr(obj, "__module__")
+    ):
+        error = "can't determine qualified name for instances of {!r}".format(
+            type(obj).__name__
+        )
         raise TypeError(error)
     obj_name = obj.__name__
-    obj_module = obj.__module__  # type: ignore
+    obj_module = obj.__module__  # noqa
 
     # Native qualified name or manually defined.
     if not force_ast:
         try:
             if not use_existing:
-                error = "{!r} object has '__qualname__' attribute, but 'use_existing' was declared as False"
+                error = (
+                    "{!r} object has '__qualname__' attribute, but 'use_existing' was "
+                    "set to False"
+                )
                 raise QualnameError(error)
-            return getattr(obj, "__qualname__")
+            return cast(str, getattr(obj, "__qualname__"))
         except QualnameError:
             if fallback is not None:
                 return fallback
@@ -66,7 +75,9 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
     try:
         module = __import__(obj_module, fromlist=[obj_name])
     except ImportError as e:
-        error = "couldn't import module {!r} for {!r}; {}".format(obj_module, obj_name, e)
+        error = "couldn't import module {!r} for {!r}; {}".format(
+            obj_module, obj_name, e
+        )
         exc = QualnameError(error)
         six.raise_from(exc, None)
         raise exc
@@ -93,7 +104,9 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
             _, lineno = inspect.getsourcelines(obj)
         except (OSError, IOError):
             if fallback is None:
-                error = "source code for class {!r} could not be retrieved".format(obj_name)
+                error = "source code for class {!r} could not be retrieved".format(
+                    obj_name
+                )
                 exc = QualnameError(error)
                 six.raise_from(exc, None)
                 raise exc
@@ -102,7 +115,7 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
     elif inspect.isfunction(obj) or inspect.ismethod(obj):
         if hasattr(obj, "im_func"):
             # Extract function from unbound method (Python 2).
-            obj = obj.im_func  # type: ignore
+            obj = obj.im_func
         try:
             code = obj.__code__
         except AttributeError:
@@ -140,7 +153,9 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
         linenos = sorted(
             qualified_names,
             reverse=True,
-            key=lambda k: (k - lineno if k >= lineno else max(qualified_names) + (lineno - k)),
+            key=lambda k: (
+                k - lineno if k >= lineno else max(qualified_names) + (lineno - k)
+            ),
         )
     else:
         linenos = []
@@ -153,7 +168,9 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
         qualified_name = qualified_names.get(current_lineno, None)
         if qualified_name is None:
             if fallback is None:
-                error = "qualified name could not be retrieved from source code for {!r}".format(obj_name)
+                error = (
+                    "qualified name could not be retrieved from source for {!r}"
+                ).format(obj_name)
                 raise QualnameError(error)
             else:
                 return fallback
@@ -169,18 +186,19 @@ def qualname(obj, fallback=None, force_ast=False, use_existing=True):
                 except AttributeError:
                     break
             else:
-
                 # Extract function from unbound method (Python 2).
                 if hasattr(test_obj, "im_func"):
-                    test_obj = test_obj.im_func  # type: ignore
+                    test_obj = test_obj.im_func
 
                 # Return only confirmed to be the same exact object.
-                if test_obj is obj and test_obj:
+                if test_obj is obj and test_obj:  # type: ignore
                     return qualified_name
 
     # No way to reliably retrieve qualified name.
     if fallback is None:
-        error = "qualified name could not be retrieved from source code for {!r}".format(obj.__name__)
+        error = (
+            "qualified name could not be retrieved from source code for {!r}"
+        ).format(obj.__name__)
         raise QualnameError(error)
     else:
         return fallback
@@ -205,11 +223,13 @@ class QualnamedMeta(type):
             # type: (str) -> Any
             attr = mangle("__qualname", cls.__name__)
             if name == attr:
-                qualified_name = qualname(cls, fallback=cls.__name__, force_ast=True, use_existing=False)
+                qualified_name = qualname(
+                    cls, fallback=cls.__name__, force_ast=True, use_existing=False
+                )
                 type.__setattr__(cls, attr, qualified_name)
                 return qualified_name
             try:
-                return super(QualnamedMeta, cls).__getattr__(name)  # type: ignore  # noqa
+                return super(QualnamedMeta, cls).__getattr__(name)  # noqa
             except AttributeError:
                 pass
             error = "class {!r} has no attribute {!r}".format(cls.__name__, name)
@@ -243,19 +263,24 @@ class Qualnamed(six.with_metaclass(QualnamedMeta, object)):
 
             :return: Representation.
             """
-            return "<{}.{} at {}>".format(type(self).__module__, type(self).__qualname__, hex(id(self)))
+            return "<{}.{} at {}>".format(
+                type(self).__module__, type(self).__qualname__, hex(id(self))
+            )
 
 
 class _Visitor(ast.NodeVisitor):
     def __init__(self):
-        self.stack = []
-        self.qualified_names = {}
+        # type: () -> None
+        self.stack = []  # type: List[str]
+        self.qualified_names = {}  # type: Dict[int, str]
 
     def store_qualified_name(self, lineno):
+        # type: (int) -> None
         qn = ".".join(n for n in self.stack)
         self.qualified_names[lineno] = qn
 
     def visit_FunctionDef(self, node):
+        # type: (ast.FunctionDef) -> None
         self.stack.append(node.name)
         self.store_qualified_name(node.lineno)
         self.stack.append("<locals>")
@@ -264,6 +289,7 @@ class _Visitor(ast.NodeVisitor):
         self.stack.pop()
 
     def visit_ClassDef(self, node):
+        # type: (ast.ClassDef) -> None
         self.stack.append(node.name)
         self.store_qualified_name(node.lineno)
         self.generic_visit(node)

@@ -4,16 +4,17 @@ import functools
 import inspect
 
 import six
-from tippo import Callable, Iterable, TypeVar
+from tippo import Any, Callable, Iterable, Tuple, TypeVar, Union, cast
 
 __all__ = ["caller_module", "auto_caller_module"]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
+_RT = TypeVar("_RT")
 
 
 def caller_module(frames=0):
-    # type: (int) -> str | None
+    # type: (int) -> Union[str, None]
     """
     Get caller module name if possible.
 
@@ -28,7 +29,7 @@ def caller_module(frames=0):
     else:
         if module is None:
             try:
-                return frame[0].f_globals["__name__"]
+                return cast(Union[str, None], frame[0].f_globals["__name__"])
             except (IndexError, KeyError):
                 return None
         else:
@@ -36,35 +37,38 @@ def caller_module(frames=0):
 
 
 def auto_caller_module(
-    iterable_params=None,  # type: Iterable[str] | str | None
-    single_params=None,  # type: Iterable[str] | str | None
+    iterable_params=None,  # type: Union[Iterable[str], str, None]
+    single_params=None,  # type: Union[Iterable[str], str, None]
 ):
-    # type: (...) -> Callable[[T], T]
+    # type: (...) -> Callable[[Callable[..., _T]], Callable[..., _T]]
     """
-    Make a decorator for a function that takes iterable/single keyword arguments that contain module paths.
-    If no paths are provided, set the caller module as a path.
+    Make a decorator for a function that takes iterable/single keyword arguments that
+    contain module paths. If no paths are provided, set the caller module as a path.
 
-    :param iterable_params: Keyword arguments that are supposed to contain module paths.
-    :param single_params: Keyword argument that are supposed to contain a single module path or None.
+    :param iterable_params: Keyword arguments that contain module paths.
+    :param single_params: Keyword argument that contain a single module path or None.
     :return: Decorator.
     """
     if isinstance(iterable_params, six.string_types):
-        iterable_params_ = (iterable_params,)  # type: tuple[str, ...]
+        iterable_params_ = (iterable_params,)  # type: Tuple[str, ...]
     elif iterable_params is None:
         iterable_params_ = ()
     else:
         iterable_params_ = tuple(iterable_params)
 
     if isinstance(single_params, six.string_types):
-        single_params_ = (single_params,)  # type: tuple[str, ...]
+        single_params_ = (single_params,)  # type: Tuple[str, ...]
     elif single_params is None:
         single_params_ = ()
     else:
         single_params_ = tuple(single_params)
 
     def decorator(func):
+        # type: (Callable[..., _RT]) -> Callable[..., _RT]
+
         @functools.wraps(func)
         def decorated(*args, **kwargs):
+            # type: (*Any, **Any) -> Any
             _iterable_params = []
             _single_params = []
             for iterable_param in iterable_params_:

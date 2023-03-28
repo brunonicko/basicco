@@ -3,16 +3,22 @@
 import contextlib
 
 import six
-from tippo import Any, Iterator, Type
+from tippo import Any, Dict, Iterator, Tuple, Type, TypeVar, Union, cast
 
 from .mangling import mangle
 from .type_checking import assert_is_instance
 
-__all__ = ["is_locked", "set_locked", "unlocked_context", "LockedClassMeta", "LockedClass"]
+__all__ = [
+    "is_locked",
+    "set_locked",
+    "unlocked_context",
+    "LockedClassMeta",
+    "LockedClass",
+]
 
 
 def is_locked(cls):
-    # type: (Type) -> bool
+    # type: (Type[Any]) -> bool
     """
     Tell whether public attributes of a class are locked or not.
 
@@ -21,7 +27,7 @@ def is_locked(cls):
     """
     locked_attr = mangle("__locked", cls.__name__)
     try:
-        locked = getattr(cls, locked_attr)
+        locked = cast(bool, getattr(cls, locked_attr))
     except AttributeError:
         assert_is_instance(cls, LockedClassMeta)
         return True
@@ -30,7 +36,7 @@ def is_locked(cls):
 
 
 def set_locked(cls, locked):
-    # type: (Type[LockedClass] | LockedClassMeta, bool) -> None
+    # type: (Union[Type[LockedClass], LockedClassMeta], bool) -> None
     """
     Set class locked state.
 
@@ -49,7 +55,7 @@ def set_locked(cls, locked):
 
 @contextlib.contextmanager
 def unlocked_context(cls):
-    # type: (Type[LockedClass] | LockedClassMeta) -> Iterator
+    # type: (Union[Type[LockedClass], LockedClassMeta]) -> Iterator[None]
     """
     Unlocked class context manager.
 
@@ -69,12 +75,20 @@ def unlocked_context(cls):
 class LockedClassMeta(type):
     """Metaclass that prevents changing public class attributes."""
 
-    def __new__(mcs, name, bases, dct, **kwargs):
+    def __new__(
+        mcs,  # type: Type[_LCM]
+        name,  # type: str
+        bases,  # type: Tuple[Type[Any], ...]
+        dct,  # type: Dict[str, Any]
+        **kwargs  # type: Any
+    ):
+        # type: (...) -> _LCM
         dct = dict(dct)
         dct[mangle("__locked", name)] = False
         return super(LockedClassMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
     def __init__(cls, name, bases, dct, **kwargs):
+        # type: (str, Tuple[Type[Any], ...], Dict[str, Any], **Any) -> None
         super(LockedClassMeta, cls).__init__(name, bases, dct, **kwargs)
         if not is_locked(cls):
             set_locked(cls, True)
@@ -91,6 +105,7 @@ class LockedClassMeta(type):
         raise AttributeError(error)
 
     def __setattr__(cls, name, value):
+        # type: (str, Any) -> None
         """Prevent setting public class attributes."""
         if is_locked(cls) and not name.startswith("_"):
             error = "can't set read-only class attribute {!r}".format(name)
@@ -98,11 +113,15 @@ class LockedClassMeta(type):
         super(LockedClassMeta, cls).__setattr__(name, value)
 
     def __delattr__(cls, name):
+        # type: (str) -> None
         """Prevent deleting class attributes."""
         if is_locked(cls) and not name.startswith("_"):
             error = "can't delete read-only class attribute {!r}".format(name)
             raise AttributeError(error)
         super(LockedClassMeta, cls).__delattr__(name)
+
+
+_LCM = TypeVar("_LCM", bound=LockedClassMeta)
 
 
 class LockedClass(six.with_metaclass(LockedClassMeta, object)):

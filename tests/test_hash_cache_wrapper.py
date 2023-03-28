@@ -1,7 +1,9 @@
+# type: ignore
+
 import copy
 import pickle
 
-import pytest  # noqa
+import pytest
 
 from basicco.hash_cache_wrapper import HashCacheWrapper
 

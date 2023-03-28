@@ -1,7 +1,9 @@
+# type: ignore
+
 import functools
 import sys
 
-import pytest  # noqa
+import pytest
 
 from basicco.context_vars import Context, ContextVar, Token, copy_context
 

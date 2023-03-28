@@ -5,11 +5,11 @@ from tippo import Iterator, TypeVar
 __all__ = ["unique_iterator"]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 def unique_iterator(iterator):
-    # type: (Iterator[T]) -> Iterator[T]
+    # type: (Iterator[_T]) -> Iterator[_T]
     """
     Iterator that yields unique values.
 

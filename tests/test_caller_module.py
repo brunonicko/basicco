@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 
 from basicco import caller_module
 
@@ -19,7 +21,11 @@ def test_auto_called_module():
     func(expects=((__name__,), __name__))
     func(extra_paths=("foo", "bar"), expects=(("foo", "bar"), __name__))
     func(cls_module="foobar", expects=((__name__,), "foobar"))
-    func(extra_paths=("foo", "bar"), cls_module="foobar", expects=(("foo", "bar"), "foobar"))
+    func(
+        extra_paths=("foo", "bar"),
+        cls_module="foobar",
+        expects=(("foo", "bar"), "foobar"),
+    )
 
 
 if __name__ == "__main__":

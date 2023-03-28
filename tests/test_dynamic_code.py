@@ -1,13 +1,22 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 from tippo import Any
 
-from basicco.dynamic_code import compile_and_eval, generate_unique_filename, make_function
+from basicco.dynamic_code import (
+    compile_and_eval,
+    generate_unique_filename,
+    make_function,
+)
 
 
 def test_generate_unique_filename():
     assert generate_unique_filename("my_func") == "<generated my_func>"
     assert generate_unique_filename("my_func", "module") == "<generated module.my_func>"
-    assert generate_unique_filename("my_method", "module", "Class") == "<generated module.Class.my_method>"
+    assert (
+        generate_unique_filename("my_method", "module", "Class")
+        == "<generated module.Class.my_method>"
+    )
 
 
 def test_compile_and_eval():

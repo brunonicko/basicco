@@ -1,5 +1,5 @@
 """
-Backport of `contextvars` for Python 2.7.
+Backport of `contextvars`.
 Based on `MagicStack/contextvars <https://github.com/MagicStack/contextvars>`_.
 """
 
@@ -13,10 +13,22 @@ except ImportError:
     import enum
     import threading
 
-    import pyrsistent
     import six
-    from pyrsistent.typing import PMap
-    from tippo import Any, Callable, Generic, GenericMeta, Iterator, Mapping, TypeVar, overload
+    from tippo import (
+        Any,
+        Callable,
+        Dict,
+        Generic,
+        GenericMeta,
+        Iterator,
+        Mapping,
+        Tuple,
+        Type,
+        TypeVar,
+        Union,
+        cast,
+        overload,
+    )
 
     class _NoDefaultType(enum.Enum):
         NO_DEFAULT = "NO_DEFAULT"
@@ -24,21 +36,31 @@ except ImportError:
     _NO_DEFAULT = _NoDefaultType.NO_DEFAULT
     _MODULE = __name__
 
-    T = TypeVar("T")
-    RT = TypeVar("RT")
+    _T = TypeVar("_T")
+    _RT = TypeVar("_RT")
 
     class _ContextVarMeta(GenericMeta):
-        def __new__(mcs, names, bases, dct, **kwargs):
-            cls = super(_ContextVarMeta, mcs).__new__(mcs, names, bases, dct, **kwargs)
+        @staticmethod
+        def __new__(
+            mcs,  # type: Type[_CVM]
+            name,  # type: str
+            bases,  # type: Tuple[Type[Any], ...]
+            dct,  # type: Dict[str, Any]
+            **kwargs  # type: Any
+        ):
+            # type: (...) -> _CVM
+            cls = super(_ContextVarMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             if cls.__module__ != _MODULE or cls.__name__ != "_ContextVar":
                 raise TypeError("type '_ContextVar' is not an acceptable base type")
             return cls
 
-    class _ContextVar(six.with_metaclass(_ContextVarMeta, Generic[T])):
+    _CVM = TypeVar("_CVM", bound=_ContextVarMeta)
+
+    class _ContextVar(six.with_metaclass(_ContextVarMeta, Generic[_T])):
         __slots__ = ("__weakref__", "_name", "_default")
 
         def __init__(self, name, default=_NO_DEFAULT):
-            # type: (str, T | _NoDefaultType) -> None
+            # type: (str, Union[_T, _NoDefaultType]) -> None
             if not isinstance(name, str):
                 raise TypeError("context variable name must be a str")
             self._name = name
@@ -51,7 +73,7 @@ except ImportError:
 
         @overload
         def get(self, default=_NO_DEFAULT):
-            # type: (T | _NoDefaultType) -> T
+            # type: (Union[_T, _NoDefaultType]) -> _T
             pass
 
         @overload
@@ -60,6 +82,7 @@ except ImportError:
             pass
 
         def get(self, default=_NO_DEFAULT):
+            # type: (Any) -> Any
             ctx = _get_context()
             try:
                 return ctx[self]
@@ -75,7 +98,7 @@ except ImportError:
             raise LookupError()
 
         def set(self, value):
-            # type: (T) -> _Token[T]
+            # type: (_T) -> _Token[_T]
             ctx = _get_context()
             data = ctx._data  # noqa
             try:
@@ -83,12 +106,13 @@ except ImportError:
             except KeyError:
                 old_value = _Token.MISSING
 
-            updated_data = data.set(self, value)
+            updated_data = data.copy()
+            updated_data[self] = value
             ctx._data = updated_data
             return _Token(ctx, self, old_value)
 
         def reset(self, token):
-            # type: (_Token[T]) -> None
+            # type: (_Token[_T]) -> None
             if token._used:
                 raise RuntimeError("_Token has already been used once")
 
@@ -98,11 +122,13 @@ except ImportError:
             if token._context is not _get_context():  # noqa
                 raise ValueError("_Token was created in a different Context")
 
-            ctx = token._context  # noqa
-            if token._old_value is _Token.MISSING:  # noqa
-                ctx._data = ctx._data.remove(token._var)  # noqa
+            ctx = token._context
+            updated_data = ctx._data.copy()
+            if token._old_value is _Token.MISSING:
+                del updated_data[token._var]
             else:
-                ctx._data = ctx._data.set(token._var, token._old_value)  # noqa
+                updated_data[token._var] = token._old_value
+            ctx._data = updated_data
 
             token._used = True
 
@@ -114,24 +140,38 @@ except ImportError:
             return r + " at {:0x}>".format(id(self))
 
     class _ContextMeta(GenericMeta):
-        def __new__(mcs, names, bases, dct, **kwargs):
-            cls = super(_ContextMeta, mcs).__new__(mcs, names, bases, dct, **kwargs)
+        @staticmethod
+        def __new__(
+            mcs,  # type: Type[_CM]
+            name,  # type: str
+            bases,  # type: Tuple[Type[Any], ...]
+            dct,  # type: Dict[str, Any]
+            **kwargs  # type: Any
+        ):
+            # type: (...) -> _CM
+            cls = super(_ContextMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             if cls.__module__ != _MODULE or cls.__name__ != "_Context":
                 raise TypeError("type 'Context' is not an acceptable base type")
             return cls
 
-    class _Context(six.with_metaclass(_ContextMeta, Mapping)):  # type: ignore
+    _CM = TypeVar("_CM", bound=_ContextMeta)
+
+    class _Context(  # type: ignore
+        six.with_metaclass(_ContextMeta, Mapping[_ContextVar[Any], Any])
+    ):
         __slots__ = ("_data", "_prev_context")
 
         def __init__(self):
             # type: () -> None
-            self._data = pyrsistent.pmap()  # type: PMap[_ContextVar, Any]
-            self._prev_context = None  # type: _Context | None
+            self._data = {}  # type: Dict[_ContextVar[Any], Any]
+            self._prev_context = None  # type: Union[_Context, None]
 
         def run(self, func, *args, **kwargs):
-            # type: (Callable[..., RT], *Any, **Any) -> RT
+            # type: (Callable[..., _RT], *Any, **Any) -> _RT
             if self._prev_context is not None:
-                raise RuntimeError("cannot enter context: {} is already entered".format(self))
+                raise RuntimeError(
+                    "cannot enter context: {} is already entered".format(self)
+                )
 
             self._prev_context = _get_context()
             try:
@@ -148,10 +188,10 @@ except ImportError:
             return new
 
         def __getitem__(self, var):
-            # type: (_ContextVar[T]) -> T
+            # type: (_ContextVar[_T]) -> _T
             if not isinstance(var, _ContextVar):
                 raise TypeError("a _ContextVar key was expected, got {!r}".format(var))
-            return self._data[var]
+            return cast(_T, self._data[var])
 
         def __contains__(self, var):
             # type: (Any) -> bool
@@ -164,24 +204,34 @@ except ImportError:
             return len(self._data)
 
         def __iter__(self):
-            # type: () -> Iterator[_ContextVar]
+            # type: () -> Iterator[_ContextVar[Any]]
             for var in self._data:
                 yield var
 
     class _TokenMeta(GenericMeta):
-        def __new__(mcs, names, bases, dct, **kwargs):
-            cls = super(_TokenMeta, mcs).__new__(mcs, names, bases, dct, **kwargs)
+        @staticmethod
+        def __new__(
+            mcs,  # type: Type[_TM]
+            name,  # type: str
+            bases,  # type: Tuple[Type[Any], ...]
+            dct,  # type: Dict[str, Any]
+            **kwargs  # type: Any
+        ):
+            # type: (...) -> _TM
+            cls = super(_TokenMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
             if cls.__module__ != _MODULE or cls.__name__ != "_Token":
                 raise TypeError("type '_Token' is not an acceptable base type")
             return cls
 
-    class _Token(six.with_metaclass(_TokenMeta, Generic[T])):  # type: ignore
+    _TM = TypeVar("_TM", bound=_TokenMeta)
+
+    class _Token(six.with_metaclass(_TokenMeta, Generic[_T])):
         __slots__ = ("__weakref__", "_context", "_var", "_old_value", "_used")
 
         MISSING = object()
 
         def __init__(self, context, var, old_value):
-            # type: (_Context, _ContextVar[T], T) -> None
+            # type: (_Context, _ContextVar[_T], _T) -> None
             self._context = context
             self._var = var
             self._old_value = old_value
@@ -189,12 +239,12 @@ except ImportError:
 
         @property
         def var(self):
-            # type: () -> _ContextVar[T]
+            # type: () -> _ContextVar[_T]
             return self._var
 
         @property
         def old_value(self):
-            # type: () -> T
+            # type: () -> _T
             return self._old_value
 
         def __repr__(self):

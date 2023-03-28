@@ -1,18 +1,18 @@
 """Custom representation functions."""
 
-from tippo import Any, Callable, Iterable, Mapping
+from tippo import Any, Callable, Iterable, List, Mapping, Tuple, Union
 
 __all__ = ["mapping_repr", "iterable_repr"]
 
 
 def mapping_repr(
-    mapping,  # type: Mapping | Iterable[tuple[Any, Any]]
+    mapping,  # type: Union[Mapping[Any, Any], Iterable[Tuple[Any, Any]]]
     prefix="{",  # type: str
-    template="{key}: {value}",  # type: str | Callable[..., str]
+    template="{key}: {value}",  # type: Union[str, Callable[..., str]]
     separator=", ",  # type: str
     suffix="}",  # type: str
     sorting=False,  # type: bool
-    sort_key=None,  # type: Callable[[tuple[Any, Any]], Any] | None
+    sort_key=None,  # type: Union[Callable[[Tuple[Any, Any]], Any], None]
     reverse=False,  # type: bool
     key_repr=repr,  # type: Callable[[Any], str]
     value_repr=repr,  # type: Callable[[Any], str]
@@ -34,7 +34,7 @@ def mapping_repr(
     :return: Custom representation.
     """
     if isinstance(mapping, Mapping):
-        iterable = mapping.items()  # type: Iterable[tuple[Any, Any]]
+        iterable = mapping.items()  # type: Iterable[Tuple[Any, Any]]
     else:
         iterable = mapping
 
@@ -46,7 +46,7 @@ def mapping_repr(
     if not callable(template):
         template = lambda _template=template, **v: _template.format(**v)
 
-    parts = []  # type: list[str]
+    parts = []  # type: List[str]
     for i, (key, value) in enumerate(iterable):
         part = template(key=key_repr(key), value=value_repr(value), i=i)
         parts.append(part)
@@ -55,13 +55,13 @@ def mapping_repr(
 
 
 def iterable_repr(
-    iterable,  # type: Iterable
+    iterable,  # type: Iterable[Any]
     prefix="[",  # type: str
-    template="{value}",  # type: str | Callable[..., str]
+    template="{value}",  # type: Union[str, Callable[..., str]]
     separator=", ",  # type: str
     suffix="]",  # type: str
     sorting=False,  # type: bool
-    sort_key=None,  # type: Callable[[Any], Any] | None
+    sort_key=None,  # type: Union[Callable[[Any], Any], None]
     reverse=False,  # type: bool
     value_repr=repr,  # type: Callable[[Any], str]
 ):
@@ -86,7 +86,7 @@ def iterable_repr(
     if not callable(template):
         template = lambda _template=template, **v: _template.format(**v)
 
-    parts = []  # type: list[str]
+    parts = []  # type: List[str]
     for i, value in enumerate(iterable):
         part = template(value=value_repr(value), i=i)
         parts.append(part)

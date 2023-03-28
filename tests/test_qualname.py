@@ -1,4 +1,6 @@
-import pytest  # noqa
+# type: ignore
+
+import pytest
 import six
 
 from basicco.qualname import Qualnamed, QualnamedMeta, QualnameError, qualname
@@ -6,7 +8,6 @@ from basicco.qualname import Qualnamed, QualnamedMeta, QualnameError, qualname
 
 @pytest.mark.parametrize("force_ast", (True, False))
 def test_qualname(force_ast):
-
     # Get qualified name for regular classes.
     assert qualname(X, force_ast=force_ast) == "X"
     assert qualname(X.Y, force_ast=force_ast) == "X.Y"

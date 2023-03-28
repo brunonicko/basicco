@@ -1,13 +1,19 @@
 import six
 import slotted
-from tippo import GenericMeta
+from tippo import GenericMeta, TypeVar
 
 from .abstract_class import Abstract, AbstractMeta, abstract, is_abstract
 from .default_dir import DefaultDir, DefaultDirMeta
 from .explicit_hash import ExplicitHash, ExplicitHashMeta
 from .implicit_hash import ImplicitHash, ImplicitHashMeta
 from .init_subclass import InitSubclass, InitSubclassMeta
-from .locked_class import LockedClass, LockedClassMeta, is_locked, set_locked, unlocked_context
+from .locked_class import (
+    LockedClass,
+    LockedClassMeta,
+    is_locked,
+    set_locked,
+    unlocked_context,
+)
 from .namespace import Namespaced, NamespacedMeta
 from .obj_state import Reducible, ReducibleMeta, get_state, update_state
 from .qualname import Qualnamed, QualnamedMeta
@@ -69,6 +75,7 @@ class BaseMeta(
     NamespacedMeta,
     RuntimeFinalMeta,
     CompatBaseMeta,
+    GenericMeta,
 ):
     """Base metaclass that adds extra features to the basic `type`."""
 
@@ -88,17 +95,21 @@ class Base(
     __slots__ = ("__weakref__",)
 
     def __copy__(self):
+        # type: (_B) -> _B
         cls = type(self)
         new_self = cls.__new__(cls)
         update_state(new_self, get_state(self))
         return new_self
 
 
-class SlottedBaseMeta(BaseMeta, slotted.SlottedABCGenericMeta):
+_B = TypeVar("_B", bound=Base)
+
+
+class SlottedBaseMeta(BaseMeta, slotted.SlottedMeta):
     """Slotted base metaclass."""
 
 
-class SlottedBase(six.with_metaclass(SlottedBaseMeta, Base, slotted.SlottedABC)):
+class SlottedBase(six.with_metaclass(SlottedBaseMeta, Base, slotted.Slotted)):
     """Slotted base class."""
 
     __slots__ = ()
