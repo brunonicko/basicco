@@ -29,6 +29,13 @@ def test_final_class():
 
         assert not SubClass
 
+    # Should not complain if decorating a regular class.
+    @final
+    class RegularClass(object):
+        pass
+
+    assert RegularClass
+
 
 def test_final_method():
     def dummy_decorator(func):
