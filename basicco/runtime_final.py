@@ -24,10 +24,7 @@ def _final(obj):
     # type: (_T) -> _T
     if inspect.isclass(obj):
         if not isinstance(obj, RuntimeFinalMeta):
-            error = "class {!r} doesn't have {!r} as its metaclass".format(
-                obj.__name__, RuntimeFinalMeta.__name__
-            )
-            raise TypeError(error)
+            return __final(obj)  # type: ignore
         type.__setattr__(obj, _FINAL_CLASS_TAG, True)
     else:
         object.__setattr__(obj, _FINAL_METHOD_TAG, True)
