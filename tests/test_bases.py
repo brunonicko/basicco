@@ -1,6 +1,7 @@
 # type: ignore
 
 import pytest
+import slotted
 from tippo import GenericMeta
 
 import basicco
@@ -21,6 +22,13 @@ def test_bases():
     assert basicco.SlottedBaseMeta
     assert basicco.SlottedBase
     assert basicco.SlottedBase()
+
+
+def test_slotted_mixed():
+    class Mixed(basicco.SlottedBase, slotted.SlottedMapping):  # noqa
+        pass
+
+    assert Mixed
 
 
 if __name__ == "__main__":

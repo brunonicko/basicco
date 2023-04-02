@@ -105,11 +105,11 @@ class Base(
 _B = TypeVar("_B", bound=Base)
 
 
-class SlottedBaseMeta(BaseMeta, slotted.SlottedMeta):
+class SlottedBaseMeta(BaseMeta, slotted.SlottedABCGenericMeta):
     """Slotted base metaclass."""
 
 
-class SlottedBase(six.with_metaclass(SlottedBaseMeta, Base, slotted.Slotted)):
+class SlottedBase(six.with_metaclass(SlottedBaseMeta, Base, slotted.SlottedABC)):
     """Slotted base class."""
 
     __slots__ = ()
