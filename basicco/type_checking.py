@@ -427,7 +427,7 @@ def type_names(
 def import_types(
     types,  # type: Union[Type[_T], str, None, Iterable[Union[Type[_T], str, None]]]
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
 ):
     # type: (...) -> Tuple[Type[_T], ...]
@@ -469,7 +469,7 @@ def is_instance(
     types,  # type: Union[Type[Any], str, None, Iterable[Union[Type[Any], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -510,7 +510,7 @@ def is_subclass(
     types,  # type: Union[Type[Any], str, None, Iterable[Union[Type[Any], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -567,10 +567,10 @@ def is_iterable(value, include_strings=False):
 
 def assert_is_instance(
     obj,  # type: Any
-    types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
+    types,  # type: Union[Type[_T], str, None, Iterable[Union[Type[_T], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):
@@ -612,10 +612,10 @@ def assert_is_instance(
 
 def assert_is_subclass(
     cls,  # type: Type[Any]
-    types,  # type: Type[_T] | str | None | Iterable[Type[_T] | str | None]
+    types,  # type: Union[Type[_T], str, None, Iterable[Union[Type[_T], str, None]]]
     subtypes=True,  # type: bool
     extra_paths=(),  # type: Iterable[str]
-    builtin_paths=None,  # type: Iterable[str] | None
+    builtin_paths=None,  # type: Union[Iterable[str], None]
     generic=True,  # type: bool
     typing=True,  # type: bool
 ):

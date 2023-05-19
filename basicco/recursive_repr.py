@@ -4,7 +4,7 @@ import functools
 import threading
 
 import six
-from tippo import Any, Callable, Counter, TypeVar, overload
+from tippo import Any, Callable, Counter, TypeVar, Union, overload
 
 __all__ = ["recursive_repr"]
 
@@ -17,7 +17,7 @@ _reprs = threading.local()
 @overload
 def recursive_repr(
     maybe_func,  # type: Callable[..., _T]
-    max_depth=1,  # type: int | None
+    max_depth=1,  # type: Union[int, None]
     max_repr="...",  # type: str
 ):
     # type: (...) -> Callable[..., _T]
@@ -27,7 +27,7 @@ def recursive_repr(
 @overload
 def recursive_repr(
     maybe_func,  # type: None
-    max_depth=1,  # type: int | None
+    max_depth=1,  # type: Union[int, None]
     max_repr="...",  # type: str
 ):
     # type: (...) -> Callable[[Callable[..., _T]], Callable[..., _T]]
@@ -65,7 +65,7 @@ def recursive_repr(maybe_func=None, max_depth=1, max_repr="..."):
             # Get reprs counter for current context and increment it for self.
             had_reprs = False
             try:
-                reprs = _reprs.reprs
+                reprs = _reprs.reprs  # type: Counter[int]
             except AttributeError:
                 reprs = _reprs.reprs = Counter()
             else:
