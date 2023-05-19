@@ -108,7 +108,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):  # type: ignore
+    if not isinstance(obj, origin):
         return False
 
     mapping_args = get_args(mapping)
@@ -132,7 +132,7 @@ def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
-    if not isinstance(obj, origin):  # type: ignore
+    if not isinstance(obj, origin):
         return False
 
     iterable_args = get_args(iterable)
@@ -223,9 +223,7 @@ def _check_typing(
 
     # Mapping.
     try:
-        type_is_mapping = issubclass(
-            get_typing(get_origin(typ)), Mapping  # type: ignore
-        )
+        type_is_mapping = issubclass(get_typing(get_origin(typ)), Mapping)
     except TypeError:
         pass
     else:
@@ -234,9 +232,7 @@ def _check_typing(
 
     # Iterable.
     try:
-        type_is_iterable = issubclass(
-            get_typing(get_origin(typ)), Iterable  # type: ignore
-        )
+        type_is_iterable = issubclass(get_typing(get_origin(typ)), Iterable)
     except TypeError:
         pass
     else:
