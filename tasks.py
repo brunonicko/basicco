@@ -1,3 +1,5 @@
+# type: ignore
+
 from invoke import task
 
 PATHS = "basicco setup.py tasks.py docs/source/conf.py tests"
