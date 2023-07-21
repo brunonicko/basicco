@@ -16,8 +16,8 @@ Submodules
    basicco.caller_module
    basicco.context_vars
    basicco.custom_repr
-   basicco.data_class
    basicco.default_dir
+   basicco.descriptors
    basicco.dynamic_class
    basicco.dynamic_code
    basicco.explicit_hash
@@ -27,10 +27,10 @@ Submodules
    basicco.implicit_hash
    basicco.import_path
    basicco.init_subclass
+   basicco.lazy_tuple
    basicco.locked_class
    basicco.mangling
    basicco.mapping_proxy
-   basicco.named_tuple
    basicco.namespace
    basicco.obj_state
    basicco.qualname
@@ -38,7 +38,7 @@ Submodules
    basicco.runtime_final
    basicco.safe_not_equals
    basicco.safe_repr
+   basicco.sentinel
    basicco.set_name
    basicco.type_checking
    basicco.unique_iterator
-   basicco.weak_reference

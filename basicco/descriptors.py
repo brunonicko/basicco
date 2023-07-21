@@ -121,6 +121,20 @@ class Descriptor(object):
 
     @property
     @final
+    def named(self):
+        # type: () -> bool
+        """Whether this descriptor has been named."""
+        return self.__name is not None
+
+    @property
+    @final
+    def owned(self):
+        # type: () -> bool
+        """Whether this descriptor has been owned."""
+        return self.__owner is not None
+
+    @property
+    @final
     def name(self):
         # type: () -> str
         """Descriptor name."""

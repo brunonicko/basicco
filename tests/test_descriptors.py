@@ -38,8 +38,20 @@ def test_descriptors():
         foo = foo_descriptor
         bar = bar_descriptor
 
+        assert not foo.named
+        assert not foo.owned
+
+        assert not bar.named
+        assert not bar.owned
+
     assert "foo" in Stuff.__slots__
     assert "bar" in Stuff.__slots__
+
+    assert foo_descriptor.named
+    assert foo_descriptor.owned
+
+    assert bar_descriptor.named
+    assert bar_descriptor.owned
 
     assert foo_descriptor.name == "foo"
     assert bar_descriptor.name == "bar"

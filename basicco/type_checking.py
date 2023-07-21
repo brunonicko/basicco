@@ -104,7 +104,7 @@ def _check_tuple(obj, typed_tuple, type_depth, instance, *args):
 
 def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
     # type: (Any, Any, int, Any, bool, *Any) -> bool
-    origin = get_origin(mapping)
+    origin = cast("Type[Mapping[Any, Any]]", get_origin(mapping))
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
@@ -128,7 +128,7 @@ def _check_mapping(obj, mapping, type_depth, instance, typing, *args):
 
 def _check_iterable(obj, iterable, type_depth, instance, typing, *args):
     # type: (Any, Any, int, Any, bool, *Any) -> bool
-    origin = get_origin(iterable)
+    origin = cast("Type[Iterable[Any]]", get_origin(iterable))
     if type_depth or not instance:
         return _check(obj, origin, type_depth, instance, False, *args)
 
@@ -223,7 +223,7 @@ def _check_typing(
 
     # Mapping.
     try:
-        type_is_mapping = issubclass(get_typing(get_origin(typ)), Mapping)
+        type_is_mapping = issubclass(cast(type, get_typing(get_origin(typ))), Mapping)
     except TypeError:
         pass
     else:
@@ -232,7 +232,7 @@ def _check_typing(
 
     # Iterable.
     try:
-        type_is_iterable = issubclass(get_typing(get_origin(typ)), Iterable)
+        type_is_iterable = issubclass(cast(type, get_typing(get_origin(typ))), Iterable)
     except TypeError:
         pass
     else:
