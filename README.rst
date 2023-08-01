@@ -532,7 +532,7 @@ attribute that is unique to each class.
 
 null_context
 ^^^^^^^^^^^^
-Backport of :func:`contextlib.nullcontext` for Python 2.7.
+Backport of `contextlib.nullcontext` for Python 2.7.
 
 .. code:: python
 
@@ -721,9 +721,9 @@ Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
     >>> Collection.foo.name
     'foo'
 
-suppress_exceptions
-^^^^^^^^^^^^^^^^^^^
-Backport of :func:`contextlib.suppress` for Python 2.7.
+suppress_exception
+^^^^^^^^^^^^^^^^^^
+Backport of `contextlib.suppress` for Python 2.7.
 See `null_context`_ for an example usage.
 
 type_checking
