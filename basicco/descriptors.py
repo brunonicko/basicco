@@ -241,6 +241,17 @@ class OwnerMeta(type):
                         )
                         raise TypeError(error)
             else:
+                for member_name, member in base.__dict__.items():
+                    if (
+                        member_name in all_descriptors
+                        and member_name not in base.__this_descriptors
+                        and not isinstance(member, Descriptor)
+                    ):
+                        error = (
+                            "base {!r} overrides {!r} with non-descriptor {!r}"
+                        ).format(base.__name__, member_name, type(member).__name__)
+                        raise TypeError(error)
+
                 for descriptor_name, descriptor in base.__this_descriptors.items():
                     if descriptor_name in all_descriptors:
                         all_descriptors[descriptor_name].__on_overridden__(descriptor)

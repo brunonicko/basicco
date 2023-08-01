@@ -530,6 +530,25 @@ attribute that is unique to each class.
     >>> Asset.get_class_value()
     'foobar'
 
+null_context
+^^^^^^^^^^^^
+Backport of :func:`contextlib.nullcontext` for Python 2.7.
+
+.. code:: python
+
+    >>> from basicco.null_context import null_context
+    >>> from basicco.suppress_exception import suppress_exception
+    >>> def myfunction(arg, ignore_exceptions=False):
+    ...     if ignore_exceptions:
+    ...         # Use suppress_exception to ignore all exceptions.
+    ...         cm = suppress_exception(Exception)
+    ...     else:
+    ...         # Do not ignore any exceptions, cm has no effect.
+    ...         cm = null_context()
+    ...     with cm:
+    ...         pass # Do something
+    ...
+
 obj_state
 ^^^^^^^^^
 Get/update the state of an object, slotted or not (works even in Python 2.7).
@@ -701,6 +720,11 @@ Backport of the functionality of `__set_name__` from PEP 487 to Python 2.7.
     True
     >>> Collection.foo.name
     'foo'
+
+suppress_exceptions
+^^^^^^^^^^^^^^^^^^^
+Backport of :func:`contextlib.suppress` for Python 2.7.
+See `null_context`_ for an example usage.
 
 type_checking
 ^^^^^^^^^^^^^
