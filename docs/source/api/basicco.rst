@@ -32,6 +32,7 @@ Submodules
    basicco.mangling
    basicco.mapping_proxy
    basicco.namespace
+   basicco.null_context
    basicco.obj_state
    basicco.qualname
    basicco.recursive_repr
@@ -40,5 +41,6 @@ Submodules
    basicco.safe_repr
    basicco.sentinel
    basicco.set_name
+   basicco.suppress_exception
    basicco.type_checking
    basicco.unique_iterator

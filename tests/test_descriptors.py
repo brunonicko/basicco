@@ -116,5 +116,18 @@ def test_descriptors():
     )
 
 
+def test_bad_override():
+    shared = {}
+
+    class Stuff(Owner):
+        foo = SlotDescriptor(shared)
+        bar = SlotDescriptor(shared)
+
+    with pytest.raises(TypeError):
+
+        class BadStuff(Stuff):  # noqa
+            foo = 3
+
+
 if __name__ == "__main__":
     pytest.main()
