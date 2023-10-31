@@ -19,8 +19,8 @@ from tippo import (
     cast,
 )
 
-from .mangling import mangle
-from .recursive_repr import recursive_repr
+from basicco.mangling import mangle
+from basicco.recursive_repr import recursive_repr
 
 __all__ = ["Namespace", "MutableNamespace", "NamespacedMeta", "Namespaced"]
 

@@ -2,24 +2,24 @@ import six
 import slotted
 from tippo import GenericMeta, TypeVar
 
-from .abstract_class import Abstract, AbstractMeta, abstract, is_abstract
-from .default_dir import DefaultDir, DefaultDirMeta
-from .explicit_hash import ExplicitHash, ExplicitHashMeta
-from .implicit_hash import ImplicitHash, ImplicitHashMeta
-from .init_subclass import InitSubclass, InitSubclassMeta
-from .locked_class import (
+from basicco.abstract_class import Abstract, AbstractMeta, abstract, is_abstract
+from basicco.default_dir import DefaultDir, DefaultDirMeta
+from basicco.explicit_hash import ExplicitHash, ExplicitHashMeta
+from basicco.implicit_hash import ImplicitHash, ImplicitHashMeta
+from basicco.init_subclass import InitSubclass, InitSubclassMeta
+from basicco.locked_class import (
     LockedClass,
     LockedClassMeta,
     is_locked,
     set_locked,
     unlocked_context,
 )
-from .namespace import Namespaced, NamespacedMeta
-from .obj_state import Reducible, ReducibleMeta, get_state, update_state
-from .qualname import Qualnamed, QualnamedMeta
-from .runtime_final import RuntimeFinal, RuntimeFinalMeta, final
-from .safe_not_equals import SafeNotEquals, SafeNotEqualsMeta
-from .set_name import SetName, SetNameMeta
+from basicco.namespace import Namespaced, NamespacedMeta
+from basicco.obj_state import Reducible, ReducibleMeta, get_state, update_state
+from basicco.qualname import Qualnamed, QualnamedMeta
+from basicco.runtime_final import RuntimeFinal, RuntimeFinalMeta, final
+from basicco.safe_not_equals import SafeNotEquals, SafeNotEqualsMeta
+from basicco.set_name import SetName, SetNameMeta
 
 __all__ = [
     "CompatBaseMeta",

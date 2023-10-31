@@ -3,7 +3,7 @@
 import six
 from tippo import Any, Callable, Iterable, Iterator, Mapping, TypeVar, Union, cast
 
-from .import_path import import_path
+from basicco.import_path import import_path
 
 __all__ = ["fabricate_value", "map_factory", "format_factory"]
 

@@ -9,7 +9,7 @@ import sys
 import six
 from tippo import Any, Dict, Tuple, Type, TypeVar
 
-from .dynamic_code import generate_unique_filename, make_function
+from basicco.dynamic_code import generate_unique_filename, make_function
 
 __all__ = ["SafeNotEqualsMeta", "SafeNotEquals"]
 

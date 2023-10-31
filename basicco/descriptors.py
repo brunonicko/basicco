@@ -5,11 +5,11 @@ import collections
 import six
 from tippo import Any, Dict, Iterable, List, Mapping, Tuple, Type, TypeVar, Union
 
-from .get_mro import get_mro
-from .mangling import mangle
-from .mapping_proxy import MappingProxyType
-from .runtime_final import final
-from .sentinel import SentinelType
+from basicco.get_mro import get_mro
+from basicco.mangling import mangle
+from basicco.mapping_proxy import MappingProxyType
+from basicco.runtime_final import final
+from basicco.sentinel import SentinelType
 
 __all__ = ["REMOVE", "Descriptor", "OwnerMeta", "Owner", "get_descriptors"]
 
