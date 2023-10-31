@@ -26,7 +26,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="basicco",
-    version="10.3.0",
+    version="10.3.1",
     author="Bruno Nicko",
     author_email="brunonicko@gmail.com",
     description="Bases and utilities for compatibility, features and validation.",
@@ -46,6 +46,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     python_requires=(

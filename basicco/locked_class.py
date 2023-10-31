@@ -17,6 +17,9 @@ __all__ = [
 ]
 
 
+_LOCKED_ATTR = "__locked_class_flag_"
+
+
 def is_locked(cls):
     # type: (Type[Any]) -> bool
     """
@@ -25,7 +28,7 @@ def is_locked(cls):
     :param cls: Class.
     :return: True if locked.
     """
-    locked_attr = mangle("__locked", cls.__name__)
+    locked_attr = mangle(_LOCKED_ATTR, cls.__name__)
     try:
         locked = cast(bool, getattr(cls, locked_attr))
     except AttributeError:
@@ -44,7 +47,7 @@ def set_locked(cls, locked):
     :param locked: Locked state.
     :raise TypeCheckError: Invalid class type.
     """
-    locked_attr = mangle("__locked", cls.__name__)
+    locked_attr = mangle(_LOCKED_ATTR, cls.__name__)
     if not hasattr(cls, locked_attr):
         assert_is_instance(cls, LockedClassMeta)
     elif not locked:
@@ -84,7 +87,7 @@ class LockedClassMeta(type):
     ):
         # type: (...) -> _LCM
         dct = dict(dct)
-        dct[mangle("__locked", name)] = False
+        dct[mangle(_LOCKED_ATTR, name)] = False
         return super(LockedClassMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
     def __init__(cls, name, bases, dct, **kwargs):
@@ -95,7 +98,7 @@ class LockedClassMeta(type):
 
     def __getattr__(cls, name):
         # type: (str) -> Any
-        if name == mangle("__locked", cls.__name__):
+        if name == mangle(_LOCKED_ATTR, cls.__name__):
             return True
         try:
             return super(LockedClassMeta, cls).__getattr__(name)  # type: ignore  # noqa
