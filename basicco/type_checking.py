@@ -20,7 +20,7 @@ from tippo import (
     get_typing,
 )
 
-from .import_path import get_name, import_path
+from basicco.import_path import get_name, import_path
 
 __all__ = [
     "TEXT_TYPES",

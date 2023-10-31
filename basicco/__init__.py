@@ -1,4 +1,4 @@
-from ._bases import (
+from basicco._bases import (
     Base,
     BaseMeta,
     CompatBase,

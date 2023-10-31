@@ -6,7 +6,7 @@ import inspect
 import six
 from tippo import Any, Callable, Dict, Tuple, Type, TypeVar, Union, final
 
-from .get_mro import get_mro
+from basicco.get_mro import get_mro
 
 __all__ = ["final", "is_final", "RuntimeFinalMeta", "RuntimeFinal"]
 

@@ -135,7 +135,7 @@ property getters, classmethods, and staticmethods (even in Python 2.7).
     ...
     >>> Asset()
     Traceback (most recent call last):
-    TypeError: Can't instantiate abstract class Asset with abstract methods method, prop
+    TypeError: Can't instantiate abstract class Asset...
 
 caller_module
 ^^^^^^^^^^^^^

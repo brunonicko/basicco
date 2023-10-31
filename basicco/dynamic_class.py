@@ -5,8 +5,8 @@ import types
 import six
 from tippo import Any, Dict, Iterable, Mapping, Type, TypeVar, Union
 
-from .caller_module import caller_module
-from .init_subclass import InitSubclassMeta
+from basicco.caller_module import caller_module
+from basicco.init_subclass import InitSubclassMeta
 
 __all__ = ["make_cls"]
 

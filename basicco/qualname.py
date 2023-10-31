@@ -12,7 +12,7 @@ import sys
 import six
 from tippo import Any, Callable, Dict, List, Union, cast
 
-from .mangling import mangle
+from basicco.mangling import mangle
 
 __all__ = ["QualnameError", "qualname", "QualnamedMeta", "Qualnamed"]
 

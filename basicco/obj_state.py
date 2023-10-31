@@ -6,10 +6,10 @@ import types
 import six
 from tippo import Any, Callable, Dict, Mapping, Set, Tuple, Type, TypeVar, Union, cast
 
-from .dynamic_code import generate_unique_filename, make_function
-from .get_mro import get_mro
-from .import_path import get_path, import_path
-from .mangling import mangle
+from basicco.dynamic_code import generate_unique_filename, make_function
+from basicco.get_mro import get_mro
+from basicco.import_path import get_path, import_path
+from basicco.mangling import mangle
 
 __all__ = ["get_state", "update_state", "reducer", "ReducibleMeta", "Reducible"]
 

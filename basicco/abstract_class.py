@@ -9,7 +9,7 @@ from abc import abstractmethod as abstract
 import six
 from tippo import Any, Dict, Set, Tuple, Type, TypeVar
 
-from .get_mro import get_mro
+from basicco.get_mro import get_mro
 
 __all__ = ["ABC", "abstract", "is_abstract", "AbstractMeta", "Abstract"]
 

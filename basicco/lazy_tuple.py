@@ -5,7 +5,7 @@ import types
 from six.moves import collections_abc
 from tippo import Any, Generic, Iterator, List, Tuple, TypeVar, overload
 
-from ._bases import SlottedBase
+from basicco._bases import SlottedBase
 
 __all__ = ["LazyTuple"]
 

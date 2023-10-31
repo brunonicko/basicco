@@ -7,7 +7,7 @@ import tippo
 from six import moves
 from tippo import Any, Iterable, List, Tuple, Union
 
-from .qualname import QualnameError, qualname
+from basicco.qualname import QualnameError, qualname
 
 __all__ = [
     "DEFAULT_BUILTIN_PATHS",

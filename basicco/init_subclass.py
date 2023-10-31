@@ -8,7 +8,7 @@ import sys
 import six
 from tippo import Any, Dict, Tuple, Type, TypeVar
 
-from .get_mro import get_mro
+from basicco.get_mro import get_mro
 
 __all__ = ["InitSubclassMeta", "InitSubclass"]
 
