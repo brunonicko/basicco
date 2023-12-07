@@ -4,7 +4,7 @@ import pytest
 import six
 from tippo import Generic, TypeVar
 
-from basicco.get_mro import get_mro, preview_mro, resolve_origin
+from basicco.get_mro import get_bases, get_mro, preview_mro, resolve_origin
 
 
 def test_resolve_origin():
@@ -16,6 +16,31 @@ def test_resolve_origin():
     assert resolve_origin(Base) is Base
     assert resolve_origin(Base[int]) is Base
     assert resolve_origin(Base[T]) is Base
+
+
+def test_get_bases():
+    T = TypeVar("T")  # noqa
+
+    class Base(Generic[T]):
+        pass
+
+    class SubBase(Base[T]):
+        pass
+
+    class SubSubBase(SubBase[T], Base[T]):
+        pass
+
+    assert get_bases(Base) == (Generic,)
+    assert get_bases(Base[T]) == (Generic,)
+    assert get_bases(Base[int]) == (Generic,)
+
+    assert get_bases(SubBase) == (Base,)
+    assert get_bases(SubBase[T]) == (Base,)
+    assert get_bases(SubBase[int]) == (Base,)
+
+    assert get_bases(SubSubBase) == (SubBase, Base)
+    assert get_bases(SubSubBase[T]) == (SubBase, Base)
+    assert get_bases(SubSubBase[int]) == (SubBase, Base)
 
 
 def test_get_mro():

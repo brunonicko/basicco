@@ -5,7 +5,9 @@ import inspect
 
 from tippo import Any, Deque, Dict, GenericMeta, Tuple, Type, cast
 
-__all__ = ["resolve_origin", "get_mro", "preview_mro"]
+from basicco.unique_iterator import unique_iterator
+
+__all__ = ["resolve_origin", "get_bases", "get_mro", "preview_mro"]
 
 
 def resolve_origin(cls):
@@ -25,6 +27,27 @@ def resolve_origin(cls):
         if generic is not None:
             cls = generic
     return cls
+
+
+def get_bases(cls):
+    # type: (Type[Any]) -> Tuple[Type[Any], ...]
+    """
+    Get consistent bases amongst different python versions.
+    This works even with generic classes.
+
+    :param cls: Class.
+    :return: Tuple of classes.
+    """
+
+    # Resolve generic class to its origin.
+    cls = resolve_origin(cls)
+
+    # Newer python versions.
+    if GenericMeta is type:
+        return cls.__bases__
+
+    # Return unique bases' origins.
+    return tuple(unique_iterator(resolve_origin(b) for b in cls.__bases__))
 
 
 def get_mro(cls):

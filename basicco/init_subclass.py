@@ -8,7 +8,7 @@ import sys
 import six
 from tippo import Any, Dict, Tuple, Type, TypeVar
 
-from basicco.get_mro import get_mro
+from basicco.get_mro import get_mro, resolve_origin
 
 __all__ = ["InitSubclassMeta", "InitSubclass"]
 
@@ -63,6 +63,10 @@ class InitSubclassMeta(type):
             cls = super(InitSubclassMeta, mcs).__new__(
                 mcs, name, bases, dct, **original_kwargs
             )
+
+            # For generics in Python 2.7, avoid calling __init_subclass__ again.
+            if resolve_origin(cls) is not cls:
+                return cls
 
             # Find '__init_subclass__' method.
             method = None
