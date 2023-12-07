@@ -111,8 +111,13 @@ def test_generics():
     class MyMeta(InitSubclassMeta, GenericMeta):
         pass
 
+    initialized = []
+
     class Base(six.with_metaclass(MyMeta, InitSubclass)):
-        pass
+        def __init_subclass__(cls):
+            super(Base, cls).__init_subclass__()
+            assert cls not in initialized
+            initialized.append(cls)
 
     class MyClass(Generic[T_co], Base):
         pass
@@ -123,6 +128,13 @@ def test_generics():
         pass
 
     assert MySubClass[int]
+
+    class MySubSubClass(MySubClass[T_co]):
+        pass
+
+    assert MySubSubClass[int]
+
+    assert initialized == [MyClass, MySubClass, MySubSubClass]
 
 
 if __name__ == "__main__":
