@@ -341,6 +341,25 @@ Run a value through a callable factory (or None).
     >>> fabricate_value(int)  # no input value, just the factory itself
     0
 
+func_tools
+^^^^^^^^^^
+Backport of `functools.cache`, `functools.lru_cache`, and `functools.update_wrapper`
+for Python 2.7.
+
+.. code:: python
+
+    >>> from basicco.func_tools import cache
+    >>> @cache
+    ... def calculate(a, b):
+    ...     print("calculating...")
+    ...     return a ** b
+    ...
+    >>> calculate(2, 2)
+    calculating...
+    4
+    >>> calculate(2, 2)
+    4
+
 get_mro
 ^^^^^^^
 Get consistent MRO amongst different python versions. This works even with generic
