@@ -303,6 +303,7 @@ except ImportError:
                         last[NEXT] = non_locals["root"][PREV] = cache[key] = link
                         # Use the cache_len bound method instead of the len() function
                         # which could potentially be wrapped in a lru_cache itself.
+                        assert maxsize is not None
                         non_locals["full"] = cache_len() >= maxsize
                 return result
 
