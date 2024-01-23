@@ -22,6 +22,7 @@ Submodules
    basicco.dynamic_code
    basicco.explicit_hash
    basicco.fabricate_value
+   basicco.func_tools
    basicco.get_mro
    basicco.hash_cache_wrapper
    basicco.implicit_hash
