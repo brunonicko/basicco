@@ -438,7 +438,10 @@ def import_types(
     """
     imported_types = tuple(
         import_path(
-            t, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic
+            t,
+            extra_paths=extra_paths,
+            builtin_paths=builtin_paths,
+            generic=generic,
         )
         if isinstance(t, six.string_types)
         else t
