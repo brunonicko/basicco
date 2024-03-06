@@ -3,9 +3,10 @@
 import collections
 
 import pytest
-from tippo import Any, Dict, Generic, TypeVar
+from six import with_metaclass
+from tippo import Any, Dict, Generic, GenericMeta, TypeVar
 
-from basicco.descriptors import REMOVE, Descriptor, Owner, get_descriptors
+from basicco.descriptors import REMOVE, Descriptor, Owner, OwnerMeta, get_descriptors
 from basicco.mapping_proxy import MappingProxyType
 
 T = TypeVar("T")
@@ -36,7 +37,10 @@ def test_descriptors():
     foo_descriptor = SlotDescriptor(shared)
     bar_descriptor = SlotDescriptor(shared)
 
-    class Stuff(Owner, Generic[T]):
+    class StuffMeta(OwnerMeta, GenericMeta):
+        pass
+
+    class Stuff(with_metaclass(StuffMeta, Owner, Generic[T])):
         foo = foo_descriptor
         bar = bar_descriptor
 
