@@ -3,7 +3,7 @@
 import collections
 
 import pytest
-from tippo import Any, Dict, TypeVar, Generic
+from tippo import Any, Dict, Generic, TypeVar
 
 from basicco.descriptors import REMOVE, Descriptor, Owner, get_descriptors
 from basicco.mapping_proxy import MappingProxyType
