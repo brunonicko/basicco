@@ -8,7 +8,6 @@ from tippo import Any, Dict, Generic, TypeVar
 from basicco.descriptors import REMOVE, Descriptor, Owner, get_descriptors
 from basicco.mapping_proxy import MappingProxyType
 
-
 T = TypeVar("T")
 
 
