@@ -1,11 +1,12 @@
 """Configurable descriptors."""
 
 import collections
+import sys
 
 import six
 from tippo import Any, Dict, Iterable, List, Mapping, Tuple, Type, TypeVar, Union
 
-from basicco.get_mro import get_mro, resolve_origin
+from basicco.get_mro import get_mro
 from basicco.mangling import mangle
 from basicco.mapping_proxy import MappingProxyType
 from basicco.runtime_final import final
@@ -184,6 +185,10 @@ class OwnerMeta(type):
         # type: (Type[_OM], str, Tuple[Type[Any], ...], Mapping[str, Any], **Any) -> _OM
         dct = dict(dct)
 
+        # Skip if this is a Python 2.7 generic version of the class.
+        if sys.version_info <= (2, 7) and isinstance(dct.get("__origin__"), mcs):
+            return super(OwnerMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+
         # Collect descriptors for this class.
         this_descriptors = {}  # type: Dict[str, Descriptor]
         required_slots = []  # type: List[str]
@@ -212,8 +217,6 @@ class OwnerMeta(type):
 
         # Build class and assign owner to descriptors.
         cls = super(OwnerMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
-        if cls is not resolve_origin(cls):
-            return cls
 
         for descriptor in this_descriptors.values():
             descriptor.__assign_owner__(cls)
