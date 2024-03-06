@@ -266,8 +266,10 @@ class OwnerMeta(type):
         # Order descriptors by priority, global count.
         cls.__all_descriptors = collections.OrderedDict()
         sorting_key = lambda i: (
-            i[1].priority if i[1].priority is not None else len(all_descriptors),
-            all_descriptors_count[i[0]],
+            (
+                i[1].priority if i[1].priority is not None else len(all_descriptors)
+            ),  # priority
+            all_descriptors_count[i[0]],  # global count
         )
         descriptor_items = sorted(all_descriptors.items(), key=sorting_key)
         for descriptor_name, descriptor in descriptor_items:

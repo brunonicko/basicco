@@ -437,14 +437,13 @@ def import_types(
     :return: Imported types.
     """
     imported_types = tuple(
-        import_path(
-            t,
-            extra_paths=extra_paths,
-            builtin_paths=builtin_paths,
-            generic=generic,
+        (
+            import_path(
+                t, extra_paths=extra_paths, builtin_paths=builtin_paths, generic=generic
+            )
+            if isinstance(t, six.string_types)
+            else t
         )
-        if isinstance(t, six.string_types)
-        else t
         for t in format_types(types)
     )
 
