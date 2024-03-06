@@ -186,7 +186,7 @@ class OwnerMeta(type):
         dct = dict(dct)
 
         # Skip if this is a Python 2.7 generic version of the class.
-        if sys.version_info <= (2, 7) and isinstance(dct.get("__origin__"), mcs):
+        if sys.version_info < (2, 8) and dct.get("__orig_bases__") is not None:
             return super(OwnerMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
 
         # Collect descriptors for this class.
