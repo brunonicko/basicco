@@ -5,7 +5,7 @@ import collections
 import six
 from tippo import Any, Dict, Iterable, List, Mapping, Tuple, Type, TypeVar, Union
 
-from basicco.get_mro import get_mro
+from basicco.get_mro import get_mro, resolve_origin
 from basicco.mangling import mangle
 from basicco.mapping_proxy import MappingProxyType
 from basicco.runtime_final import final
@@ -212,6 +212,9 @@ class OwnerMeta(type):
 
         # Build class and assign owner to descriptors.
         cls = super(OwnerMeta, mcs).__new__(mcs, name, bases, dct, **kwargs)
+        if cls is not resolve_origin(cls):
+            return cls
+
         for descriptor in this_descriptors.values():
             descriptor.__assign_owner__(cls)
 
@@ -263,9 +266,9 @@ class OwnerMeta(type):
         # Order descriptors by priority, global count.
         cls.__all_descriptors = collections.OrderedDict()
         sorting_key = lambda i: (
-            i[1].priority
-            if i[1].priority is not None
-            else len(all_descriptors),  # priority
+            (
+                i[1].priority if i[1].priority is not None else len(all_descriptors)
+            ),  # priority
             all_descriptors_count[i[0]],  # global count
         )
         descriptor_items = sorted(all_descriptors.items(), key=sorting_key)
