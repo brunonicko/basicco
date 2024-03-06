@@ -3,10 +3,12 @@
 import collections
 
 import pytest
-from tippo import Any, Dict
+from tippo import Any, Dict, Generic, TypeVar
 
 from basicco.descriptors import REMOVE, Descriptor, Owner, get_descriptors
 from basicco.mapping_proxy import MappingProxyType
+
+T = TypeVar("T")
 
 
 class SlotDescriptor(Descriptor):
@@ -34,7 +36,7 @@ def test_descriptors():
     foo_descriptor = SlotDescriptor(shared)
     bar_descriptor = SlotDescriptor(shared)
 
-    class Stuff(Owner):
+    class Stuff(Owner, Generic[T]):
         foo = foo_descriptor
         bar = bar_descriptor
 
@@ -66,7 +68,7 @@ def test_descriptors():
 
     new_foo_descriptor = SlotDescriptor(shared)
 
-    class StuffOverride(Stuff):
+    class StuffOverride(Stuff[int]):
         foo = new_foo_descriptor
 
     assert new_foo_descriptor.name == "foo"
