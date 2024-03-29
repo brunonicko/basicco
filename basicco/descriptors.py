@@ -4,7 +4,7 @@ import collections
 import sys
 
 import six
-from tippo import Any, Dict, Iterable, List, Mapping, Tuple, Type, TypeVar, Union, Set
+from tippo import Any, Dict, Iterable, List, Mapping, Set, Tuple, Type, TypeVar, Union
 
 from basicco.get_mro import get_mro, preview_mro
 from basicco.mangling import mangle
