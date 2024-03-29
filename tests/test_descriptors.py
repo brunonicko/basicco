@@ -135,5 +135,20 @@ def test_bad_override():
             foo = 3
 
 
+def test_required_slots():
+    shared = {}
+
+    class Stuff(Owner):
+        foo = SlotDescriptor(shared)
+        bar = SlotDescriptor(shared)
+
+    class MoreStuff(Stuff):
+        foo = SlotDescriptor(shared)
+        foobar = SlotDescriptor(shared)
+
+    assert Stuff.__slots__ == ("foo", "bar")
+    assert MoreStuff.__slots__ == ("foobar",)
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -4,9 +4,9 @@ import collections
 import sys
 
 import six
-from tippo import Any, Dict, Iterable, List, Mapping, Tuple, Type, TypeVar, Union
+from tippo import Any, Dict, Iterable, List, Mapping, Set, Tuple, Type, TypeVar, Union
 
-from basicco.get_mro import get_mro
+from basicco.get_mro import get_mro, preview_mro
 from basicco.mangling import mangle
 from basicco.mapping_proxy import MappingProxyType
 from basicco.runtime_final import final
@@ -201,6 +201,11 @@ class OwnerMeta(type):
                 if replacement is not REMOVE:
                     dct[member_name] = replacement
 
+        # Gather existing slots from bases.
+        existing_slots = set()  # type: Set[str]
+        for base in preview_mro(*bases):
+            existing_slots.update(base.__dict__.get("__slots__", ()))
+
         # Add required slots.
         slots = list(dct.get("__slots__", ()))
         for required_slot in required_slots:
@@ -211,7 +216,7 @@ class OwnerMeta(type):
                     "'__get_replacement__' method to avoid naming conflicts"
                 ).format(name, required_slot)
                 raise TypeError(error)
-            if required_slot not in slots:
+            if required_slot not in slots and required_slot not in existing_slots:
                 slots.append(required_slot)
         dct["__slots__"] = tuple(slots)
 
