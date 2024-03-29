@@ -15,7 +15,7 @@ _in_repr = False
 
 
 def default_alternative_repr(obj):
-    # type: (object) -> str
+    # type: (Any) -> str
     message = [
         ln.strip(" ") for ln in traceback.format_exc().split("\n") if ln.strip(" ")
     ][-1]
@@ -24,19 +24,19 @@ def default_alternative_repr(obj):
 
 @overload
 def safe_repr(
-    maybe_func,  # type: Callable[[object], str]
-    alternative_repr=default_alternative_repr,  # type: Callable[[object], str]
+    maybe_func,  # type: Callable[..., str]
+    alternative_repr=default_alternative_repr,  # type: Callable[..., str]
 ):
-    # type: (...) -> Callable[[object], str]
+    # type: (...) -> Callable[..., str]
     pass
 
 
 @overload
 def safe_repr(
     maybe_func,  # type: None
-    alternative_repr=default_alternative_repr,  # type: Callable[[object], str]
+    alternative_repr=default_alternative_repr,  # type: Callable[..., str]
 ):
-    # type: (...) -> Callable[[Callable[[object], str]], Callable[[object], str]]
+    # type: (...) -> Callable[[Callable[..., str]], Callable[..., str]]
     pass
 
 
@@ -51,7 +51,7 @@ def safe_repr(maybe_func=None, alternative_repr=default_alternative_repr):
     """
 
     def decorator(func):
-        # type: (Callable[[object], str]) -> Callable[[object], str]
+        # type: (Callable[..., str]) -> Callable[..., str]
 
         @functools.wraps(func)
         def decorated(self, *args, **kwargs):
