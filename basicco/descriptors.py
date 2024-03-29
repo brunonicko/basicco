@@ -216,7 +216,7 @@ class OwnerMeta(type):
                     "'__get_replacement__' method to avoid naming conflicts"
                 ).format(name, required_slot)
                 raise TypeError(error)
-            if required_slot not in slots and required_slots not in existing_slots:
+            if required_slot not in slots and required_slot not in existing_slots:
                 slots.append(required_slot)
         dct["__slots__"] = tuple(slots)
 
