@@ -6,6 +6,7 @@ import pytest
 from six import with_metaclass
 from tippo import Any, Dict, Generic, GenericMeta, TypeVar
 
+from basicco import CompatBase, CompatBaseMeta
 from basicco.descriptors import REMOVE, Descriptor, Owner, OwnerMeta, get_descriptors
 from basicco.mapping_proxy import MappingProxyType
 
@@ -148,6 +149,24 @@ def test_required_slots():
 
     assert Stuff.__slots__ == ("foo", "bar")
     assert MoreStuff.__slots__ == ("foobar",)
+
+
+def test_with_bases():
+    shared = {}
+
+    class StructMeta(CompatBaseMeta, OwnerMeta):
+        pass
+
+    class Struct(with_metaclass(StructMeta, CompatBase, Owner, Generic[T])):
+        __slots__ = ()
+
+    class Point(Struct):
+        x = SlotDescriptor(shared)
+        y = SlotDescriptor(shared)
+
+    assert Point
+    assert not getattr(Struct, "_OwnerMeta__this_descriptors")
+    assert len(getattr(Point, "_OwnerMeta__this_descriptors")) == 2
 
 
 if __name__ == "__main__":

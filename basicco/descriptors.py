@@ -4,7 +4,19 @@ import collections
 import sys
 
 import six
-from tippo import Any, Dict, Iterable, List, Mapping, Set, Tuple, Type, TypeVar, Union
+from tippo import (
+    Any,
+    Dict,
+    GenericMeta,
+    Iterable,
+    List,
+    Mapping,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from basicco.get_mro import get_mro, preview_mro
 from basicco.mangling import mangle
@@ -172,7 +184,7 @@ class Descriptor(object):
 _D = TypeVar("_D", bound=Descriptor)
 
 
-class OwnerMeta(type):
+class OwnerMeta(GenericMeta):
     __this_descriptors = (
         collections.OrderedDict()
     )  # type: collections.OrderedDict[str, Descriptor]
